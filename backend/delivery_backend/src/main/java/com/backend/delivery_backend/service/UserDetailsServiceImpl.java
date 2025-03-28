@@ -45,11 +45,16 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		if ((user = customerRepository.findByEmail(email)) != null) return wrapUser(user);
 		if ((user = courierRepository.findByEmail(email)) != null) return wrapUser(user);
 		if ((user = restaurantOwnerRepository.findByEmail(email)) != null) return wrapUser(user);
-		if ((user = adminRepository.findByEmail(email)) != null) return wrapUser(user); // ✅ yeni satır
+		if ((user = adminRepository.findByEmail(email)) != null) return wrapUser(user);
+
 		throw new UsernameNotFoundException("User not found");
 	}
 
 	private UserDetails wrapUser(User user) {
+		if (user.getStatus() != null && !user.getStatus().equalsIgnoreCase("ACTIVE")) {
+			throw new UsernameNotFoundException("Account is " + user.getStatus().toLowerCase());
+		}
+
 		List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().toUpperCase()));
 		return new org.springframework.security.core.userdetails.User(
 				user.getEmail(), user.getPassword(), authorities

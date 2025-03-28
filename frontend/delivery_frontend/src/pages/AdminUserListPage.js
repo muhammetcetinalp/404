@@ -40,6 +40,16 @@ const AdminUserListPage = () => {
         }
     };
 
+    const handleStatusChange = async (email, newStatus) => {
+        try {
+            await api.put(`/admin/update-user/${email}`, { status: newStatus });
+            const res = await api.get('/admin/all-users');
+            setData(res.data);
+        } catch (err) {
+            console.error("Failed to update status", err);
+        }
+    };
+
     const openEditModal = (user) => {
         setSelectedUser(user);
         setEditForm({ ...user });
@@ -68,7 +78,7 @@ const AdminUserListPage = () => {
             u.role?.toLowerCase().includes(search.toLowerCase())
         ) : [];
 
-    const renderUsers = (users, roleLabel, badgeColor) => (
+    const renderUsers = (users, roleLabel, badgeColor, allowStatusChange = true) => (
         <>
             <h3 style={{ marginTop: '30px' }}>{roleLabel}</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -95,31 +105,19 @@ const AdminUserListPage = () => {
                                 display: 'inline-block',
                                 textTransform: 'uppercase'
                             }}>{user.role}</span>
+                            <div style={{ fontSize: '12px', marginTop: '5px' }}>Status: {user.status}</div>
                         </div>
 
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            <button onClick={() => openEditModal(user)} style={{
-                                backgroundColor: '#ffc107',
-                                color: 'black',
-                                border: 'none',
-                                padding: '6px 12px',
-                                borderRadius: '5px',
-                                fontSize: '13px',
-                                cursor: 'pointer'
-                            }}>
-                                Edit
-                            </button>
-                            <button onClick={() => handleDelete(user.email)} style={{
-                                backgroundColor: '#dc3545',
-                                color: 'white',
-                                border: 'none',
-                                padding: '6px 12px',
-                                borderRadius: '5px',
-                                fontSize: '13px',
-                                cursor: 'pointer'
-                            }}>
-                                Delete
-                            </button>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <button onClick={() => openEditModal(user)} style={{ backgroundColor: '#ffc107', color: 'black', border: 'none', padding: '6px 12px', borderRadius: '5px', fontSize: '13px', cursor: 'pointer' }}>Edit</button>
+                            <button onClick={() => handleDelete(user.email)} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '5px', fontSize: '13px', cursor: 'pointer' }}>Delete</button>
+                            {allowStatusChange && (
+                                <>
+                                    <button onClick={() => handleStatusChange(user.email, 'ACTIVE')} style={{ backgroundColor: '#28a745', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '5px', fontSize: '13px', cursor: 'pointer' }}>Activate</button>
+                                    <button onClick={() => handleStatusChange(user.email, 'SUSPENDED')} style={{ backgroundColor: '#fd7e14', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '5px', fontSize: '13px', cursor: 'pointer' }}>Suspend</button>
+                                    <button onClick={() => handleStatusChange(user.email, 'BANNED')} style={{ backgroundColor: '#6c757d', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '5px', fontSize: '13px', cursor: 'pointer' }}>Ban</button>
+                                </>
+                            )}
                         </div>
                     </div>
                 ))}
@@ -130,76 +128,20 @@ const AdminUserListPage = () => {
     return (
         <div style={{ padding: '40px', maxWidth: '900px', margin: 'auto' }}>
             <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>All Users</h2>
-            <button
-                onClick={() => navigate('/admin/add-user')}
-                style={{
-                    marginBottom: '20px',
-                    padding: '10px 16px',
-                    backgroundColor: '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '5px',
-                    fontSize: '15px',
-                    cursor: 'pointer'
-                }}
-            >
-                Add New User
-            </button>
+            <button onClick={() => navigate('/admin/add-user')} style={{ marginBottom: '20px', padding: '10px 16px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px', fontSize: '15px', cursor: 'pointer' }}>Add New User</button>
 
-            <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by name, email or role (e.g. customer)"
-                style={{
-                    width: '100%',
-                    padding: '12px',
-                    borderRadius: '8px',
-                    border: '1px solid #ccc',
-                    marginBottom: '20px'
-                }}
-            />
+            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name, email or role (e.g. customer)" style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ccc', marginBottom: '20px' }} />
 
             {renderUsers(data.customers, 'Customers', '#28a745')}
             {renderUsers(data.couriers, 'Couriers', '#007bff')}
             {renderUsers(data.restaurantOwners, 'Restaurant Owners', '#ffc107')}
-            {renderUsers(data.admins, 'Admins', '#6f42c1')}
+            {renderUsers(data.admins, 'Admins', '#6f42c1', false)}
 
-            <button
-                onClick={() => navigate('/admin')}
-                style={{
-                    marginTop: '40px',
-                    width: '100%',
-                    padding: '12px',
-                    backgroundColor: '#4CAF50',
-                    color: 'white',
-                    fontWeight: 'bold',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer'
-                }}
-            >
-                Back to Dashboard
-            </button>
+            <button onClick={() => navigate('/admin')} style={{ marginTop: '40px', width: '100%', padding: '12px', backgroundColor: '#4CAF50', color: 'white', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Back to Dashboard</button>
 
-            {/* Edit Modal */}
             {selectedUser && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.5)',
-                    display: 'flex', justifyContent: 'center', alignItems: 'center',
-                    zIndex: 999
-                }}>
-                    <div style={{
-                        backgroundColor: '#fff',
-                        padding: '30px',
-                        borderRadius: '10px',
-                        width: '400px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '10px'
-                    }}>
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 999 }}>
+                    <div style={{ backgroundColor: '#fff', padding: '30px', borderRadius: '10px', width: '400px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         <h3>Edit User</h3>
                         <select name="role" value={editForm.role} disabled style={{ padding: '8px', borderRadius: '5px', border: '1px solid #ccc', backgroundColor: '#f1f1f1' }}>
                             <option value="customer">Customer</option>
@@ -224,9 +166,7 @@ const AdminUserListPage = () => {
                         )}
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                             <button onClick={() => setSelectedUser(null)} style={{ padding: '6px 12px' }}>Cancel</button>
-                            <button onClick={saveEdit} style={{ backgroundColor: '#28a745', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '5px' }}>
-                                Save
-                            </button>
+                            <button onClick={saveEdit} style={{ backgroundColor: '#28a745', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '5px' }}>Save</button>
                         </div>
                     </div>
                 </div>

@@ -31,6 +31,18 @@ public abstract class User {
 	@Column(nullable = false)
 	private String role;
 
+	@Column(nullable = false)
+	private String status = "ACTIVE";
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+
 	public abstract String getId();
 
 	// Getter/setter

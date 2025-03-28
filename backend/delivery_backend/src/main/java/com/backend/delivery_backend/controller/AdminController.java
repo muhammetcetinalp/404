@@ -6,6 +6,7 @@ import com.backend.delivery_backend.repository.AdminRepository;
 import com.backend.delivery_backend.repository.CustomerRepository;
 import com.backend.delivery_backend.repository.CourierRepository;
 import com.backend.delivery_backend.repository.RestaurantOwnerRepository;
+import com.backend.delivery_backend.service.UserDetailsServiceImpl;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +31,10 @@ public class AdminController {
     private AdminRepository adminRepository;
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
+    private UserDetailsServiceImpl userDetailsService;
+
 
     @GetMapping("/all-users")
     public ResponseEntity<?> getAllUsers() {
@@ -112,6 +117,36 @@ public class AdminController {
         return ResponseEntity.status(404).body("User not found");
     }
 
+    @PutMapping("/ban-user/{email}")
+    public ResponseEntity<?> banUser(@PathVariable String email) {
+        User user = userDetailsService.getUserByEmail(email);
+        if (user == null) return ResponseEntity.status(404).body("User not found");
+
+        user.setStatus("BANNED");
+        userDetailsService.saveUser(user);
+        return ResponseEntity.ok("User has been banned.");
+    }
+
+    @PutMapping("/suspend-user/{email}")
+    public ResponseEntity<?> suspendUser(@PathVariable String email) {
+        User user = userDetailsService.getUserByEmail(email);
+        if (user == null) return ResponseEntity.status(404).body("User not found");
+
+        user.setStatus("SUSPENDED");
+        userDetailsService.saveUser(user);
+        return ResponseEntity.ok("User has been suspended.");
+    }
+    @PutMapping("/reactivate-user/{email}")
+    public ResponseEntity<?> reactivateUser(@PathVariable String email) {
+        User user = userDetailsService.getUserByEmail(email);
+        if (user == null) return ResponseEntity.status(404).body("User not found");
+
+        user.setStatus("ACTIVE");
+        userDetailsService.saveUser(user);
+        return ResponseEntity.ok("User reactivated.");
+    }
+
+
     private void applyCommonUpdates(Object user, Map<String, Object> updates) {
         // Rol güncellemesi
         if (updates.containsKey("role")) {
@@ -121,6 +156,9 @@ public class AdminController {
             } else {
                 ((User) user).setRole(newRole.toLowerCase());
             }
+        }
+        if (updates.containsKey("status")) {
+            ((User) user).setStatus((String) updates.get("status"));
         }
 
         if (user instanceof Customer customer) {

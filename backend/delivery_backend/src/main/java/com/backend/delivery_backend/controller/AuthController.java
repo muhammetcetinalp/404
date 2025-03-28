@@ -29,11 +29,27 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody UserDTO userDTO) {
         try {
+            // 1. Kullanıcıyı veritabanından çek
+            User user = userDetailsService.getUserByEmail(userDTO.getEmail());
+
+            if (user == null) {
+                return ResponseEntity.status(404).body("User not found");
+            }
+
+            // 2. Durum kontrolü
+            String status = user.getStatus();
+            if ("BANNED".equalsIgnoreCase(status)) {
+                return ResponseEntity.status(403).body("Your account has been banned.");
+            }
+            if ("SUSPENDED".equalsIgnoreCase(status)) {
+                return ResponseEntity.status(403).body("Your account has been suspended.");
+            }
+
+            // 3. Kimlik doğrulama
             Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(userDTO.getEmail(), userDTO.getPassword())
             );
 
-            User user = userDetailsService.getUserByEmail(userDTO.getEmail());
             String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
 
             Map<String, Object> response = new HashMap<>();
@@ -47,6 +63,7 @@ public class AuthController {
             return ResponseEntity.status(401).body("Invalid credentials");
         }
     }
+
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody UserDTO userDTO) {

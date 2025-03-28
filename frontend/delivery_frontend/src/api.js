@@ -7,7 +7,6 @@ const api = axios.create({
     },
 });
 
-// 🔐 Her istek öncesi token'ı header'a ekle
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
@@ -19,7 +18,6 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// ❌ Yetkisiz isteklerde logout işlemi
 api.interceptors.response.use(
     (response) => response,
     (error) => {

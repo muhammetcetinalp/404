@@ -132,11 +132,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		}
 	}
 
+
+
 	public String generateResetToken(User user) {
+		// Eğer kullanıcıya ait eski token varsa, sil
 		PasswordResetToken existingToken = tokenRepository.findByUserId(user.getId());
 		if (existingToken != null) {
-			return "http://localhost:3000/resetPassword/" + existingToken.getToken();
+			tokenRepository.delete(existingToken);
 		}
+
 		String token = UUID.randomUUID().toString();
 		LocalDateTime expiry = LocalDateTime.now().plusMinutes(30);
 		PasswordResetToken resetToken = new PasswordResetToken();
@@ -144,6 +148,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		resetToken.setToken(token);
 		resetToken.setExpiryDateTime(expiry);
 		tokenRepository.save(resetToken);
+
 		return "http://localhost:3000/resetPassword/" + token;
 	}
 

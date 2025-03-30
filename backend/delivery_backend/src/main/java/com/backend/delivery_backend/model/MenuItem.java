@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "menu_item")
 @Getter
 @Setter
 public class MenuItem {

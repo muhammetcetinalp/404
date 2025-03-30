@@ -22,35 +22,13 @@ public class RestaurantOwner extends User {
 
     @Column(name = "district")
     private String district;
+
     @Id
     private String restaurantId;
 
     @Column(name = "is_open")
-    private boolean isOpen;
+    private boolean isOpen = false;
 
-    @Column(name = "cuisine_type")
-    private String cuisineType;
-
-    public DeliveryType getDeliveryType() {
-        return deliveryType;
-    }
-
-    public void setDeliveryType(DeliveryType deliveryType) {
-        this.deliveryType = deliveryType;
-    }
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "delivery_type")
-    private DeliveryType deliveryType;
-
-
-    public String getCuisineType() {
-        return cuisineType;
-    }
-
-    public void setCuisineType(String cuisineType) {
-        this.cuisineType = cuisineType;
-    }
     public String getRestaurantId() {
         return restaurantId;
     }

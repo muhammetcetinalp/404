@@ -19,13 +19,9 @@ public class Courier extends User {
     @JoinColumn(name = "restaurantId")
     private RestaurantOwner restaurantOwner;
 
-    public RestaurantOwner getRestaurantOwner() {
-        return restaurantOwner;
-    }
+    @Enumerated(EnumType.STRING)
+    private CourierStatus status = CourierStatus.UNAVAILABLE; // default olarak unavailable
 
-    public void setRestaurantOwner(RestaurantOwner restaurantOwner) {
-        this.restaurantOwner = restaurantOwner;
-    }
 
     public void setCourierId(String courierId) {
         this.courierId = courierId;
@@ -34,6 +30,5 @@ public class Courier extends User {
     public String getId() {
         return this.courierId;
     }
-
 
 }

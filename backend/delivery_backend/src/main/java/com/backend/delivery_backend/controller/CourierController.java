@@ -22,7 +22,7 @@ public class CourierController {
 
     @PostMapping("/{courierId}/assign-restaurant/{restaurantId}")
     public ResponseEntity<?> assignRestaurant(
-            @PathVariable Long courierId,
+            @PathVariable String courierId,
             @PathVariable Long restaurantId) {
         try {
             courierService.assignRestaurantToCourier(courierId, restaurantId);
@@ -31,6 +31,19 @@ public class CourierController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
+    @PostMapping("/{courierId}/assign-restaurant-by-name")
+    public ResponseEntity<?> assignRestaurantByName(
+            @PathVariable String courierId,
+            @RequestParam String name) {
+        try {
+            courierService.assignRestaurantToCourierByName(courierId, name);
+            return ResponseEntity.ok("Courier assigned to restaurant with name: " + name);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
 
     @PatchMapping("/{courierId}/delivery-requests/{requestId}")
     public ResponseEntity<?> handleDeliveryRequest(

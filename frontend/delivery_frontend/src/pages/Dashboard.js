@@ -47,9 +47,27 @@ const Dashboard = () => {
         Logout
       </button>
 
-      <Link to="/restaurant/menu">
-        <button className="btn btn-success">Go to Menu</button>
-      </Link>
+      {/*kurye kısmı*/}
+
+      {role === 'courier' && (
+        <>
+          <Link to="/courier/register-restaurant">
+            <button>Register to Restaurant</button>
+          </Link>
+          <Link to="/courier/delivery-request">
+            <button>Respond to Delivery Request</button>
+          </Link>
+        </>
+      )}
+
+
+      {/*restoran sahibi kısmı*/}
+
+      {role === 'restaurant_owner' && (
+        <Link to="/restaurant/menu">
+          <button>Go to Menu</button>
+        </Link>
+      )}
 
 
     </div>

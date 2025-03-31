@@ -14,6 +14,8 @@ import ProfilePage from './pages/ProfilePage';
 import Unauthorized from './pages/Unauthorized';
 import PrivateRoute from './pages/PrivateRoute';
 import MenuPage from './pages/MenuPage';
+import CourierRegisterRestaurantPage from "./pages/CourierRegisterRestaurantPage";
+import DeliveryRequestPage from "./pages/DeliveryRequestPage";
 
 
 const App = () => {
@@ -46,6 +48,8 @@ const App = () => {
         <Route path="/my-deliveries" element={<PrivateRoute allowedRoles={['courier']}> <CourierDeliveriesPage /> </PrivateRoute>} />
         <Route path="/courier-restaurant" element={<PrivateRoute allowedRoles={['courier']}> <CourierRestaurantsPage /> </PrivateRoute>} />
 
+        
+        {/* Sadece restoran sahibi erişebilir */}
         <Route
           path="/restaurant/menu"
           element={
@@ -54,6 +58,26 @@ const App = () => {
             </PrivateRoute>
           }
         />
+
+        {/* Sadece kuryeler erişebilir */}
+        <Route
+          path="/courier/register-restaurant"
+          element={
+            <PrivateRoute allowedRoles={["courier"]}>
+              <CourierRegisterRestaurantPage />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/courier/delivery-request"
+          element={
+            <PrivateRoute allowedRoles={["courier"]}>
+              <DeliveryRequestPage />
+            </PrivateRoute>
+          }
+        />
+
 
 
 

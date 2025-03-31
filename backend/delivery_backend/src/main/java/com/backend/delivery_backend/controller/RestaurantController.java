@@ -6,6 +6,7 @@ import com.backend.delivery_backend.service.RestaurantOwnerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/restaurants")
@@ -15,6 +16,12 @@ public class RestaurantController {
 
     public RestaurantController(RestaurantOwnerService restaurantOwnerService) {
         this.restaurantOwnerService = restaurantOwnerService;
+    }
+
+    @GetMapping("/{id}/menu")
+    public ResponseEntity<?> getMenu(@PathVariable String id) {
+        List<MenuItem> items = restaurantOwnerService.getMenuItemsByRestaurant(id);
+        return ResponseEntity.ok(items);
     }
 
     @PatchMapping("/{id}/toggle-status")

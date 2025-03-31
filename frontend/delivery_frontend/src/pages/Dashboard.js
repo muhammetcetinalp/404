@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -45,6 +46,12 @@ const Dashboard = () => {
       >
         Logout
       </button>
+
+      <Link to="/restaurant/menu">
+        <button className="btn btn-success">Go to Menu</button>
+      </Link>
+
+
     </div>
   );
 };

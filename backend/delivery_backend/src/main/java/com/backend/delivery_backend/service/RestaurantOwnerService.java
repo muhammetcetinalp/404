@@ -7,6 +7,8 @@ import com.backend.delivery_backend.repository.MenuItemRepository;
 import com.backend.delivery_backend.repository.RestaurantOwnerRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class RestaurantOwnerService {
 
@@ -19,6 +21,11 @@ public class RestaurantOwnerService {
         this.restaurantOwnerRepository = restaurantOwnerRepository;
         this.menuItemRepository = menuItemRepository;
     }
+
+    public List<MenuItem> getMenuItemsByRestaurant(String restaurantId) {
+        return menuItemRepository.findByRestaurantRestaurantId(restaurantId);
+    }
+
 
     public MenuItem addMenuItem(String restaurantId, MenuItemDTO dto) {
         RestaurantOwner restaurant = restaurantOwnerRepository.findById(restaurantId)

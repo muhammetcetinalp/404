@@ -24,6 +24,32 @@ public class RestaurantOwner extends User {
     @Id
     private String restaurantId;
 
+    @Column(name = "is_open")
+    private boolean isOpen = false;
+
+    @Column(name = "cuisine_type")
+    private String cuisineType;
+
+    public DeliveryType getDeliveryType() {
+        return deliveryType;
+    }
+
+    public void setDeliveryType(DeliveryType deliveryType) {
+        this.deliveryType = deliveryType;
+    }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "delivery_type")
+    private DeliveryType deliveryType;
+
+
+    public String getCuisineType() {
+        return cuisineType;
+    }
+
+    public void setCuisineType(String cuisineType) {
+        this.cuisineType = cuisineType;
+    }
     public String getRestaurantId() {
         return restaurantId;
     }
@@ -56,4 +82,12 @@ public class RestaurantOwner extends User {
 
     public float getRating() { return rating; }
     public void setRating(float rating) { this.rating = rating; }
+
+    public boolean isOpen() {
+        return isOpen;
+    }
+
+    public void setOpen(boolean open) {
+        isOpen = open;
+    }
 }

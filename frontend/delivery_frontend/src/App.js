@@ -11,6 +11,10 @@ import AdminAddUserPage from './pages/AdminAddUserPage';
 import ProfilePage from './pages/ProfilePage';
 import Unauthorized from './pages/Unauthorized';
 import PrivateRoute from './pages/PrivateRoute';
+import MenuPage from './pages/MenuPage';
+import CourierRegisterRestaurantPage from "./pages/CourierRegisterRestaurantPage";
+import DeliveryRequestPage from "./pages/DeliveryRequestPage";
+
 
 const App = () => {
   return (
@@ -41,6 +45,39 @@ const App = () => {
             </PrivateRoute>
           }
         />
+
+
+        {/* Sadece restoran sahibi erişebilir */}
+        <Route
+          path="/restaurant/menu"
+          element={
+            <PrivateRoute allowedRoles={['restaurant_owner']}>
+              <MenuPage />
+            </PrivateRoute>
+          }
+        />
+
+        {/* Sadece kuryeler erişebilir */}
+        <Route
+          path="/courier/register-restaurant"
+          element={
+            <PrivateRoute allowedRoles={["courier"]}>
+              <CourierRegisterRestaurantPage />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/courier/delivery-request"
+          element={
+            <PrivateRoute allowedRoles={["courier"]}>
+              <DeliveryRequestPage />
+            </PrivateRoute>
+          }
+        />
+
+
+
 
         {/* Sadece admin erişebilir */}
         <Route

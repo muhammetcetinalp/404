@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 
@@ -6,14 +6,6 @@ const LoginPage = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const navigate = useNavigate();
-
-  // 🔁 error mesajını 5 saniye sonra otomatik temizle
-  useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => setError(''), 5000);
-      return () => clearTimeout(timer); // bileşen unmount olursa temizle
-    }
-  }, [error]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -23,22 +15,20 @@ const LoginPage = () => {
     e.preventDefault();
     try {
       const res = await api.post('/login', form);
+
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('email', res.data.email);
       localStorage.setItem('role', res.data.role.toLowerCase());
 
       const role = res.data.role.toLowerCase();
+
       if (role === 'admin') {
         navigate('/admin');
       } else {
         navigate('/dashboard');
       }
     } catch (err) {
-      if (err.response && err.response.status === 403) {
-        setError(err.response.data); // Ban veya suspend mesajı
-      } else {
-        setError('Login failed. Please check your credentials.');
-      }
+      setError('Login failed. Please check your credentials.');
     }
   };
 
@@ -82,21 +72,7 @@ const LoginPage = () => {
         >
           Login
         </button>
-
-        {/* ⚠️ Uyarı mesajı görünür ve 5 saniye sonra kaybolur */}
-        {error && (
-          <div style={{
-            backgroundColor: '#f8d7da',
-            color: '#721c24',
-            padding: '10px',
-            borderRadius: '6px',
-            fontSize: '14px',
-            textAlign: 'center',
-            marginTop: '10px'
-          }}>
-            {error}
-          </div>
-        )}
+        {error && <p style={{ color: 'red' }}>{error}</p>}
       </form>
 
       <div style={{ marginTop: '20px', textAlign: 'center' }}>

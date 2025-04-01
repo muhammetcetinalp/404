@@ -45,16 +45,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		if ((user = customerRepository.findByEmail(email)) != null) return wrapUser(user);
 		if ((user = courierRepository.findByEmail(email)) != null) return wrapUser(user);
 		if ((user = restaurantOwnerRepository.findByEmail(email)) != null) return wrapUser(user);
-		if ((user = adminRepository.findByEmail(email)) != null) return wrapUser(user);
-
+		if ((user = adminRepository.findByEmail(email)) != null) return wrapUser(user); // ✅ yeni satır
 		throw new UsernameNotFoundException("User not found");
 	}
 
 	private UserDetails wrapUser(User user) {
-		if (user.getStatus() != null && !user.getStatus().equalsIgnoreCase("ACTIVE")) {
-			throw new UsernameNotFoundException("Account is " + user.getStatus().toLowerCase());
-		}
-
 		List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().toUpperCase()));
 		return new org.springframework.security.core.userdetails.User(
 				user.getEmail(), user.getPassword(), authorities
@@ -102,6 +97,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 				r.setAddress(dto.getAddress());
 				r.setBusinessHoursStart(dto.getBusinessHoursStart());
 				r.setBusinessHoursEnd(dto.getBusinessHoursEnd());
+				r.setCuisineType(dto.getCuisineType());
+				r.setDeliveryType(DeliveryType.valueOf(dto.getDeliveryType().toUpperCase()));
 				return restaurantOwnerRepository.save(r);
 
 			case "admin":
@@ -137,15 +134,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		}
 	}
 
-
-
 	public String generateResetToken(User user) {
-		// Eğer kullanıcıya ait eski token varsa, sil
 		PasswordResetToken existingToken = tokenRepository.findByUserId(user.getId());
 		if (existingToken != null) {
 			tokenRepository.delete(existingToken);
 		}
-
 		String token = UUID.randomUUID().toString();
 		LocalDateTime expiry = LocalDateTime.now().plusMinutes(30);
 		PasswordResetToken resetToken = new PasswordResetToken();
@@ -153,7 +146,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		resetToken.setToken(token);
 		resetToken.setExpiryDateTime(expiry);
 		tokenRepository.save(resetToken);
-
 		return "http://localhost:3000/resetPassword/" + token;
 	}
 

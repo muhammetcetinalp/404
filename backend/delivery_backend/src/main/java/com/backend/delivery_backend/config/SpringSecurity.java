@@ -54,13 +54,21 @@ public class SpringSecurity {
 		http
 				.csrf(AbstractHttpConfigurer::disable)
 				.cors(Customizer.withDefaults())
-				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 🔐 JWT için zorunlu
+				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) //JWT için zorunlu
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/api/register", "/api/forgot-password", "/api/resetPassword/**", "/api/login").permitAll()
+						.requestMatchers(
+								"/api/register",
+								"/api/forgot-password",
+								"/api/resetPassword/**",
+								"/api/login",
+								"/api/logout",
+								"/api/public/**",
+                                "/api/couriers/**"
+						).permitAll()
 						.anyRequest().authenticated()
 				)
 				.authenticationProvider(authenticationProvider())
-				.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); // 🔥 JWT filtresi burada devrede
+				.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); //JWT filtresi burada devrede
 
 		return http.build();
 	}

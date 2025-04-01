@@ -1,0 +1,179 @@
+### Customer register
+POST http://localhost:8080/api/register
+Content-Type: application/json
+
+{
+  "name": "Muhammet",
+  "email": "m@gmail.com",
+  "password": "1234567890",
+  "phone": "5555555555",
+  "role": "customer",
+  "city": "Ankara",
+  "district": "Çankaya",
+  "address": "1596.Cadde NO:24D"
+}
+
+
+
+
+### Login Request
+POST http://localhost:8080/api/login
+Content-Type: application/json
+
+{
+  "email": "m@gmail.com",
+  "password": "1234567890"
+}
+
+
+### Get Profile (Customer)
+GET http://localhost:8080/api/profile
+Authorization: Bearer     eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc0MzQ2ODYxNywiZXhwIjoxNzQzNDg2NjE3fQ.-O1Oz1qGCjVO8jg9TZC6NTQeN_nzQmnQNew0Diia-SM
+
+### Logout
+POST http://localhost:8080/api/logout
+Authorization: Bearer      eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc0MzQ1OTEwNywiZXhwIjoxNzQzNDc3MTA3fQ.vUKU615rl2xHq6AZYDcJI1SmRcs4urMmcP-tEKLZnFE
+
+
+### Forgot Password
+POST http://localhost:8080/api/forgot-password
+Content-Type: application/json
+
+{
+  "email": "muhammetcetinalp35@gmail.com"
+}
+
+
+
+### Register a test restaurant
+POST http://localhost:8080/api/register
+Content-Type: application/json
+
+{
+  "name": "Test Burger 3",
+  "email": "testburger3@example.com",
+  "password": "123456",
+  "phone": "5551000001",
+  "role": "restaurant_owner",
+  "city": "İstanbul",
+  "district": "Kadıköy",
+  "address": "Deneme Sokak No:1",
+  "businessHoursStart": "11:00",
+  "businessHoursEnd": "23:00",
+  "cuisineType": "fastfood",
+  "deliveryType": "PICKUP"
+}
+
+### Search for restaurants by keyword (public)
+GET http://localhost:8080/api/public/search-restaurants
+
+
+
+### Search for oepn restaurants
+GET http://localhost:8080/api/public/search-restaurants?keyword=kebap&sortBy=rating
+
+
+### Logout (dummy, for client-side use only)
+POST http://localhost:8080/api/logout
+Authorization: Bearer     eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc0MzM4NzAxOCwiZXhwIjoxNzQzNDA1MDE4fQ.qx-YjhHWDtkmSG2eMv54uDjq1M2iMpY64RClnJ7OUMY
+
+
+###
+GET http://localhost:8080/api/public/search-restaurants?cuisineType=turkish
+
+###
+GET http://localhost:8080/api/public/search-restaurants?deliveryType=both
+
+###
+POST http://localhost:8080/api/register
+Content-Type: application/json
+
+{
+  "name": "Kebapçı Hakkı",
+  "email": "kebapci@example.com",
+  "password": "kebap123",
+  "phone": "5551000103",
+  "role": "restaurant_owner",
+  "city": "Istanbul",
+  "district": "Fatih",
+  "address": "Divan Yolu 42",
+  "businessHoursStart": "10:00",
+  "businessHoursEnd": "23:59",
+  "cuisineType": "turkish",
+  "deliveryType": "PICKUP"
+}
+
+###
+GET http://localhost:8080/api/public/search-restaurants?topRated=4.9
+
+
+###
+GET http://localhost:8080/api/public/search-restaurants
+
+
+### Favori restaurant ekleme
+POST http://localhost:8080/api/profile/favorites/add?restaurantId=b82dc918-c3f7-444f-8fd5-1dcca4de1dfa
+Authorization: Bearer     eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc0MzQ2ODYxNywiZXhwIjoxNzQzNDg2NjE3fQ.-O1Oz1qGCjVO8jg9TZC6NTQeN_nzQmnQNew0Diia-SM
+
+
+### favori restoranları görme
+GET http://localhost:8080/api/profile/favorites
+Authorization: Bearer     eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc0MzQ2ODYxNywiZXhwIjoxNzQzNDg2NjE3fQ.-O1Oz1qGCjVO8jg9TZC6NTQeN_nzQmnQNew0Diia-SM
+
+### favori restaurant çıakrtma isteği
+DELETE http://localhost:8080/api/profile/favorites/remove?restaurantId=caa3a901-33b8-47e6-ac88-ccbecd5b9e7d
+Authorization: Bearer        eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc0MzQ1OTM2NCwiZXhwIjoxNzQzNDc3MzY0fQ.u4082bY98Pkp-yxTRxgfI45Vq0ZcIyQYjIXNL-2FOII
+
+
+
+
+###
+POST http://localhost:8080/api/cart/add
+Authorization: Bearer      eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc0MzQ2MTA3NCwiZXhwIjoxNzQzNDc5MDc0fQ.JUrYjBdu3hohI6DgtVrtnTJlUuZMEqIQG6eQNsnVqbE
+Content-Type: application/x-www-form-urlencoded
+
+menuItemId=menu-002&quantity=10
+
+### Show Basket
+GET http://localhost:8080/api/cart/showcart
+Authorization: Bearer      eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc0MzQ2MTA3NCwiZXhwIjoxNzQzNDc5MDc0fQ.JUrYjBdu3hohI6DgtVrtnTJlUuZMEqIQG6eQNsnVqbE
+
+
+
+### create order with credit card
+POST http://localhost:8080/api/orders/create?deliveryAddress=DenemeAdres&paymentMethod=CREDIT_CARD&deliveryType=DELIVERY
+Content-Type: application/json
+Authorization: Bearer      eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc0MzQ2MTA3NCwiZXhwIjoxNzQzNDc5MDc0fQ.JUrYjBdu3hohI6DgtVrtnTJlUuZMEqIQG6eQNsnVqbE
+
+{
+  "cardNumber": "1234123412341234",
+  "expiryDate": "12/26",
+  "cvv": "123"
+}
+
+### create order with  cash
+POST http://localhost:8080/api/orders/create?deliveryAddress=DenemeAdres&paymentMethod=CASH&deliveryType=DELIVERY
+Content-Type: application/json
+Authorization: Bearer      eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc0MzQ2MTA3NCwiZXhwIjoxNzQzNDc5MDc0fQ.JUrYjBdu3hohI6DgtVrtnTJlUuZMEqIQG6eQNsnVqbE
+
+{
+}
+
+### show past orders
+GET http://localhost:8080/api/orders/history
+Authorization: Bearer      eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc0MzQ2MTA3NCwiZXhwIjoxNzQzNDc5MDc0fQ.JUrYjBdu3hohI6DgtVrtnTJlUuZMEqIQG6eQNsnVqbE
+
+
+
+
+### delete from basket
+DELETE http://localhost:8080/api/orders/remove?menuItemId=menu-004
+Authorization: Bearer      eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc0MzQ2MTA3NCwiZXhwIjoxNzQzNDc5MDc0fQ.JUrYjBdu3hohI6DgtVrtnTJlUuZMEqIQG6eQNsnVqbE
+
+### Show Basket
+GET http://localhost:8080/api/cart/showcart
+Authorization: Bearer      eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc0MzQ2MTA3NCwiZXhwIjoxNzQzNDc5MDc0fQ.JUrYjBdu3hohI6DgtVrtnTJlUuZMEqIQG6eQNsnVqbE
+
+### delete all
+DELETE http://localhost:8080/api/orders/remove-all?menuItemId=menu-002
+Authorization: Bearer      eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc0MzQ2MTA3NCwiZXhwIjoxNzQzNDc5MDc0fQ.JUrYjBdu3hohI6DgtVrtnTJlUuZMEqIQG6eQNsnVqbE

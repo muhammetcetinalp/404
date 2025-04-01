@@ -11,6 +11,31 @@ public class UserDTO {
 	private String address;
 	private String businessHoursStart;
 	private String businessHoursEnd;
+	private String cuisineType;
+	private String deliveryType;
+
+
+
+
+
+	public String getDeliveryType() {
+		return deliveryType;
+	}
+
+	public void setDeliveryType(String deliveryType) {
+		this.deliveryType = deliveryType;
+	}
+
+
+
+	public String getCuisineType() {
+		return cuisineType;
+	}
+
+	public void setCuisineType(String cuisineType) {
+		this.cuisineType = cuisineType;
+	}
+
 
 	public Float getRating() {
 		return rating;

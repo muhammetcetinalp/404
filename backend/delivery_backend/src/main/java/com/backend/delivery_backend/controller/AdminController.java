@@ -59,7 +59,6 @@ public class AdminController {
     public ResponseEntity<?> createAdmin(@RequestBody UserDTO dto) {
         try {
             Admin admin = new Admin();
-            admin.setAdminId(UUID.randomUUID().toString());
             admin.setName(dto.getName());
             admin.setEmail(dto.getEmail());
             admin.setPassword(passwordEncoder.encode(dto.getPassword()));

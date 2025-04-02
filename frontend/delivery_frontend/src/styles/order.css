@@ -1,0 +1,129 @@
+.myorder-header {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('../assets/images/myorder_banner.png');
+    background-position: center;
+    background-size: cover;
+    padding-bottom: 50px;
+}
+
+/* Tab Styles */
+.order-req-tab-active {
+    background-color: #eb6825;
+    color: white;
+    border-radius: 5px 5px 0 0;
+    transition: all 0.3s ease;
+}
+
+.order-req-tab-text {
+    font-weight: 600;
+    margin: 0;
+    padding: 10px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.order-req-tab-text svg {
+    margin-right: 8px;
+}
+
+/* Animation */
+.animate__animated {
+    animation-duration: 0.3s;
+}
+
+/* Content Area */
+.bg-white {
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Tab hover effects */
+.order-req-tab-text {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.order-req-tab-active .order-req-tab-text {
+    color: white;
+}
+
+/* Non-active tabs hover effect */
+.col-12.col-lg-4.col-md-4.text-center:not(.order-req-tab-active):hover {
+    background-color: #f5f5f5;
+}
+
+.col-12.col-lg-4.col-md-4.text-center:not(.order-req-tab-active):hover .order-req-tab-text {
+    color: #eb6825;
+}
+
+/* Active tab styling */
+.order-req-tab-active {
+    background-color: #eb6825;
+    border-radius: 5px 5px 0 0;
+    transition: all 0.3s ease;
+}
+
+/* Add to order.css */
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+.table td,
+.table th {
+    vertical-align: middle;
+    padding: 1rem;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.badge-success {
+    background-color: #28a745;
+    color: white;
+    padding: 0.35em 0.65em;
+    font-size: 0.75em;
+    font-weight: 700;
+}
+
+.page-container {
+    background-color: #ebedf3;
+}
+
+/* Order Tabs Styling */
+.order-tabs-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.order-tab {
+    flex: 1;
+    max-width: 300px;
+    text-align: center;
+    padding: 12px 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 3px solid transparent;
+}
+
+.order-tab:hover {
+    background-color: #f8f9fa;
+}
+
+.order-tab.active {
+    border-bottom: 3px solid #eb6825;
+    color: #eb6825;
+}
+
+.order-tab-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.order-req-tab-text {
+    margin: 0;
+    font-weight: 500;
+}

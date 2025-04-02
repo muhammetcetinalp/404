@@ -1,0 +1,252 @@
+/* header */
+.nav-link {
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: #fff !important;
+}
+
+.nav-item .active {
+    font-size: 13px;
+    font-weight: 700;
+    color: #eb6825 !important;
+}
+
+.nav-item .btn {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.navbar-nav .nav-item {
+    margin-top: 8px;
+    margin-right: 8px;
+}
+
+.btn-warning {
+    color: #fff;
+    background-color: #eb6825;
+    border-color: #eb6825;
+    transition: all 0.3s ease-in-out !important
+}
+
+.btn-warning:hover {
+    color: #eb6825;
+    background-color: #fff;
+    border-color: #eb6825;
+}
+
+.btn-warning:focus,
+.btn-warning.focus {
+    box-shadow: none;
+}
+
+.btn-warning:not(:disabled):not(.disabled):active,
+.btn-warning:not(:disabled):not(.disabled).active,
+.show>.btn-warning.dropdown-toggle {
+    color: #eb6825;
+    background-color: #fff;
+    border-color: #eb6825;
+}
+
+.btn-warning:not(:disabled):not(.disabled):active:focus,
+.btn-warning:not(:disabled):not(.disabled).active:focus,
+.show>.btn-warning.dropdown-toggle:focus {
+    box-shadow: none;
+}
+
+.home-cont3 {
+    background: url('../assets/images/backimgmeatball.jpg') no-repeat center / cover;
+}
+
+
+
+
+@media (max-width: 600px) {
+    h1 {
+        font-size: 30px !important;
+    }
+
+    .home-cont1-text {
+        padding-top: 60px !important;
+        padding-bottom: 60px !important;
+    }
+}
+
+.navbar-padding-right {
+    padding-right: 10px;
+}
+
+
+.custom-link {
+    color: white;
+    text-transform: uppercase;
+    font-weight: bold;
+    margin-right: 1rem;
+    text-decoration: none;
+}
+
+.home-btn {
+    background-color: #F26522;
+    color: white;
+    text-transform: uppercase;
+    font-weight: bold;
+    padding: 6px 14px;
+    border-radius: 5px;
+    border: none;
+    white-space: nowrap;
+    display: inline-block;
+    transition: background-color 0.3s ease;
+
+}
+
+
+.home-btn:hover {
+    background-color: #282c35;
+    color: #F26522;
+    border: 1px solid #F26522;
+}
+
+.banner-color {
+    background-color: #282c35;
+    color: white;
+}
+
+
+.btn-contact {
+    background-color: #2f78c2;
+    color: white;
+    text-transform: uppercase;
+    font-weight: bold;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+}
+
+.btn-contact:hover {
+    background-color: #235f9c;
+}
+
+.how-it-works-bg {
+    background-color: rgb(33, 37, 41);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: white;
+}
+
+.navbar-logo {
+    margin-top: 10px;
+    height: 50px;
+}
+
+.dropdown-menu {
+    background-color: #000 !important;
+    border: 1px solid #fff !important;
+}
+
+.dropdown-item {
+    color: #fff !important;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: #333 !important;
+    color: #fff !important;
+}
+
+.dropdown-divider {
+    border-color: #fff !important;
+}
+
+.navbar .dropdown-menu {
+    right: 0;
+    left: auto;
+    background-color: #000;
+    border: 1px solid #fff;
+}
+
+.navbar .dropdown-item {
+    color: #fff !important;
+    padding: 0.5rem 1.5rem;
+}
+
+.navbar .dropdown-item:hover {
+    background-color: #333 !important;
+}
+
+.navbar .dropdown-divider {
+    border-color: #fff !important;
+    margin: 0.5rem 0;
+}
+
+.navbar-nav {
+    align-items: center;
+}
+
+.navbar .nav-link,
+.navbar .dropdown-toggle {
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.navbar .dropdown-toggle::after {
+    vertical-align: middle;
+    margin-left: 0.5rem;
+}
+
+.home-btn {
+    margin-left: 0.5rem;
+}
+
+.navbar .nav-dropdown {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    margin-bottom: 6px;
+}
+
+.navbar .dropdown-toggle {
+    padding: 0.5rem 1rem !important;
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.navbar .dropdown-toggle.nav-link {
+    padding: 0.5rem 1rem !important;
+    margin: 0 !important;
+}
+
+.admin-navbar {
+    background-color: #2c3e50 !important;
+}
+
+.navbar-nav .nav-item {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.navbar .dropdown-toggle::after {
+    vertical-align: middle;
+    margin-left: 0.3rem;
+}
+
+.navbar {
+    min-height: 60px;
+}
+
+.navbar .nav-link,
+.navbar .dropdown-toggle {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-nav {
+    background-color: #2c3e50;
+    padding: 10px;
+    border-radius: 6px;
+}

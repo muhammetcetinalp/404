@@ -1,0 +1,222 @@
+/* Checkout page specific styles */
+.checkout-page-wrapper {
+    background-color: #EBEDF3;
+}
+
+.payment-options button {
+    margin-right: 10px;
+    margin-bottom: 10px;
+    white-space: nowrap;
+}
+
+.tip-options button {
+    min-width: 40px;
+    margin-right: 10px;
+}
+
+/* Input alanları için genel stiller */
+.card-payment-form input {
+    background-color: #fff !important;
+    color: #495057 !important;
+    border: 1px solid #ced4da !important;
+    padding: 10px 15px !important;
+    border-radius: 4px !important;
+}
+
+/* Input alanlarına odaklanıldığında */
+.card-payment-form input:focus {
+    border-color: #eb6825 !important;
+    box-shadow: 0 0 0 0.2rem rgba(235, 104, 37, 0.25) !important;
+}
+
+/* Placeholder rengi */
+.card-payment-form input::placeholder {
+    color: #6c757d !important;
+    opacity: 1 !important;
+}
+
+/* Kredi kartı numarası için özel stil */
+.card-number-input {
+    letter-spacing: 1px;
+    font-size: 16px;
+}
+
+/* Tarih ve CVV için */
+.card-expiry-input,
+.card-cvv-input {
+    font-size: 16px;
+}
+
+.card-payment-form {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .payment-options {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .payment-options button {
+        margin-bottom: 10px;
+        width: 100%;
+    }
+
+    .tip-options {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .tip-options button {
+        flex: 1;
+        margin-right: 5px;
+    }
+}
+
+/* checkout.css dosyasına ekleyin */
+
+/* Tip butonları için hover efekti */
+.tip-options button:hover {
+    background-color: #eb6825 !important;
+    border-color: #eb6825 !important;
+    color: white !important;
+}
+
+/* Seçili tip butonu rengi */
+.tip-options button.btn-primary {
+    background-color: #eb6825;
+    border-color: #eb6825;
+}
+
+/* Payment butonları için hover efekti */
+.payment-options button:hover {
+    background-color: #eb6825 !important;
+    border-color: #eb6825 !important;
+    color: white !important;
+}
+
+/* Seçili payment butonu rengi */
+.payment-options button.btn-primary {
+    background-color: #eb6825;
+    border-color: #eb6825;
+}
+
+/* Delivery Address Section Styles */
+.delivery-address-section {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    margin-bottom: 20px;
+}
+
+.address-option {
+    display: flex;
+    align-items: flex-start;
+    padding: 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: white;
+}
+
+.address-option:hover {
+    border-color: #eb6825;
+    box-shadow: 0 0 0 1px #eb6825;
+}
+
+.address-option.selected {
+    border-color: #eb6825;
+    background-color: rgba(235, 104, 37, 0.05);
+}
+
+.address-option .form-check-input {
+    margin-top: 3px;
+    margin-right: 15px;
+}
+
+.address-option label {
+    cursor: pointer;
+    margin-bottom: 0;
+}
+
+.address-text {
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.add-new-address {
+    color: #eb6825;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.add-new-address:hover {
+    text-decoration: underline;
+}
+
+/* Radio button özelleştirmesi */
+.form-check-input:checked {
+    background-color: #eb6825;
+    border-color: #eb6825;
+}
+
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(235, 104, 37, 0.25);
+}
+
+/* Seçili adres kartı için ek stil */
+.address-option.selected {
+    border-color: #eb6825;
+    background-color: rgba(235, 104, 37, 0.05);
+    box-shadow: 0 0 0 1px #eb6825;
+}
+
+.address-option.selected .form-check-input {
+    border-color: #eb6825;
+}
+
+.delivery-method-options {
+    display: flex;
+    gap: 10px;
+}
+
+.delivery-method-options .form-check {
+    margin-right: 10px;
+}
+
+/* Bölüm stilleri */
+.payment-section,
+.tip-section,
+.address-section {
+    background-color: rgba(255, 255, 255, 0.8);
+    /* Saydam beyaz arka plan */
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+    color: #eb6825;
+    margin-bottom: 15px;
+    font-weight: 600;
+    font-size: 1.25rem;
+}
+
+.subsection-title {
+    font-size: 1rem;
+    color: #495057;
+    margin-bottom: 12px;
+    font-weight: 500;
+}

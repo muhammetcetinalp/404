@@ -1,0 +1,18 @@
+.status-badge {
+    padding: 0.35em 0.65em;
+    font-size: 0.875em;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-radius: 0.25rem;
+}
+
+.card-text {
+    padding-left: 15px;
+}
+
+.location-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 8px;
+}

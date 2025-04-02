@@ -103,7 +103,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 			case "admin":
 				Admin admin = new Admin();
-				admin.setAdminId(UUID.randomUUID().toString());
 				admin.setName(dto.getName());
 				admin.setEmail(dto.getEmail());
 				admin.setPassword(encodedPassword);
@@ -182,9 +181,21 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 	public User getUserById(String userId) {
 		User user = customerRepository.findByCustomerId(userId);
-		if (user == null) user = courierRepository.findByCourierId(userId);
-		if (user == null) user = restaurantOwnerRepository.findByRestaurantId(userId);
-		if (user == null) user = adminRepository.findByAdminId(userId);
+		if (user != null) return user;
+
+		user = courierRepository.findByCourierId(userId);
+		if (user != null) return user;
+
+		user = restaurantOwnerRepository.findByRestaurantId(userId);
+		if (user != null) return user;
+
+		try {
+			Long id = Long.parseLong(userId); // sadece bu noktada denenmeli
+			user = adminRepository.findByAdminId(id);
+		} catch (NumberFormatException e) {
+			return null;
+		}
+
 		return user;
 	}
 

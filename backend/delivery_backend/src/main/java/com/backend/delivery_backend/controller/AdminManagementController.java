@@ -28,7 +28,6 @@ public class AdminManagementController {
         }
 
         Admin admin = new Admin();
-        admin.setAdminId(UUID.randomUUID().toString());
         admin.setName(dto.getName());
         admin.setEmail(dto.getEmail());
         admin.setPassword(userService.encodePassword(dto.getPassword()));

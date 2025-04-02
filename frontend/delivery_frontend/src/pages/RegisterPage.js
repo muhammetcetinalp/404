@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../api';
-import '../App.css';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import '../styles/register.css';
 
 const RegisterPage = () => {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -14,10 +18,13 @@ const RegisterPage = () => {
     district: '',
     address: '',
     businessHoursStart: '',
-    businessHoursEnd: ''
+    businessHoursEnd: '',
+    cuisineType: '',
+    deliveryType: 'DELIVERY'
   });
 
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -29,91 +36,241 @@ const RegisterPage = () => {
       return setError("Passwords do not match.");
     }
 
+    setIsSubmitting(true);
     try {
       const payload = { ...form };
       delete payload.confirmPassword;
-
       await api.post('/register', payload);
-      window.location.href = '/login';
+      navigate('/login');
     } catch (err) {
       setError('Registration failed. Please check your information.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const inputStyle = {
-    padding: '12px',
-    fontSize: '16px',
-    borderRadius: '6px',
-    border: '1px solid #ccc',
-    outline: 'none',
-    width: '100%'
-  };
-
   return (
-    <div style={{
-      maxWidth: '500px',
-      margin: '50px auto',
-      padding: '30px',
-      backgroundColor: '#f9f9f9',
-      borderRadius: '10px',
-      boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-    }}>
-      <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Register</h2>
+    <div className="register-page register-back1">
+      <Header />
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        <input name="name" placeholder="Name" value={form.name} onChange={handleChange} required style={inputStyle} />
-        <input name="email" type="email" placeholder="E-mail" value={form.email} onChange={handleChange} required style={inputStyle} />
-        <input name="password" type="password" placeholder="Password" value={form.password} onChange={handleChange} required style={inputStyle} />
-        <input name="confirmPassword" type="password" placeholder="Confirm Password" value={form.confirmPassword} onChange={handleChange} required style={inputStyle} />
-        <input name="phone" placeholder="Phone" value={form.phone} onChange={handleChange} required style={inputStyle} />
+      <div className="register-container ">
+        <div className="register-card">
+          <div className="register-content">
+            <div className="register-form-side">
+              <h1 className="register-title">Create Account</h1>
+              <p className="register-subtitle">Please fill in your details to get started</p>
 
-        <select name="role" value={form.role} onChange={handleChange} required style={inputStyle}>
-          <option value="">Select Role</option>
-          <option value="customer">Customer</option>
-          <option value="courier">Courier</option>
-          <option value="restaurant_owner">Restaurant Owner</option>
-        </select>
+              {error && <div className="register-error">{error}</div>}
 
-        {(form.role === 'customer' || form.role === 'restaurant_owner') && (
-          <>
-            <input name="city" placeholder="City" value={form.city} onChange={handleChange} required style={inputStyle} />
-            <input name="district" placeholder="District" value={form.district} onChange={handleChange} required style={inputStyle} />
-            <input name="address" placeholder="Address" value={form.address} onChange={handleChange} required style={inputStyle} />
-          </>
-        )}
+              <form className="register-form" onSubmit={handleSubmit}>
+                <div className="form-group">
+                  <label htmlFor="name">Full Name</label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
-        {form.role === 'restaurant_owner' && (
-          <>
-            <input name="businessHoursStart" placeholder="Opening Hour" value={form.businessHoursStart} onChange={handleChange} required style={inputStyle} />
-            <input name="businessHoursEnd" placeholder="Closing Hour" value={form.businessHoursEnd} onChange={handleChange} required style={inputStyle} />
-          </>
-        )}
+                <div className="form-group">
+                  <label htmlFor="email">Email Address</label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
-        {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="password">Password</label>
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      value={form.password}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
 
-        <button type="submit" style={{
-          padding: '12px',
-          backgroundColor: '#4CAF50',
-          color: 'white',
-          fontWeight: 'bold',
-          border: 'none',
-          borderRadius: '6px',
-          cursor: 'pointer',
-          fontSize: '16px'
-        }}>
-          Register
-        </button>
-        <div style={{ textAlign: 'center', marginTop: '15px' }}>
-          <p>Already have an account?{' '}
-            <span
-              onClick={() => window.location.href = '/login'}
-              style={{ color: '#007bff', cursor: 'pointer', textDecoration: 'underline' }}
-            >
-              Login
-            </span>
-          </p>
+                  <div className="form-group">
+                    <label htmlFor="confirmPassword">Confirm Password</label>
+                    <input
+                      type="password"
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      value={form.confirmPassword}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="phone">Phone Number</label>
+                  <input
+                    type="text"
+                    id="phone"
+                    name="phone"
+                    value={form.phone}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="role">I am a</label>
+                  <select
+                    id="role"
+                    name="role"
+                    value={form.role}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select your role</option>
+                    <option value="customer">Customer</option>
+                    <option value="courier">Courier</option>
+                    <option value="restaurant_owner">Restaurant Owner</option>
+                  </select>
+                </div>
+
+                {(form.role === 'customer' || form.role === 'restaurant_owner') && (
+                  <div className="address-section">
+                    <h3 className="section-title">Address Information</h3>
+
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label htmlFor="city">City</label>
+                        <input
+                          id="city"
+                          name="city"
+                          value={form.city}
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="district">District</label>
+                        <input
+                          id="district"
+                          name="district"
+                          value={form.district}
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="address">Full Address</label>
+                      <textarea
+                        id="address"
+                        name="address"
+                        value={form.address}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {form.role === 'restaurant_owner' && (
+                  <div className="business-section">
+                    <h3 className="section-title">Business Hours</h3>
+
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label htmlFor="businessHoursStart">Opening Time</label>
+                        <input
+                          type="time"
+                          id="businessHoursStart"
+                          name="businessHoursStart"
+                          value={form.businessHoursStart}
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="businessHoursEnd">Closing Time</label>
+                        <input
+                          type="time"
+                          id="businessHoursEnd"
+                          name="businessHoursEnd"
+                          value={form.businessHoursEnd}
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor="cuisineType">Cuisine Type</label>
+                        <input
+                          type="text"
+                          id="cuisineType"
+                          name="cuisineType"
+                          value={form.cuisineType}
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="deliveryType">Delivery Type</label>
+                        <select
+                          id="deliveryType"
+                          name="deliveryType"
+                          value={form.deliveryType}
+                          onChange={handleChange}
+                          required
+                        >
+                          <option value="DELIVERY">Delivery</option>
+                          <option value="PICKUP">Pickup</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="register-button"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Creating Account...' : 'Sign Up'}
+                </button>
+              </form>
+
+              <div className="login-link">
+                Already have an account? <Link to="/login">Sign In</Link>
+              </div>
+            </div>
+
+            <div className="register-image-side">
+              <div className="register-image-content">
+                <h2>Welcome to our platform!</h2>
+                <p>Join our community and enjoy the benefits of our food delivery service.</p>
+
+                <button
+                  className="login-button"
+                  onClick={() => navigate('/login')}
+                >
+                  Already have an account? Sign In
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </form>
+      </div>
+
+      <Footer />
     </div>
   );
 };

@@ -5,19 +5,21 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "admins")
 public class Admin extends User {
-    @Id
-    private String adminId;
 
-    public String getAdminId() {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long adminId;
+
+    public Long getAdminId() {
         return adminId;
     }
 
-    public void setAdminId(String adminId) {
+    public void setAdminId(Long adminId) {
         this.adminId = adminId;
     }
 
     @Override
     public String getId() {
-        return this.adminId;
+        return String.valueOf(this.adminId); // String döndürmeye devam ediyorsan böyle dönüştür
     }
 }

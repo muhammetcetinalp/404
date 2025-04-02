@@ -1,0 +1,16 @@
+.footer-main {
+    background-color: #1e2a4a;
+    font-size: 15px;
+}
+
+.footer-title {
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 1rem;
+}
+
+
+footer a:hover {
+    color: #eb6825;
+    text-decoration: underline;
+}

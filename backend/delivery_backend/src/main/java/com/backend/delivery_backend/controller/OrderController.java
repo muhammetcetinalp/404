@@ -29,12 +29,23 @@ public class OrderController {
                                          @RequestParam String deliveryAddress,
                                          @RequestParam String paymentMethod,
                                          @RequestParam DeliveryType deliveryType,
+                                         @RequestParam(required = false) Double tipAmount,
                                          @RequestBody(required = false) CardInfoDTO cardInfo) {
         String email = auth.getName();
         Customer customer = customerRepository.findByEmail(email);
         if (customer == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Customer not found");
         }
+
+        // Her item'ın restoranı aynı mı ve tipi destekliyor mu?
+        /*for (MenuItem item : cart.getItems().keySet()) {
+            RestaurantOwner restaurant = item.getRestaurant();
+            DeliveryType supported = restaurant.getDeliveryType();
+            if (!(supported == DeliveryType.BOTH || supported == deliveryType)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Restaurant " + restaurant.getName() + " does not support " + deliveryType + ".");
+            }
+        }*/
 
         Cart cart = cartRepository.findByCustomerId(customer.getCustomerId());
         if (cart == null || cart.getItems().isEmpty()) {
@@ -50,28 +61,9 @@ public class OrderController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Card info is required for credit card payment");
             }
-
-            System.out.println("Received card number: " + cardInfo.getCardNumber());
-            // Bu satır sadece test amaçlı, production'da asla loglama yapılmaz!
-        }
-        // Her item'ın restoranı aynı mı ve tipi destekliyor mu?
-        /*for (MenuItem item : cart.getItems().keySet()) {
-            RestaurantOwner restaurant = item.getRestaurant();
-            DeliveryType supported = restaurant.getDeliveryType();
-            if (!(supported == DeliveryType.BOTH || supported == deliveryType)) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Restaurant " + restaurant.getName() + " does not support " + deliveryType + ".");
-            }
-        }*/
-
-        for (MenuItem item : cart.getItems().keySet()) {
-            DeliveryType supported = DeliveryType.BOTH; // Geçici çözüm
-            if (!(supported == DeliveryType.BOTH || supported == deliveryType)) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("This item does not support " + deliveryType + ".");
-            }
         }
 
+        // Siparişi oluştur
         Order order = orderService.createOrder(
                 customer,
                 cart,
@@ -80,12 +72,15 @@ public class OrderController {
                 deliveryType,
                 cardInfo != null ? cardInfo.getCardNumber() : null,
                 cardInfo != null ? cardInfo.getExpiryDate() : null,
-                cardInfo != null ? cardInfo.getCvv() : null
+                cardInfo != null ? cardInfo.getCvv() : null,
+                tipAmount
         );
+
         return ResponseEntity.ok(Map.of(
                 "message", "Order placed successfully",
                 "orderId", order.getOrderId(),
-                "total", order.getTotalAmount()
+                "total", order.getTotalAmount(),
+                "tip", order.getTipAmount()
         ));
     }
 
@@ -114,6 +109,7 @@ public class OrderController {
             orderData.put("totalAmount", order.getTotalAmount());
             orderData.put("orderStatus", order.getOrderStatus());
             orderData.put("deliveryType", order.getDeliveryType());
+            orderData.put("tipAmount", order.getTipAmount());
 
             List<Map<String, Object>> itemsList = new ArrayList<>();
             for (Map.Entry<MenuItem, Integer> entry : order.getItems().entrySet()) {

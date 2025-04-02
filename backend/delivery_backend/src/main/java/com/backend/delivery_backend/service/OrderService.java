@@ -18,7 +18,8 @@ public class OrderService {
 
     public Order createOrder(Customer customer, Cart cart, String deliveryAddress,
                              String paymentMethod, DeliveryType deliveryType,
-                             String cardNumber, String expiryDate, String cvc) {
+                             String cardNumber, String expiryDate, String cvc,
+                             Double tipAmount) {
 
         Order order = new Order();
         order.setOrderId("order-" + UUID.randomUUID());
@@ -30,14 +31,21 @@ public class OrderService {
         order.setOrderStatus("PENDING");
         order.setOrderDate(LocalDateTime.now());
 
-        double total = cart.getItems().entrySet().stream()
+        double itemsTotal = cart.getItems().entrySet().stream()
                 .mapToDouble(entry -> entry.getKey().getPrice() * entry.getValue())
                 .sum();
+
+        // Toplam = ürünler + tip (bahşiş)
+        double total = itemsTotal + (tipAmount != null ? tipAmount : 0.0);
         order.setTotalAmount(total);
+
+        if (tipAmount != null && tipAmount > 0) {
+            order.setTipAmount(tipAmount);
+        }
 
         orderRepository.save(order);
 
-        // Payment oluşturuluyor
+        // Payment işlemleri
         Payment payment = new Payment();
         payment.setPaymentId("pay-" + UUID.randomUUID());
         payment.setOrder(order);
@@ -45,15 +53,15 @@ public class OrderService {
         payment.setPaymentStatus("PAID");
         payment.setPaymentDate(LocalDateTime.now());
 
-        // Eğer kredi kartı seçildiyse bu bilgileri maskeleyerek ekleyelim
         if ("CREDIT_CARD".equalsIgnoreCase(paymentMethod)) {
             payment.setCardNumber(maskCardNumber(cardNumber));
             payment.setExpiryDate(expiryDate);
-            payment.setCvc("****"); // İsteğe bağlı olarak saklamayabiliriz
+            payment.setCvc("****");
         }
 
         paymentRepository.save(payment);
 
+        // Sepeti temizle
         cart.getItems().clear();
         cartRepository.save(cart);
 

@@ -30,11 +30,11 @@ public class Order {
     @Column(name = "quantity")
     private Map<MenuItem, Integer> items;
 
-    //Yeni eklenen alan: Payment ilişkisi
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
     private Payment payment;
 
-    // Getters & Setters
+    private double tipAmount = 0.0;
+
     public String getOrderId() {
         return orderId;
     }
@@ -103,5 +103,12 @@ public class Order {
     }
     public void setPayment(Payment payment) {
         this.payment = payment;
+    }
+
+    public double getTipAmount() {
+        return tipAmount;
+    }
+    public void setTipAmount(double tipAmount) {
+        this.tipAmount = tipAmount;
     }
 }

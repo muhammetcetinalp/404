@@ -28,7 +28,7 @@ Content-Type: application/json
 
 ### Get Profile (Customer)
 GET http://localhost:8080/api/profile
-Authorization: Bearer     eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiZjcyZmI0NjMtMjhhZC00NzI2LTk5YzMtODQ2OWJiNTBhMTAwIiwiaWF0IjoxNzQzNjE5MzIxLCJleHAiOjE3NDM2MzczMjF9.3n55e2aaHLXcG0Ok5kAagBlt57xxEsRn_j5KeL_ip9c
+Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiYjg3MTYyOWEtYjliMC00YTU0LTkzMTEtZWU1YzFjMzk5ZDNkIiwiaWF0IjoxNzQzNjI0MzgxLCJleHAiOjE3NDM2NDIzODF9.vbKOYZVWssdxmHkTGWClj-UKmJILW0tlCqofbNsHMvo
 
 ### Logout
 POST http://localhost:8080/api/logout
@@ -112,13 +112,13 @@ GET http://localhost:8080/api/public/search-restaurants
 
 
 ### Favori restaurant ekleme
-POST http://localhost:8080/api/profile/favorites/add?restaurantId=8f6c534f-5abd-4ed8-908d-2bfd3411ed17
-Authorization: Bearer     eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiZjcyZmI0NjMtMjhhZC00NzI2LTk5YzMtODQ2OWJiNTBhMTAwIiwiaWF0IjoxNzQzNjE5MzIxLCJleHAiOjE3NDM2MzczMjF9.3n55e2aaHLXcG0Ok5kAagBlt57xxEsRn_j5KeL_ip9c
+POST http://localhost:8080/api/profile/favorites/add?restaurantId=f1828e87-98e5-49ab-a16b-1f4a0df39d4f
+Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiYjg3MTYyOWEtYjliMC00YTU0LTkzMTEtZWU1YzFjMzk5ZDNkIiwiaWF0IjoxNzQzNjI0MzgxLCJleHAiOjE3NDM2NDIzODF9.vbKOYZVWssdxmHkTGWClj-UKmJILW0tlCqofbNsHMvo
 
 
 ### favori restoranları görme
 GET http://localhost:8080/api/profile/favorites
-Authorization: Bearer     eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiZjcyZmI0NjMtMjhhZC00NzI2LTk5YzMtODQ2OWJiNTBhMTAwIiwiaWF0IjoxNzQzNjE5MzIxLCJleHAiOjE3NDM2MzczMjF9.3n55e2aaHLXcG0Ok5kAagBlt57xxEsRn_j5KeL_ip9c
+Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiYjg3MTYyOWEtYjliMC00YTU0LTkzMTEtZWU1YzFjMzk5ZDNkIiwiaWF0IjoxNzQzNjI0MzgxLCJleHAiOjE3NDM2NDIzODF9.vbKOYZVWssdxmHkTGWClj-UKmJILW0tlCqofbNsHMvo
 
 ### favori restaurant çıakrtma isteği
 DELETE http://localhost:8080/api/profile/favorites/remove?restaurantId=caa3a901-33b8-47e6-ac88-ccbecd5b9e7d
@@ -135,20 +135,19 @@ Content-Type: application/json
   "available": true
 }
 
-###
-POST http://localhost:8080/api/cart/add?menuItemId=2&quantity=1
-Authorization: Bearer     eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiZjcyZmI0NjMtMjhhZC00NzI2LTk5YzMtODQ2OWJiNTBhMTAwIiwiaWF0IjoxNzQzNjE5MzIxLCJleHAiOjE3NDM2MzczMjF9.3n55e2aaHLXcG0Ok5kAagBlt57xxEsRn_j5KeL_ip9c
-
 
 ### Show Basket
 GET http://localhost:8080/api/cart/showcart
-Authorization: Bearer     eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiZjcyZmI0NjMtMjhhZC00NzI2LTk5YzMtODQ2OWJiNTBhMTAwIiwiaWF0IjoxNzQzNjE5MzIxLCJleHAiOjE3NDM2MzczMjF9.3n55e2aaHLXcG0Ok5kAagBlt57xxEsRn_j5KeL_ip9c
+Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiYjg3MTYyOWEtYjliMC00YTU0LTkzMTEtZWU1YzFjMzk5ZDNkIiwiaWF0IjoxNzQzNjI0MzgxLCJleHAiOjE3NDM2NDIzODF9.vbKOYZVWssdxmHkTGWClj-UKmJILW0tlCqofbNsHMvo
 
+###
+POST http://localhost:8080/api/cart/add?menuItemId=1&quantity=2
+Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiYjg3MTYyOWEtYjliMC00YTU0LTkzMTEtZWU1YzFjMzk5ZDNkIiwiaWF0IjoxNzQzNjI0MzgxLCJleHAiOjE3NDM2NDIzODF9.vbKOYZVWssdxmHkTGWClj-UKmJILW0tlCqofbNsHMvo
 
 
 ### create order with credit card
 POST http://localhost:8080/api/orders/create?deliveryAddress=Ankara&paymentMethod=CREDIT_CARD&deliveryType=DELIVERY&tipAmount=15.0
-Authorization: Bearer     eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiZjcyZmI0NjMtMjhhZC00NzI2LTk5YzMtODQ2OWJiNTBhMTAwIiwiaWF0IjoxNzQzNjE5MzIxLCJleHAiOjE3NDM2MzczMjF9.3n55e2aaHLXcG0Ok5kAagBlt57xxEsRn_j5KeL_ip9c
+Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiYjg3MTYyOWEtYjliMC00YTU0LTkzMTEtZWU1YzFjMzk5ZDNkIiwiaWF0IjoxNzQzNjI0MzgxLCJleHAiOjE3NDM2NDIzODF9.vbKOYZVWssdxmHkTGWClj-UKmJILW0tlCqofbNsHMvo
 Content-Type: application/json
 
 {
@@ -160,26 +159,52 @@ Content-Type: application/json
 ### create order with  cash
 POST http://localhost:8080/api/orders/create?deliveryAddress=DenemeAdres&paymentMethod=CASH&deliveryType=DELIVERY
 Content-Type: application/json
-Authorization: Bearer     eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiZjcyZmI0NjMtMjhhZC00NzI2LTk5YzMtODQ2OWJiNTBhMTAwIiwiaWF0IjoxNzQzNjE5MzIxLCJleHAiOjE3NDM2MzczMjF9.3n55e2aaHLXcG0Ok5kAagBlt57xxEsRn_j5KeL_ip9c
+Authorization: Bearer     eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiYjg3MTYyOWEtYjliMC00YTU0LTkzMTEtZWU1YzFjMzk5ZDNkIiwiaWF0IjoxNzQzNjIzNzM1LCJleHAiOjE3NDM2NDE3MzV9.A99tNxd5tmMSi0QB479huTT65nRWnPiKzkR5gf5skAk
 
 {
 }
 
 ### show past orders
 GET http://localhost:8080/api/orders/history
-Authorization: Bearer     eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiZjcyZmI0NjMtMjhhZC00NzI2LTk5YzMtODQ2OWJiNTBhMTAwIiwiaWF0IjoxNzQzNjE5MzIxLCJleHAiOjE3NDM2MzczMjF9.3n55e2aaHLXcG0Ok5kAagBlt57xxEsRn_j5KeL_ip9c
+Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiYjg3MTYyOWEtYjliMC00YTU0LTkzMTEtZWU1YzFjMzk5ZDNkIiwiaWF0IjoxNzQzNjI0MzgxLCJleHAiOjE3NDM2NDIzODF9.vbKOYZVWssdxmHkTGWClj-UKmJILW0tlCqofbNsHMvo
 
 
 
 
 ### delete from basket
-DELETE http://localhost:8080/api/orders/remove?menuItemId=menu-004
-Authorization: Bearer      eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc0MzQ2MTA3NCwiZXhwIjoxNzQzNDc5MDc0fQ.JUrYjBdu3hohI6DgtVrtnTJlUuZMEqIQG6eQNsnVqbE
+DELETE http://localhost:8080/api/orders/remove?menuItemId=1
+Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiYjg3MTYyOWEtYjliMC00YTU0LTkzMTEtZWU1YzFjMzk5ZDNkIiwiaWF0IjoxNzQzNjI0MzgxLCJleHAiOjE3NDM2NDIzODF9.vbKOYZVWssdxmHkTGWClj-UKmJILW0tlCqofbNsHMvo
 
 ### Show Basket
 GET http://localhost:8080/api/cart/showcart
-Authorization: Bearer      eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc0MzQ2MTA3NCwiZXhwIjoxNzQzNDc5MDc0fQ.JUrYjBdu3hohI6DgtVrtnTJlUuZMEqIQG6eQNsnVqbE
+Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiYjg3MTYyOWEtYjliMC00YTU0LTkzMTEtZWU1YzFjMzk5ZDNkIiwiaWF0IjoxNzQzNjI0MzgxLCJleHAiOjE3NDM2NDIzODF9.vbKOYZVWssdxmHkTGWClj-UKmJILW0tlCqofbNsHMvo
 
 ### delete all
 DELETE http://localhost:8080/api/orders/remove-all?menuItemId=menu-002
 Authorization: Bearer      eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc0MzQ2MTA3NCwiZXhwIjoxNzQzNDc5MDc0fQ.JUrYjBdu3hohI6DgtVrtnTJlUuZMEqIQG6eQNsnVqbE
+
+###
+POST http://localhost:8080/api/feedback/submit
+Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiYjg3MTYyOWEtYjliMC00YTU0LTkzMTEtZWU1YzFjMzk5ZDNkIiwiaWF0IjoxNzQzNjI0MzgxLCJleHAiOjE3NDM2NDIzODF9.vbKOYZVWssdxmHkTGWClj-UKmJILW0tlCqofbNsHMvo
+Content-Type: application/json
+
+{
+  "orderId": "order-843e530d-3ed4-43a6-8475-f77b2b01a885",
+  "targetId": "courier-123abc",
+  "targetType": "COURIER",
+  "rating": 5,
+  "comment": "Çok hızlı ve güler yüzlüydü!"
+}
+
+###
+POST http://localhost:8080/api/feedback/submit
+Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiYjg3MTYyOWEtYjliMC00YTU0LTkzMTEtZWU1YzFjMzk5ZDNkIiwiaWF0IjoxNzQzNjI0MzgxLCJleHAiOjE3NDM2NDIzODF9.vbKOYZVWssdxmHkTGWClj-UKmJILW0tlCqofbNsHMvo
+Content-Type: application/json
+
+{
+  "orderId": "order-9a6568bd-f2bb-4206-9643-e009fec91c71",
+  "targetId": "ad5c1f45-03cd-4686-ad60-76eb8aa0158f",
+  "targetType": "RESTAURANT",
+  "rating": 4,
+  "comment": "Yemekler sıcaktı ama biraz geç geldi."
+}

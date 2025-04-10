@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faFilter, faUtensils, faPlus, faEdit, faTrash, faSave, faTimes } from '@fortawesome/free-solid-svg-icons';
+import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import api from '../api';
 import '../styles/restaurant-dashboard.css';
 import '../styles/dashboard.css';
 
@@ -24,13 +25,32 @@ const RestaurantMenuPage = () => {
         name: '',
         description: '',
         price: '',
+        available: true,
         category: 'main'
     });
 
     const navigate = useNavigate();
 
     const token = localStorage.getItem('token');
-    const restaurantId = localStorage.getItem('restaurantId');
+
+    // JWT token'dan restaurantId alınması
+    let restaurantId;
+    try {
+        const decoded = jwtDecode(token);
+        restaurantId = decoded.id;
+        console.log("Restaurant ID (from JWT):", restaurantId);
+    } catch (error) {
+        console.error("JWT decode error:", error);
+        // Fallback olarak localStorage'dan alma
+        restaurantId = localStorage.getItem('restaurantId');
+        console.log("Restaurant ID (from localStorage):", restaurantId);
+    }
+
+    // API istekleri için headers
+    const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+    };
 
     // Category options for filtering
     const categoryOptions = [
@@ -41,75 +61,27 @@ const RestaurantMenuPage = () => {
         { value: 'beverage', label: 'Beverages' }
     ];
 
-    // Example menu items
-    const exampleMenuItems = [
-        {
-            id: 1,
-            name: "Margherita Pizza",
-            description: "Classic pizza with tomato sauce, mozzarella, and fresh basil",
-            price: 12.99,
-            category: "main",
-            isAvailable: true,
-            imageUrl: "",
-            ratings: 4.7,
-            numRatings: 145
-        },
-        {
-            id: 2,
-            name: "Pepperoni Pizza",
-            description: "Pizza topped with pepperoni, mozzarella, and tomato sauce",
-            price: 14.99,
-            category: "main",
-            isAvailable: true,
-            imageUrl: "",
-            ratings: 4.8,
-            numRatings: 190
-        },
-        {
-            id: 3,
-            name: "Pasta Carbonara",
-            description: "Spaghetti with creamy sauce, bacon, and parmesan cheese",
-            price: 13.50,
-            category: "main",
-            isAvailable: true,
-            imageUrl: "",
-            ratings: 4.6,
-            numRatings: 120
-        },
-        {
-            id: 4,
-            name: "Garlic Bread",
-            description: "Crispy bread topped with garlic butter and herbs",
-            price: 4.50,
-            category: "appetizer",
-            isAvailable: true,
-            imageUrl: "",
-            ratings: 4.5,
-            numRatings: 85
-        },
-        {
-            id: 5,
-            name: "Tiramisu",
-            description: "Classic Italian dessert with coffee-soaked ladyfingers and mascarpone cream",
-            price: 6.50,
-            category: "dessert",
-            isAvailable: true,
-            imageUrl: "",
-            ratings: 4.9,
-            numRatings: 78
-        },
-        {
-            id: 6,
-            name: "Iced Latte",
-            description: "Espresso with cold milk and ice",
-            price: 4.50,
-            category: "beverage",
-            isAvailable: true,
-            imageUrl: "",
-            ratings: 4.4,
-            numRatings: 65
+    // Menü öğelerini getirme fonksiyonu
+    const fetchMenuItems = async () => {
+        try {
+            setLoading(true);
+            console.log("Fetching menu items for restaurant:", restaurantId);
+
+            const response = await axios.get(
+                `http://localhost:8080/api/restaurants/${restaurantId}/menu`,
+                { headers }
+            );
+
+            console.log("Menu items fetched:", response.data);
+            setMenuItems(response.data);
+            setFilteredMenuItems(response.data);
+            setLoading(false);
+        } catch (err) {
+            console.error('Error fetching menu items:', err);
+            setError('Failed to load menu items. Please try again later.');
+            setLoading(false);
         }
-    ];
+    };
 
     useEffect(() => {
         if (!token) {
@@ -117,28 +89,7 @@ const RestaurantMenuPage = () => {
             return;
         }
 
-        // Set example menu items (fetch from API in production)
-        setMenuItems(exampleMenuItems);
-        setFilteredMenuItems(exampleMenuItems);
-        setLoading(false);
-
-        // Use API call in production:
-        /*
-        const fetchMenuItems = async () => {
-          try {
-            setLoading(true);
-            const response = await api.get(`/restaurants/${restaurantId}/menu-items`);
-            setMenuItems(response.data);
-            setFilteredMenuItems(response.data);
-            setLoading(false);
-          } catch (err) {
-            console.error('Error:', err);
-            setError('Failed to load menu items. Please try again later.');
-            setLoading(false);
-          }
-        };
         fetchMenuItems();
-        */
     }, [token, navigate, restaurantId]);
 
     useEffect(() => {
@@ -172,7 +123,7 @@ const RestaurantMenuPage = () => {
                 results = [...results].sort((a, b) => b.price - a.price);
                 break;
             case 'ratingDesc':
-                results = [...results].sort((a, b) => b.ratings - a.ratings);
+                results = [...results].sort((a, b) => (b.ratings || 0) - (a.ratings || 0));
                 break;
             default:
                 break;
@@ -182,10 +133,11 @@ const RestaurantMenuPage = () => {
     }, [searchTerm, sortOption, filterCategory, menuItems]);
 
     const handleInputChange = (e) => {
-        const { name, value } = e.target;
+        const { name, value, type, checked } = e.target;
         setNewMenuItem({
             ...newMenuItem,
-            [name]: name === 'price' ? parseFloat(value) || '' : value
+            [name]: type === 'checkbox' ? checked :
+                name === 'price' ? parseFloat(value) || '' : value
         });
     };
 
@@ -194,13 +146,14 @@ const RestaurantMenuPage = () => {
             name: '',
             description: '',
             price: '',
+            available: true,
             category: 'main'
         });
         setShowAddForm(false);
         setEditItemId(null);
     };
 
-    const handleAddMenuItem = (e) => {
+    const handleAddMenuItem = async (e) => {
         e.preventDefault();
 
         // Validate form
@@ -209,39 +162,33 @@ const RestaurantMenuPage = () => {
             return;
         }
 
-        // Create new menu item with ID
-        const newItem = {
-            ...newMenuItem,
-            id: menuItems.length > 0 ? Math.max(...menuItems.map(item => item.id)) + 1 : 1,
-            isAvailable: true,
-            imageUrl: "",
-            ratings: 0,
-            numRatings: 0
-        };
+        try {
+            console.log("Adding menu item for restaurant:", restaurantId);
+            console.log("Menu item data:", newMenuItem);
 
-        // Add to menu items
-        const updatedItems = [...menuItems, newItem];
-        setMenuItems(updatedItems);
+            const response = await axios.post(
+                `http://localhost:8080/api/restaurants/${restaurantId}/menu`,
+                {
+                    name: newMenuItem.name,
+                    description: newMenuItem.description,
+                    price: newMenuItem.price,
+                    available: newMenuItem.available
+                },
+                { headers }
+            );
 
-        // Reset form
-        resetForm();
-        setError('');
+            console.log("Add menu item response:", response);
 
-        // In production, use API call:
-        /*
-        const addMenuItem = async () => {
-          try {
-            const response = await api.post(`/restaurants/${restaurantId}/menu-items`, newMenuItem);
-            setMenuItems([...menuItems, response.data]);
+            // Refresh menu items
+            await fetchMenuItems();
+
             resetForm();
             setError('');
-          } catch (err) {
+        } catch (err) {
             console.error('Error adding menu item:', err);
-            setError('Failed to add menu item. Please try again.');
-          }
-        };
-        addMenuItem();
-        */
+            console.error('Error details:', err.response?.data);
+            setError(`Failed to add menu item: ${err.response?.data || err.message}`);
+        }
     };
 
     const handleEditMenuItem = (id) => {
@@ -251,7 +198,8 @@ const RestaurantMenuPage = () => {
                 name: itemToEdit.name,
                 description: itemToEdit.description,
                 price: itemToEdit.price,
-                category: itemToEdit.category
+                available: itemToEdit.available !== undefined ? itemToEdit.available : true,
+                category: itemToEdit.category || 'main'
             });
             setEditItemId(id);
             setShowAddForm(true);
@@ -259,7 +207,7 @@ const RestaurantMenuPage = () => {
         }
     };
 
-    const handleUpdateMenuItem = (e) => {
+    const handleUpdateMenuItem = async (e) => {
         e.preventDefault();
 
         // Validate form
@@ -268,55 +216,52 @@ const RestaurantMenuPage = () => {
             return;
         }
 
-        // Update menu item
-        const updatedItems = menuItems.map(item =>
-            item.id === editItemId ? { ...item, ...newMenuItem } : item
-        );
+        try {
+            console.log("Updating menu item:", editItemId);
+            console.log("Updated data:", newMenuItem);
 
-        setMenuItems(updatedItems);
-        resetForm();
-        setError('');
-
-        // In production, use API call:
-        /*
-        const updateMenuItem = async () => {
-          try {
-            await api.put(`/restaurants/${restaurantId}/menu-items/${editItemId}`, newMenuItem);
-            const updatedItems = menuItems.map(item => 
-              item.id === editItemId ? { ...item, ...newMenuItem } : item
+            await axios.put(
+                `http://localhost:8080/api/restaurants/${restaurantId}/menu/${editItemId}`,
+                {
+                    name: newMenuItem.name,
+                    description: newMenuItem.description,
+                    price: newMenuItem.price,
+                    available: newMenuItem.available
+                },
+                { headers }
             );
-            setMenuItems(updatedItems);
+
+            // Refresh menu items
+            await fetchMenuItems();
+
             resetForm();
             setError('');
-          } catch (err) {
+        } catch (err) {
             console.error('Error updating menu item:', err);
-            setError('Failed to update menu item. Please try again.');
-          }
-        };
-        updateMenuItem();
-        */
+            console.error('Error details:', err.response?.data);
+            setError(`Failed to update menu item: ${err.response?.data || err.message}`);
+        }
     };
 
-    const handleDeleteMenuItem = (id) => {
+    const handleDeleteMenuItem = async (id) => {
         // Confirm before deleting
         if (window.confirm('Are you sure you want to delete this menu item?')) {
-            const updatedItems = menuItems.filter(item => item.id !== id);
-            setMenuItems(updatedItems);
+            try {
+                console.log("Deleting menu item:", id);
 
-            // In production, use API call:
-            /*
-            const deleteMenuItem = async () => {
-              try {
-                await api.delete(`/restaurants/${restaurantId}/menu-items/${id}`);
-                const updatedItems = menuItems.filter(item => item.id !== id);
-                setMenuItems(updatedItems);
-              } catch (err) {
+                await axios.delete(
+                    `http://localhost:8080/api/restaurants/${restaurantId}/menu/${id}`,
+                    { headers }
+                );
+
+                // Refresh menu items
+                await fetchMenuItems();
+
+            } catch (err) {
                 console.error('Error deleting menu item:', err);
-                setError('Failed to delete menu item. Please try again.');
-              }
-            };
-            deleteMenuItem();
-            */
+                console.error('Error details:', err.response?.data);
+                setError(`Failed to delete menu item: ${err.response?.data || err.message}`);
+            }
         }
     };
 
@@ -491,17 +436,36 @@ const RestaurantMenuPage = () => {
                                                         </select>
                                                     </div>
                                                 </div>
-                                                <div className="mb-3">
-                                                    <label htmlFor="description" className="form-label">Description*</label>
-                                                    <textarea
-                                                        className="form-control"
-                                                        id="description"
-                                                        name="description"
-                                                        rows="3"
-                                                        value={newMenuItem.description}
-                                                        onChange={handleInputChange}
-                                                        required
-                                                    ></textarea>
+                                                <div className="row mb-3">
+                                                    <div className="col-md-12">
+                                                        <label htmlFor="description" className="form-label">Description*</label>
+                                                        <textarea
+                                                            className="form-control"
+                                                            id="description"
+                                                            name="description"
+                                                            rows="3"
+                                                            value={newMenuItem.description}
+                                                            onChange={handleInputChange}
+                                                            required
+                                                        ></textarea>
+                                                    </div>
+                                                </div>
+                                                <div className="row mb-3">
+                                                    <div className="col-md-12">
+                                                        <div className="form-check">
+                                                            <input
+                                                                className="form-check-input"
+                                                                type="checkbox"
+                                                                id="available"
+                                                                name="available"
+                                                                checked={newMenuItem.available}
+                                                                onChange={handleInputChange}
+                                                            />
+                                                            <label className="form-check-label" htmlFor="available">
+                                                                Available
+                                                            </label>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                                 <div className="d-flex justify-content-end">
                                                     <button
@@ -541,8 +505,11 @@ const RestaurantMenuPage = () => {
                                                                     <span className={`badge ms-2 ${item.category === 'main' ? 'bg-primary' :
                                                                         item.category === 'appetizer' ? 'bg-info' :
                                                                             item.category === 'dessert' ? 'bg-warning' : 'bg-secondary'}`}>
-                                                                        {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
+                                                                        {item.category ? (item.category.charAt(0).toUpperCase() + item.category.slice(1)) : 'Main'}
                                                                     </span>
+                                                                    {item.available === false &&
+                                                                        <span className="badge bg-danger ms-2">Not Available</span>
+                                                                    }
                                                                 </div>
                                                                 <p className="text-muted mb-2">{item.description}</p>
                                                                 {item.ratings > 0 && (

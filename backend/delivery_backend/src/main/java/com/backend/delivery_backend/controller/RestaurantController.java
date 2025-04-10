@@ -1,21 +1,30 @@
 package com.backend.delivery_backend.controller;
 
 import com.backend.delivery_backend.DTO.MenuItemDTO;
+import com.backend.delivery_backend.DTO.RestaurantStatusDTO;
 import com.backend.delivery_backend.model.MenuItem;
+import com.backend.delivery_backend.model.RestaurantOwner;
+import com.backend.delivery_backend.repository.RestaurantOwnerRepository;
 import com.backend.delivery_backend.service.RestaurantOwnerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/restaurants")
 public class RestaurantController {
 
     private final RestaurantOwnerService restaurantOwnerService;
+    private final RestaurantOwnerRepository restaurantOwnerRepository;
 
-    public RestaurantController(RestaurantOwnerService restaurantOwnerService) {
+    public RestaurantController(RestaurantOwnerService restaurantOwnerService,RestaurantOwnerRepository restaurantOwnerRepository ) {
         this.restaurantOwnerService = restaurantOwnerService;
+        this.restaurantOwnerRepository = restaurantOwnerRepository;
     }
 
     @GetMapping("/{id}/menu")
@@ -25,13 +34,19 @@ public class RestaurantController {
     }
 
     @PatchMapping("/{id}/toggle-status")
-    public ResponseEntity<?> toggleStatus(@PathVariable String id) {
-        try {
-            boolean isOpen = restaurantOwnerService.toggleRestaurantStatus(id);
-            return ResponseEntity.ok("Restaurant is now " + (isOpen ? "OPEN" : "CLOSED"));
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    @PreAuthorize("hasRole('RESTAURANT_OWNER')")
+    public ResponseEntity<?> toggleRestaurantStatus(@PathVariable String id) {
+        Optional<RestaurantOwner> optional = restaurantOwnerRepository.findById(id);
+        if (optional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Restaurant not found");
         }
+
+        RestaurantOwner restaurant = optional.get();
+        boolean currentStatus = restaurant.isOpen();
+        restaurant.setOpen(!currentStatus); // durumu tersine çevir
+        restaurantOwnerRepository.save(restaurant);
+
+        return ResponseEntity.ok(new RestaurantStatusDTO(restaurant.isOpen()));
     }
 
     @PostMapping("/{id}/menu")
@@ -67,6 +82,18 @@ public class RestaurantController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getRestaurantDetails(@PathVariable String id) {
+        Optional<RestaurantOwner> restaurant = restaurantOwnerRepository.findById(id);
+        if (restaurant.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Restaurant not found");
+        }
+
+        boolean isOpen = restaurant.get().isOpen();  // açık mı?
+        return ResponseEntity.ok(new RestaurantStatusDTO(isOpen));
+    }
+
 
 
 

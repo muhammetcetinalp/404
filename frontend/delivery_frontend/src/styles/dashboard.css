@@ -275,3 +275,10 @@
         opacity: 0;
     }
 }
+
+.btn-orange {
+    background-color: #fd7e14;
+    /* turuncu */
+    color: white;
+    border: none;
+}

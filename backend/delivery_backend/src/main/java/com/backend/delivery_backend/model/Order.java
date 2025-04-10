@@ -21,6 +21,12 @@ public class Order {
     private LocalDateTime orderDate;
     private double totalAmount;
 
+    // In Order.java - Add this field
+    @ManyToOne
+    @JoinColumn(name = "restaurant_id")
+    private RestaurantOwner restaurant;
+
+
     @Enumerated(EnumType.STRING)
     private DeliveryType deliveryType;
 
@@ -110,5 +116,13 @@ public class Order {
     }
     public void setTipAmount(double tipAmount) {
         this.tipAmount = tipAmount;
+    }
+
+    public RestaurantOwner getRestaurant() {
+        return restaurant;
+    }
+
+    public void setRestaurant(RestaurantOwner restaurant) {
+        this.restaurant = restaurant;
     }
 }

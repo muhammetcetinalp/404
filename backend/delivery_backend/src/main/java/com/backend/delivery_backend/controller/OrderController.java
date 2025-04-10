@@ -1,5 +1,6 @@
 package com.backend.delivery_backend.controller;
 
+import com.backend.delivery_backend.DTO.RestaurantOrderDTO;
 import com.backend.delivery_backend.model.*;
 import com.backend.delivery_backend.repository.*;
 import com.backend.delivery_backend.service.OrderService;
@@ -21,6 +22,7 @@ public class OrderController {
     @Autowired private OrderRepository orderRepository;
     @Autowired private OrderService orderService;
     @Autowired private MenuItemRepository menuItemRepository;
+    @Autowired private RestaurantOwnerRepository restaurantOwnerRepository;
 
 
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -196,4 +198,90 @@ public class OrderController {
 
         return ResponseEntity.ok("Item completely removed from cart");
     }
+
+    // In OrderController.java - Need to add this method
+
+
+    // In OrderController.java - Add this method
+    @PreAuthorize("hasRole('RESTAURANT_OWNER')")
+    @PatchMapping("/orders/{orderId}/status")
+    public ResponseEntity<?> updateOrderStatus(
+            @PathVariable String orderId,
+            @RequestBody Map<String, String> statusUpdate) {
+
+        try {
+            String newStatus = statusUpdate.get("status");
+            if (newStatus == null) {
+                return ResponseEntity.badRequest().body("Status field is required");
+            }
+
+            Optional<Order> orderOpt = orderRepository.findById(orderId);
+            if (orderOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Order not found");
+            }
+
+            Order order = orderOpt.get();
+            order.setOrderStatus(newStatus);
+            orderRepository.save(order);
+
+            return ResponseEntity.ok("Order status updated to " + newStatus);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error updating order status: " + e.getMessage());
+        }
+    }
+
+    @PreAuthorize("hasRole('RESTAURANT_OWNER')")
+    @GetMapping("/history/restaurant/{restaurantId}")
+    public ResponseEntity<?> getPastOrdersByRestaurant(@PathVariable String restaurantId) {
+        List<Order> orders = orderRepository.findByRestaurantId(restaurantId);
+        if (orders.isEmpty()) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+
+        List<RestaurantOrderDTO> result = new ArrayList<>();
+
+        for (Order order : orders) {
+            RestaurantOrderDTO dto = new RestaurantOrderDTO();
+            dto.setOrderId(order.getOrderId());
+            dto.setOrderDate(order.getOrderDate());
+            dto.setDeliveryAddress(order.getDeliveryAddress());
+            dto.setTotalAmount(order.getTotalAmount());
+            dto.setOrderStatus(order.getOrderStatus());
+            dto.setDeliveryType(order.getDeliveryType().name());
+
+            List<Map<String, Object>> itemList = new ArrayList<>();
+            for (Map.Entry<MenuItem, Integer> entry : order.getItems().entrySet()) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("name", entry.getKey().getName());
+                item.put("price", entry.getKey().getPrice());
+                item.put("quantity", entry.getValue());
+                item.put("description", entry.getKey().getDescription());
+                itemList.add(item);
+            }
+
+            dto.setItems(itemList);
+            result.add(dto);
+        }
+
+        return ResponseEntity.ok(result);
+    }
+
+    @PatchMapping("/restaurants/{id}/toggle-status")
+    public ResponseEntity<?> toggleRestaurantStatus(@PathVariable String id) {
+        Optional<RestaurantOwner> optional = restaurantOwnerRepository.findById(id);
+        if (optional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Restaurant not found");
+        }
+
+        RestaurantOwner restaurant = optional.get();
+        restaurant.setOpen(!restaurant.isOpen());
+        restaurantOwnerRepository.save(restaurant);
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Restaurant status updated",
+                "isOpen", restaurant.isOpen()
+        ));
+    }
+
 }

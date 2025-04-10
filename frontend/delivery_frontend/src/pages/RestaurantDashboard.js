@@ -4,7 +4,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faFilter, faUtensils, faCheckCircle, faTimesCircle, faClock, faChevronDown, faChevronUp, faStore, faToggleOn, faToggleOff } from '@fortawesome/free-solid-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import api from '../api';
+import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 import '../styles/restaurant-dashboard.css';
 import '../styles/dashboard.css';
 
@@ -19,106 +20,78 @@ const RestaurantDashboard = () => {
     const [expandedOrderId, setExpandedOrderId] = useState(null);
     const [orderDetails, setOrderDetails] = useState({});
     const [loadingOrderDetails, setLoadingOrderDetails] = useState(false);
-    const [restaurantOpen, setRestaurantOpen] = useState(true);
-
+    const [restaurantOpen, setRestaurantOpen] = useState();
     const navigate = useNavigate();
 
-    const name = localStorage.getItem('name');
-    const email = localStorage.getItem('email');
     const token = localStorage.getItem('token');
-    const restaurantId = localStorage.getItem('restaurantId');
+
+    // Get restaurant ID from JWT token
+    let restaurantId;
+    try {
+        const decoded = jwtDecode(token);
+        restaurantId = decoded.id;
+        console.log("Restaurant ID (from JWT):", restaurantId);
+    } catch (error) {
+        console.error("JWT decode error:", error);
+        // Fall back to localStorage
+        restaurantId = localStorage.getItem('restaurantId');
+        console.log("Restaurant ID (from localStorage):", restaurantId);
+    }
+
+    // Headers for API requests
+    const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+    };
 
     // Status options for filtering
     const statusOptions = [
         { value: 'all', label: 'All Orders' },
-        { value: 'pending', label: 'Pending' },
-        { value: 'accepted', label: 'Accepted' },
-        { value: 'preparing', label: 'Preparing' },
-        { value: 'ready', label: 'Ready for Pickup' },
-        { value: 'delivered', label: 'Delivered' },
-        { value: 'cancelled', label: 'Cancelled' }
+        { value: 'PENDING', label: 'Pending' },
+        { value: 'ACCEPTED', label: 'Accepted' },
+        { value: 'PREPARING', label: 'Preparing' },
+        { value: 'READY', label: 'Ready for Pickup' },
+        { value: 'DELIVERED', label: 'Delivered' },
+        { value: 'CANCELLED', label: 'Cancelled' }
     ];
 
-    // Example orders
-    const exampleOrders = [
-        {
-            id: 1,
-            customerName: "John Doe",
-            customerLocation: "123 Main St, New York",
-            items: [
-                { name: "Margherita Pizza", quantity: 1, price: 12.99 },
-                { name: "Pasta Carbonara", quantity: 2, price: 13.50 }
-            ],
-            totalAmount: 39.99,
-            status: "pending",
-            orderTime: "2025-03-31T18:30:00",
-            estimatedDeliveryTime: "30-45 min"
-        },
-        {
-            id: 2,
-            customerName: "Jane Smith",
-            customerLocation: "456 Park Ave, New York",
-            items: [
-                { name: "Pepperoni Pizza", quantity: 2, price: 14.99 },
-                { name: "Garlic Bread", quantity: 1, price: 4.50 }
-            ],
-            totalAmount: 34.48,
-            status: "accepted",
-            orderTime: "2025-03-31T18:15:00",
-            estimatedDeliveryTime: "25-35 min"
-        },
-        {
-            id: 3,
-            customerName: "Robert Johnson",
-            customerLocation: "789 Broadway, New York",
-            items: [
-                { name: "Pasta Carbonara", quantity: 1, price: 13.50 },
-                { name: "Tiramisu", quantity: 1, price: 6.50 }
-            ],
-            totalAmount: 20.00,
-            status: "preparing",
-            orderTime: "2025-03-31T18:00:00",
-            estimatedDeliveryTime: "15-25 min"
-        },
-        {
-            id: 4,
-            customerName: "Emily Davis",
-            customerLocation: "321 5th Ave, New York",
-            items: [
-                { name: "T-Bone Steak", quantity: 1, price: 28.99 },
-                { name: "Beef Burger", quantity: 1, price: 16.99 }
-            ],
-            totalAmount: 45.98,
-            status: "ready",
-            orderTime: "2025-03-31T17:45:00",
-            estimatedDeliveryTime: "5-10 min"
-        },
-        {
-            id: 5,
-            customerName: "Michael Wilson",
-            customerLocation: "654 Madison Ave, New York",
-            items: [
-                { name: "Iced Latte", quantity: 2, price: 4.50 },
-                { name: "Chocolate Cake", quantity: 1, price: 5.99 }
-            ],
-            totalAmount: 14.99,
-            status: "delivered",
-            orderTime: "2025-03-31T17:30:00",
-            estimatedDeliveryTime: "Delivered"
-        },
-        {
-            id: 6,
-            customerName: "Sophia Brown",
-            customerLocation: "987 Lexington Ave, New York",
-            items: [
-                { name: "Grilled Chicken", quantity: 1, price: 15.99 }
-            ],
-            totalAmount: 15.99,
-            status: "cancelled",
-            orderTime: "2025-03-31T17:15:00",
-            estimatedDeliveryTime: "Cancelled"
+    // Fetch restaurant details including open status
+    const fetchRestaurantDetails = async () => {
+        try {
+            const response = await axios.get(
+                `http://localhost:8080/api/restaurants/${restaurantId}`,
+                { headers }
+            );
+            console.log("Restaurant details:", response.data);
+
+            setRestaurantOpen(response.data.open);
+
+        } catch (err) {
+            console.error('Error fetching restaurant details:', err);
         }
-    ];
+    };
+
+    // Fetch orders
+    const fetchOrders = async () => {
+        try {
+            setLoading(true);
+            console.log("Fetching past orders for restaurant:", restaurantId);
+
+            const response = await axios.get(
+                `http://localhost:8080/api/orders/history/restaurant/${restaurantId}`,
+                { headers }
+            );
+
+            console.log("Past Orders fetched:", response.data);
+            setOrders(response.data);
+            setFilteredOrders(response.data);
+            setLoading(false);
+        } catch (err) {
+            console.error('Error fetching past orders:', err);
+            setError('Failed to load past orders. Please try again later.');
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         if (!token) {
@@ -126,28 +99,8 @@ const RestaurantDashboard = () => {
             return;
         }
 
-        // Set example orders (fetch from API)
-        setOrders(exampleOrders);
-        setFilteredOrders(exampleOrders);
-        setLoading(false);
-
-        // use API call:
-        /*
-        const fetchOrders = async () => {
-          try {
-            setLoading(true);
-            const response = await api.get(`/restaurants/${restaurantId}/orders`);
-            setOrders(response.data);
-            setFilteredOrders(response.data);
-            setLoading(false);
-          } catch (err) {
-            console.error('Error:', err);
-            setError('Failed to load orders. Please try again later.');
-            setLoading(false);
-          }
-        };
+        fetchRestaurantDetails();
         fetchOrders();
-        */
     }, [token, navigate, restaurantId]);
 
     useEffect(() => {
@@ -156,23 +109,23 @@ const RestaurantDashboard = () => {
         // Apply search filter
         if (searchTerm) {
             results = results.filter(order =>
-                order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                order.id.toString().includes(searchTerm)
+                (order.customer?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                order.orderId.toString().includes(searchTerm)
             );
         }
 
         // Apply status filter
         if (filterStatus !== 'all') {
-            results = results.filter(order => order.status === filterStatus);
+            results = results.filter(order => order.orderStatus === filterStatus);
         }
 
         // Apply sorting
         switch (sortOption) {
             case 'newest':
-                results = [...results].sort((a, b) => new Date(b.orderTime) - new Date(a.orderTime));
+                results = [...results].sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
                 break;
             case 'oldest':
-                results = [...results].sort((a, b) => new Date(a.orderTime) - new Date(b.orderTime));
+                results = [...results].sort((a, b) => new Date(a.orderDate) - new Date(b.orderDate));
                 break;
             case 'highestAmount':
                 results = [...results].sort((a, b) => b.totalAmount - a.totalAmount);
@@ -187,26 +140,27 @@ const RestaurantDashboard = () => {
         setFilteredOrders(results);
     }, [searchTerm, sortOption, filterStatus, orders]);
 
-    const toggleRestaurantStatus = () => {
-        const newStatus = !restaurantOpen;
-        setRestaurantOpen(newStatus);
+    const toggleRestaurantStatus = async () => {
+        try {
+            console.log("Toggling restaurant status for:", restaurantId);
 
-        // Here you would make an API call to update the restaurant status
-        /*
-        const updateRestaurantStatus = async () => {
-          try {
-            await api.patch(`/restaurants/${restaurantId}`, { isOpen: newStatus });
-            // Success notification could be added here
-          } catch (err) {
-            console.error('Error updating restaurant status:', err);
-            // Error notification could be added here
-            // Revert the status change on error
-            setRestaurantOpen(!newStatus);
-          }
-        };
-        updateRestaurantStatus();
-        */
+            const response = await axios.patch(
+                `http://localhost:8080/api/restaurants/${restaurantId}/toggle-status`,
+                {},
+                { headers }
+            );
+
+            console.log("Status toggle response:", response.data);
+
+            // Bu satır çalışmalı ve state’i doğrudan değiştirmeli
+            setRestaurantOpen(response.data.open);
+
+        } catch (err) {
+            console.error('Error toggling restaurant status:', err);
+            setError('Failed to update restaurant status. Please try again.');
+        }
     };
+
 
     const handleViewOrderDetails = (orderId) => {
         if (expandedOrderId === orderId) {
@@ -215,10 +169,9 @@ const RestaurantDashboard = () => {
             setExpandedOrderId(orderId);
             setLoadingOrderDetails(true);
 
-            // we need fetch order details from API
-            // For now, find the order in our example data and use it
-            const orderDetail = orders.find(order => order.id === orderId);
-
+            // In a real implementation, we would fetch detailed order information here
+            // For now, we'll use the existing order data
+            const orderDetail = orders.find(order => order.orderId === orderId);
             setTimeout(() => {
                 setOrderDetails({
                     ...orderDetails,
@@ -229,36 +182,35 @@ const RestaurantDashboard = () => {
         }
     };
 
-    const handleUpdateOrderStatus = (orderId, newStatus) => {
-        // we need make an API call to update the status
-        // For now, update the state directly
-        const updatedOrders = orders.map(order =>
-            order.id === orderId ? { ...order, status: newStatus } : order
-        );
+    const handleUpdateOrderStatus = async (orderId, newStatus) => {
+        try {
+            console.log(`Updating order ${orderId} status to ${newStatus}`);
 
-        setOrders(updatedOrders);
+            const response = await axios.patch(
+                `http://localhost:8080/api/orders/${orderId}/status`,
+                { status: newStatus },
+                { headers }
+            );
 
-        // Update expanded order details if needed
-        if (expandedOrderId === orderId) {
-            setOrderDetails({
-                ...orderDetails,
-                [orderId]: { ...orderDetails[orderId], status: newStatus }
-            });
-        }
+            console.log("Order status update response:", response.data);
 
+            // Update local state after successful API call
+            const updatedOrders = orders.map(order =>
+                order.orderId === orderId ? { ...order, orderStatus: newStatus } : order
+            );
+            setOrders(updatedOrders);
 
-        /*
-        const updateOrderStatus = async () => {
-          try {
-            await api.patch(`/orders/${orderId}`, { status: newStatus });
-            // Success notification could be added here
-          } catch (err) {
+            // Update expanded order details if needed
+            if (expandedOrderId === orderId) {
+                setOrderDetails({
+                    ...orderDetails,
+                    [orderId]: { ...orderDetails[orderId], orderStatus: newStatus }
+                });
+            }
+        } catch (err) {
             console.error('Error updating order status:', err);
-            // Error notification could be added here
-          }
-        };
-        updateOrderStatus();
-        */
+            setError('Failed to update order status. Please try again.');
+        }
     };
 
     // Function to format date and time
@@ -276,13 +228,37 @@ const RestaurantDashboard = () => {
     // Function to get status badge class
     const getStatusBadgeClass = (status) => {
         switch (status) {
-            case 'pending': return 'bg-warning';
-            case 'accepted': return 'bg-primary';
-            case 'preparing': return 'bg-info';
-            case 'ready': return 'bg-success';
-            case 'delivered': return 'bg-success';
-            case 'cancelled': return 'bg-danger';
+            case 'PENDING': return 'bg-warning';
+            case 'ACCEPTED': return 'bg-primary';
+            case 'PREPARING': return 'bg-info';
+            case 'READY': return 'bg-success';
+            case 'DELIVERED': return 'bg-success';
+            case 'CANCELLED': return 'bg-danger';
             default: return 'bg-secondary';
+        }
+    };
+
+    // Calculate estimated delivery time
+    const getEstimatedDeliveryTime = (order) => {
+        if (order.orderStatus === 'DELIVERED') return 'Delivered';
+        if (order.orderStatus === 'CANCELLED') return 'Cancelled';
+
+        // Basic calculation - adjust based on your business logic
+        const orderTime = new Date(order.orderDate);
+        const now = new Date();
+        const minutesSinceOrder = Math.floor((now - orderTime) / (1000 * 60));
+
+        switch (order.orderStatus) {
+            case 'PENDING':
+                return '30-45 min';
+            case 'ACCEPTED':
+                return '25-35 min';
+            case 'PREPARING':
+                return '15-25 min';
+            case 'READY':
+                return '5-10 min';
+            default:
+                return 'Unknown';
         }
     };
 
@@ -304,11 +280,12 @@ const RestaurantDashboard = () => {
                                         style={{ height: '50px' }}
                                     />
                                     <button
-                                        className="btn btn-warning border-0"
-                                        type="button"
-                                        style={{ height: '50px', width: '60px' }}
+                                        className={`btn ${restaurantOpen ? 'btn-warning' : 'btn-secondary'}`}
+                                        onClick={toggleRestaurantStatus}
+                                        style={{ width: '80px' }}
                                     >
-                                        <FontAwesomeIcon icon={faSearch} />
+                                        <FontAwesomeIcon icon={restaurantOpen ? faToggleOn : faToggleOff} className="me-1" />
+                                        {restaurantOpen ? 'On' : 'Off'}
                                     </button>
                                 </div>
                             </div>
@@ -421,12 +398,12 @@ const RestaurantDashboard = () => {
                                             >
                                                 <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
                                                     {option.value === 'all' && <FontAwesomeIcon icon={faUtensils} />}
-                                                    {option.value === 'pending' && <FontAwesomeIcon icon={faClock} />}
-                                                    {option.value === 'accepted' && <FontAwesomeIcon icon={faCheckCircle} />}
-                                                    {option.value === 'preparing' && <FontAwesomeIcon icon={faUtensils} />}
-                                                    {option.value === 'ready' && <FontAwesomeIcon icon={faCheckCircle} />}
-                                                    {option.value === 'delivered' && <FontAwesomeIcon icon={faCheckCircle} />}
-                                                    {option.value === 'cancelled' && <FontAwesomeIcon icon={faTimesCircle} />}
+                                                    {option.value === 'PENDING' && <FontAwesomeIcon icon={faClock} />}
+                                                    {option.value === 'ACCEPTED' && <FontAwesomeIcon icon={faCheckCircle} />}
+                                                    {option.value === 'PREPARING' && <FontAwesomeIcon icon={faUtensils} />}
+                                                    {option.value === 'READY' && <FontAwesomeIcon icon={faCheckCircle} />}
+                                                    {option.value === 'DELIVERED' && <FontAwesomeIcon icon={faCheckCircle} />}
+                                                    {option.value === 'CANCELLED' && <FontAwesomeIcon icon={faTimesCircle} />}
                                                 </span>
                                                 <span className="ml-2">{option.label}</span>
                                             </button>
@@ -451,30 +428,30 @@ const RestaurantDashboard = () => {
                                 ) : filteredOrders.length > 0 ? (
                                     <div className="order-list">
                                         {filteredOrders.map(order => (
-                                            <div className="order-item mb-4" key={order.id}>
+                                            <div className="order-item mb-4" key={order.orderId}>
                                                 <div className="card">
                                                     <div className="card-body">
                                                         <div className="row align-items-center">
                                                             <div className="col-md-3">
                                                                 <div className="order-info-column">
-                                                                    <h5 className="card-title">Order #{order.id}</h5>
+                                                                    <h5 className="card-title">Order #{order.orderId}</h5>
                                                                     <p className="mb-1 small">
-                                                                        <strong>Time:</strong> {formatDateTime(order.orderTime)}
+                                                                        <strong>Time:</strong> {formatDateTime(order.orderDate)}
                                                                     </p>
-                                                                    <span className={`badge ${getStatusBadgeClass(order.status)}`}>
-                                                                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                                                    <span className={`badge ${getStatusBadgeClass(order.orderStatus)}`}>
+                                                                        {order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1).toLowerCase()}
                                                                     </span>
                                                                 </div>
                                                             </div>
                                                             <div className="col-md-4">
                                                                 <p className="mb-1 small">
-                                                                    <strong>Customer:</strong> {order.customerName}
+                                                                    <strong>Customer:</strong> {order.customer?.name || 'Unknown'}
                                                                 </p>
                                                                 <p className="mb-1 small truncate-text">
-                                                                    <strong>Delivery to:</strong> {order.customerLocation}
+                                                                    <strong>Delivery to:</strong> {order.deliveryAddress || 'N/A'}
                                                                 </p>
                                                                 <p className="mb-0 small">
-                                                                    <strong>Est. Time:</strong> {order.estimatedDeliveryTime}
+                                                                    <strong>Est. Time:</strong> {getEstimatedDeliveryTime(order)}
                                                                 </p>
                                                             </div>
                                                             <div className="col-md-3">
@@ -483,51 +460,51 @@ const RestaurantDashboard = () => {
                                                                 </p>
                                                                 <h5 className="text-warning">${order.totalAmount.toFixed(2)}</h5>
                                                                 <p className="mb-0 small">
-                                                                    <strong>Items:</strong> {order.items.reduce((acc, item) => acc + item.quantity, 0)}
+                                                                    <strong>Items:</strong> {Object.values(order.items || {}).reduce((acc, qty) => acc + qty, 0)}
                                                                 </p>
                                                             </div>
                                                             <div className="col-md-2 text-right">
                                                                 <button
-                                                                    onClick={() => handleViewOrderDetails(order.id)}
+                                                                    onClick={() => handleViewOrderDetails(order.orderId)}
                                                                     className="btn btn-outline-secondary btn-sm mb-2 w-100"
                                                                 >
-                                                                    {expandedOrderId === order.id ? (
+                                                                    {expandedOrderId === order.orderId ? (
                                                                         <>Hide Details <FontAwesomeIcon icon={faChevronUp} /></>
                                                                     ) : (
                                                                         <>View Details <FontAwesomeIcon icon={faChevronDown} /></>
                                                                     )}
                                                                 </button>
 
-                                                                {order.status === 'pending' && (
+                                                                {order.orderStatus === 'PENDING' && (
                                                                     <>
                                                                         <button
                                                                             className="btn btn-success btn-sm mb-2 w-100"
-                                                                            onClick={() => handleUpdateOrderStatus(order.id, 'accepted')}
+                                                                            onClick={() => handleUpdateOrderStatus(order.orderId, 'ACCEPTED')}
                                                                         >
                                                                             Accept Order
                                                                         </button>
                                                                         <button
                                                                             className="btn btn-danger btn-sm w-100"
-                                                                            onClick={() => handleUpdateOrderStatus(order.id, 'cancelled')}
+                                                                            onClick={() => handleUpdateOrderStatus(order.orderId, 'CANCELLED')}
                                                                         >
                                                                             Decline
                                                                         </button>
                                                                     </>
                                                                 )}
 
-                                                                {order.status === 'accepted' && (
+                                                                {order.orderStatus === 'ACCEPTED' && (
                                                                     <button
                                                                         className="btn btn-info btn-sm w-100"
-                                                                        onClick={() => handleUpdateOrderStatus(order.id, 'preparing')}
+                                                                        onClick={() => handleUpdateOrderStatus(order.orderId, 'PREPARING')}
                                                                     >
                                                                         Start Preparing
                                                                     </button>
                                                                 )}
 
-                                                                {order.status === 'preparing' && (
+                                                                {order.orderStatus === 'PREPARING' && (
                                                                     <button
                                                                         className="btn btn-success btn-sm w-100"
-                                                                        onClick={() => handleUpdateOrderStatus(order.id, 'ready')}
+                                                                        onClick={() => handleUpdateOrderStatus(order.orderId, 'READY')}
                                                                     >
                                                                         Ready for Pickup
                                                                     </button>
@@ -537,7 +514,7 @@ const RestaurantDashboard = () => {
                                                     </div>
 
                                                     {/* Order Details Section */}
-                                                    {expandedOrderId === order.id && (
+                                                    {expandedOrderId === order.orderId && (
                                                         <div className="card-footer order-details-section p-3">
                                                             <h6 className="mb-3">Order Details</h6>
 
@@ -563,14 +540,17 @@ const RestaurantDashboard = () => {
                                                                                     </tr>
                                                                                 </thead>
                                                                                 <tbody>
-                                                                                    {order.items.map((item, index) => (
-                                                                                        <tr key={index}>
-                                                                                            <td>{item.name}</td>
-                                                                                            <td>{item.quantity}</td>
-                                                                                            <td>${item.price.toFixed(2)}</td>
-                                                                                            <td>${(item.quantity * item.price).toFixed(2)}</td>
-                                                                                        </tr>
-                                                                                    ))}
+                                                                                    {order.items && Object.entries(order.items).map(([itemId, quantity], index) => {
+                                                                                        const item = Object.keys(order.items)[index];
+                                                                                        return (
+                                                                                            <tr key={index}>
+                                                                                                <td>{item.name || `Item ${index + 1}`}</td>
+                                                                                                <td>{quantity}</td>
+                                                                                                <td>${item.price ? item.price.toFixed(2) : '0.00'}</td>
+                                                                                                <td>${item.price ? (quantity * item.price).toFixed(2) : '0.00'}</td>
+                                                                                            </tr>
+                                                                                        );
+                                                                                    })}
                                                                                 </tbody>
                                                                                 <tfoot>
                                                                                     <tr>
@@ -590,26 +570,26 @@ const RestaurantDashboard = () => {
                                                                                     </li>
                                                                                     <li className="list-group-item d-flex justify-content-between align-items-center">
                                                                                         <span>Order Accepted</span>
-                                                                                        <span className={`badge ${order.status === 'pending' ? 'bg-secondary' : 'bg-success'}`}>
-                                                                                            {order.status === 'pending' ? 'Pending' : 'Completed'}
+                                                                                        <span className={`badge ${order.orderStatus === 'PENDING' ? 'bg-secondary' : 'bg-success'}`}>
+                                                                                            {order.orderStatus === 'PENDING' ? 'Pending' : 'Completed'}
                                                                                         </span>
                                                                                     </li>
                                                                                     <li className="list-group-item d-flex justify-content-between align-items-center">
                                                                                         <span>Preparing</span>
-                                                                                        <span className={`badge ${(order.status === 'pending' || order.status === 'accepted') ? 'bg-secondary' : 'bg-success'}`}>
-                                                                                            {(order.status === 'pending' || order.status === 'accepted') ? 'Pending' : 'Completed'}
+                                                                                        <span className={`badge ${(['PENDING', 'ACCEPTED'].includes(order.orderStatus)) ? 'bg-secondary' : 'bg-success'}`}>
+                                                                                            {(['PENDING', 'ACCEPTED'].includes(order.orderStatus)) ? 'Pending' : 'Completed'}
                                                                                         </span>
                                                                                     </li>
                                                                                     <li className="list-group-item d-flex justify-content-between align-items-center">
                                                                                         <span>Ready for Pickup</span>
-                                                                                        <span className={`badge ${(order.status === 'pending' || order.status === 'accepted' || order.status === 'preparing') ? 'bg-secondary' : 'bg-success'}`}>
-                                                                                            {(order.status === 'pending' || order.status === 'accepted' || order.status === 'preparing') ? 'Pending' : 'Completed'}
+                                                                                        <span className={`badge ${(['PENDING', 'ACCEPTED', 'PREPARING'].includes(order.orderStatus)) ? 'bg-secondary' : 'bg-success'}`}>
+                                                                                            {(['PENDING', 'ACCEPTED', 'PREPARING'].includes(order.orderStatus)) ? 'Pending' : 'Completed'}
                                                                                         </span>
                                                                                     </li>
                                                                                     <li className="list-group-item d-flex justify-content-between align-items-center">
                                                                                         <span>Delivered</span>
-                                                                                        <span className={`badge ${order.status === 'delivered' ? 'bg-success' : 'bg-secondary'}`}>
-                                                                                            {order.status === 'delivered' ? 'Completed' : 'Pending'}
+                                                                                        <span className={`badge ${order.orderStatus === 'DELIVERED' ? 'bg-success' : 'bg-secondary'}`}>
+                                                                                            {order.orderStatus === 'DELIVERED' ? 'Completed' : 'Pending'}
                                                                                         </span>
                                                                                     </li>
                                                                                 </ul>
@@ -619,10 +599,21 @@ const RestaurantDashboard = () => {
                                                                     <div className="row mt-3">
                                                                         <div className="col-12">
                                                                             <div className="card bg-light p-3">
-                                                                                <h6>Customer Notes</h6>
-                                                                                <p className="mb-0 text-muted">
-                                                                                    {order.notes || "No special instructions."}
+                                                                                <h6>Delivery Information</h6>
+                                                                                <p className="mb-0">
+                                                                                    <strong>Type:</strong> {order.deliveryType || 'Standard'}
                                                                                 </p>
+                                                                                <p className="mb-0">
+                                                                                    <strong>Address:</strong> {order.deliveryAddress || 'N/A'}
+                                                                                </p>
+                                                                                <p className="mb-0">
+                                                                                    <strong>Payment Method:</strong> {order.paymentMethod || 'N/A'}
+                                                                                </p>
+                                                                                {order.tipAmount > 0 && (
+                                                                                    <p className="mb-0">
+                                                                                        <strong>Tip Amount:</strong> ${order.tipAmount.toFixed(2)}
+                                                                                    </p>
+                                                                                )}
                                                                             </div>
                                                                         </div>
                                                                     </div>

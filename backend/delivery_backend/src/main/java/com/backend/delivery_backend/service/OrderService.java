@@ -31,6 +31,12 @@ public class OrderService {
         order.setOrderStatus("PENDING");
         order.setOrderDate(LocalDateTime.now());
 
+        if (!cart.getItems().isEmpty()) {
+            MenuItem firstItem = cart.getItems().keySet().iterator().next();
+            RestaurantOwner restaurant = firstItem.getRestaurant();
+            order.setRestaurant(restaurant);
+        }
+
         double itemsTotal = cart.getItems().entrySet().stream()
                 .mapToDouble(entry -> entry.getKey().getPrice() * entry.getValue())
                 .sum();

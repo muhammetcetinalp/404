@@ -105,7 +105,7 @@ Content-Type: application/json
 
 {
   "name": "Kebapçı Hakkı",
-  "email": "kebapci@example.com",
+  "email": "kebapci2@example.com",
   "password": "kebap123",
   "phone": "5551000103",
   "role": "restaurant_owner",
@@ -227,3 +227,14 @@ Authorization: Bearer   eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrZWJhcGNpQGV4YW1wbGUuY29
   "price": 120.50,
   "available": true
 }
+
+
+###get restaurant past orders
+GET http://localhost:8080/api/orders/history/restaurant/44f3fd7d-dc8c-42fc-b106-80e8958a383b
+Authorization: Bearer  eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrZWJhcGNpQGV4YW1wbGUuY29tIiwicm9sZSI6InJlc3RhdXJhbnRfb3duZXIiLCJpZCI6IjQ0ZjNmZDdkLWRjOGMtNDJmYy1iMTA2LTgwZTg5NThhMzgzYiIsImlhdCI6MTc0NDMyMzQ5NiwiZXhwIjoxNzQ0MzQxNDk2fQ.x3EKKl5_cu-rcXT3dDbIJ3KLIGAbsSXDgmTRrWAAhO0
+
+
+
+###get statu of restaruant
+PATCH http://localhost:8080/api/restaurants/88241f28-ecec-467a-b363-a527e9f31e20/toggle-status
+Authorization: Bearer  eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrZWJhcGNpQGV4YW1wbGUuY29tIiwicm9sZSI6InJlc3RhdXJhbnRfb3duZXIiLCJpZCI6IjQ0ZjNmZDdkLWRjOGMtNDJmYy1iMTA2LTgwZTg5NThhMzgzYiIsImlhdCI6MTc0NDMyMzQ5NiwiZXhwIjoxNzQ0MzQxNDk2fQ.x3EKKl5_cu-rcXT3dDbIJ3KLIGAbsSXDgmTRrWAAhO0

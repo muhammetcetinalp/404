@@ -25,7 +25,7 @@ public class RestaurantOwner extends User {
     private String restaurantId;
 
     @Column(name = "is_open")
-    private boolean isOpen = false;
+    private boolean isOpen;
 
     @Column(name = "cuisine_type")
     private String cuisineType;

@@ -25,10 +25,25 @@ Content-Type: application/json
   "password": "1234567890"
 }
 
+### Login Request
+POST http://localhost:8080/api/login
+Content-Type: application/json
+
+{
+  "email": "kebapci@example.com",
+  "password": "kebap123"
+}
+
+
 
 ### Get Profile (Customer)
 GET http://localhost:8080/api/profile
-Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiYjg3MTYyOWEtYjliMC00YTU0LTkzMTEtZWU1YzFjMzk5ZDNkIiwiaWF0IjoxNzQzNjI0MzgxLCJleHAiOjE3NDM2NDIzODF9.vbKOYZVWssdxmHkTGWClj-UKmJILW0tlCqofbNsHMvo
+Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiNGE5MDY4OTEtZDAyOC00YmQ5LWEwYjItNmQ3YTMxN2NiYWFlIiwiaWF0IjoxNzQ0MzAwMTY3LCJleHAiOjE3NDQzMTgxNjd9.RWMBAVzfISb-nTT7_CDSdtYWj52asaheH12FHUHKofA
+
+
+### Get Profile (restaurant)
+GET http://localhost:8080/api/profile
+Authorization: Bearer   eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrZWJhcGNpQGV4YW1wbGUuY29tIiwicm9sZSI6InJlc3RhdXJhbnRfb3duZXIiLCJpZCI6ImFkNWMxZjQ1LTAzY2QtNDY4Ni1hZDYwLTc2ZWI4YWEwMTU4ZiIsImlhdCI6MTc0NDMwNTQxNSwiZXhwIjoxNzQ0MzIzNDE1fQ.cugQkxH_PVWAzA5ne3D1qzmygC9LprmjVD5P7ojeLu0
 
 ### Logout
 POST http://localhost:8080/api/logout
@@ -112,42 +127,34 @@ GET http://localhost:8080/api/public/search-restaurants
 
 
 ### Favori restaurant ekleme
-POST http://localhost:8080/api/profile/favorites/add?restaurantId=f1828e87-98e5-49ab-a16b-1f4a0df39d4f
-Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiYjg3MTYyOWEtYjliMC00YTU0LTkzMTEtZWU1YzFjMzk5ZDNkIiwiaWF0IjoxNzQzNjI0MzgxLCJleHAiOjE3NDM2NDIzODF9.vbKOYZVWssdxmHkTGWClj-UKmJILW0tlCqofbNsHMvo
+POST http://localhost:8080/api/profile/favorites/add?restaurantId=ad5c1f45-03cd-4686-ad60-76eb8aa0158f
+Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiNGE5MDY4OTEtZDAyOC00YmQ5LWEwYjItNmQ3YTMxN2NiYWFlIiwiaWF0IjoxNzQ0MzAwMTY3LCJleHAiOjE3NDQzMTgxNjd9.RWMBAVzfISb-nTT7_CDSdtYWj52asaheH12FHUHKofA
 
 
 ### favori restoranları görme
 GET http://localhost:8080/api/profile/favorites
-Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiYjg3MTYyOWEtYjliMC00YTU0LTkzMTEtZWU1YzFjMzk5ZDNkIiwiaWF0IjoxNzQzNjI0MzgxLCJleHAiOjE3NDM2NDIzODF9.vbKOYZVWssdxmHkTGWClj-UKmJILW0tlCqofbNsHMvo
+Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiNGE5MDY4OTEtZDAyOC00YmQ5LWEwYjItNmQ3YTMxN2NiYWFlIiwiaWF0IjoxNzQ0MzAwMTY3LCJleHAiOjE3NDQzMTgxNjd9.RWMBAVzfISb-nTT7_CDSdtYWj52asaheH12FHUHKofA
 
 ### favori restaurant çıakrtma isteği
 DELETE http://localhost:8080/api/profile/favorites/remove?restaurantId=caa3a901-33b8-47e6-ac88-ccbecd5b9e7d
 Authorization: Bearer        eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc0MzQ1OTM2NCwiZXhwIjoxNzQzNDc3MzY0fQ.u4082bY98Pkp-yxTRxgfI45Vq0ZcIyQYjIXNL-2FOII
 
-### restorana menü ekleme
-POST http://localhost:8080/api/restaurants/8f6c534f-5abd-4ed8-908d-2bfd3411ed17/menu
-Content-Type: application/json
 
-{
-  "name": "Etli Kaşarlı Tost",
-  "description": "Sucuk, kaşar peyniri, özel sos",
-  "price": 65.0,
-  "available": true
-}
+
 
 
 ### Show Basket
 GET http://localhost:8080/api/cart/showcart
-Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiYjg3MTYyOWEtYjliMC00YTU0LTkzMTEtZWU1YzFjMzk5ZDNkIiwiaWF0IjoxNzQzNjI0MzgxLCJleHAiOjE3NDM2NDIzODF9.vbKOYZVWssdxmHkTGWClj-UKmJILW0tlCqofbNsHMvo
+Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiNGE5MDY4OTEtZDAyOC00YmQ5LWEwYjItNmQ3YTMxN2NiYWFlIiwiaWF0IjoxNzQ0MzAwMTY3LCJleHAiOjE3NDQzMTgxNjd9.RWMBAVzfISb-nTT7_CDSdtYWj52asaheH12FHUHKofA
 
 ###
-POST http://localhost:8080/api/cart/add?menuItemId=1&quantity=2
-Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiYjg3MTYyOWEtYjliMC00YTU0LTkzMTEtZWU1YzFjMzk5ZDNkIiwiaWF0IjoxNzQzNjI0MzgxLCJleHAiOjE3NDM2NDIzODF9.vbKOYZVWssdxmHkTGWClj-UKmJILW0tlCqofbNsHMvo
+POST http://localhost:8080/api/cart/add?menuItemId=5&quantity=1
+Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiNGE5MDY4OTEtZDAyOC00YmQ5LWEwYjItNmQ3YTMxN2NiYWFlIiwiaWF0IjoxNzQ0MzAwMTY3LCJleHAiOjE3NDQzMTgxNjd9.RWMBAVzfISb-nTT7_CDSdtYWj52asaheH12FHUHKofA
 
 
 ### create order with credit card
-POST http://localhost:8080/api/orders/create?deliveryAddress=Ankara&paymentMethod=CREDIT_CARD&deliveryType=DELIVERY&tipAmount=15.0
-Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiYjg3MTYyOWEtYjliMC00YTU0LTkzMTEtZWU1YzFjMzk5ZDNkIiwiaWF0IjoxNzQzNjI0MzgxLCJleHAiOjE3NDM2NDIzODF9.vbKOYZVWssdxmHkTGWClj-UKmJILW0tlCqofbNsHMvo
+POST http://localhost:8080/api/orders/create?deliveryAddress=Ankara&paymentMethod=CREDIT_CARD&deliveryType=DELIVERY&tipAmount=20.0
+Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiNGE5MDY4OTEtZDAyOC00YmQ5LWEwYjItNmQ3YTMxN2NiYWFlIiwiaWF0IjoxNzQ0MzAwMTY3LCJleHAiOjE3NDQzMTgxNjd9.RWMBAVzfISb-nTT7_CDSdtYWj52asaheH12FHUHKofA
 Content-Type: application/json
 
 {
@@ -159,29 +166,29 @@ Content-Type: application/json
 ### create order with  cash
 POST http://localhost:8080/api/orders/create?deliveryAddress=DenemeAdres&paymentMethod=CASH&deliveryType=DELIVERY
 Content-Type: application/json
-Authorization: Bearer     eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiYjg3MTYyOWEtYjliMC00YTU0LTkzMTEtZWU1YzFjMzk5ZDNkIiwiaWF0IjoxNzQzNjIzNzM1LCJleHAiOjE3NDM2NDE3MzV9.A99tNxd5tmMSi0QB479huTT65nRWnPiKzkR5gf5skAk
+Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiNGE5MDY4OTEtZDAyOC00YmQ5LWEwYjItNmQ3YTMxN2NiYWFlIiwiaWF0IjoxNzQ0MzAwMTY3LCJleHAiOjE3NDQzMTgxNjd9.RWMBAVzfISb-nTT7_CDSdtYWj52asaheH12FHUHKofA
 
 {
 }
 
 ### show past orders
 GET http://localhost:8080/api/orders/history
-Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiYjg3MTYyOWEtYjliMC00YTU0LTkzMTEtZWU1YzFjMzk5ZDNkIiwiaWF0IjoxNzQzNjI0MzgxLCJleHAiOjE3NDM2NDIzODF9.vbKOYZVWssdxmHkTGWClj-UKmJILW0tlCqofbNsHMvo
+Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiNGE5MDY4OTEtZDAyOC00YmQ5LWEwYjItNmQ3YTMxN2NiYWFlIiwiaWF0IjoxNzQ0MzAwMTY3LCJleHAiOjE3NDQzMTgxNjd9.RWMBAVzfISb-nTT7_CDSdtYWj52asaheH12FHUHKofA
 
 
 
 
 ### delete from basket
-DELETE http://localhost:8080/api/orders/remove?menuItemId=1
-Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiYjg3MTYyOWEtYjliMC00YTU0LTkzMTEtZWU1YzFjMzk5ZDNkIiwiaWF0IjoxNzQzNjI0MzgxLCJleHAiOjE3NDM2NDIzODF9.vbKOYZVWssdxmHkTGWClj-UKmJILW0tlCqofbNsHMvo
+DELETE http://localhost:8080/api/orders/remove?menuItemId=3
+Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiNGE5MDY4OTEtZDAyOC00YmQ5LWEwYjItNmQ3YTMxN2NiYWFlIiwiaWF0IjoxNzQ0MzAwMTY3LCJleHAiOjE3NDQzMTgxNjd9.RWMBAVzfISb-nTT7_CDSdtYWj52asaheH12FHUHKofA
 
 ### Show Basket
 GET http://localhost:8080/api/cart/showcart
-Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiYjg3MTYyOWEtYjliMC00YTU0LTkzMTEtZWU1YzFjMzk5ZDNkIiwiaWF0IjoxNzQzNjI0MzgxLCJleHAiOjE3NDM2NDIzODF9.vbKOYZVWssdxmHkTGWClj-UKmJILW0tlCqofbNsHMvo
+Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiNGE5MDY4OTEtZDAyOC00YmQ5LWEwYjItNmQ3YTMxN2NiYWFlIiwiaWF0IjoxNzQ0MzAwMTY3LCJleHAiOjE3NDQzMTgxNjd9.RWMBAVzfISb-nTT7_CDSdtYWj52asaheH12FHUHKofA
 
 ### delete all
-DELETE http://localhost:8080/api/orders/remove-all?menuItemId=menu-002
-Authorization: Bearer      eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc0MzQ2MTA3NCwiZXhwIjoxNzQzNDc5MDc0fQ.JUrYjBdu3hohI6DgtVrtnTJlUuZMEqIQG6eQNsnVqbE
+DELETE http://localhost:8080/api/orders/remove-all?menuItemId=4
+Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiNGE5MDY4OTEtZDAyOC00YmQ5LWEwYjItNmQ3YTMxN2NiYWFlIiwiaWF0IjoxNzQ0MzAwMTY3LCJleHAiOjE3NDQzMTgxNjd9.RWMBAVzfISb-nTT7_CDSdtYWj52asaheH12FHUHKofA
 
 ###
 POST http://localhost:8080/api/feedback/submit
@@ -198,7 +205,7 @@ Content-Type: application/json
 
 ###
 POST http://localhost:8080/api/feedback/submit
-Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiYjg3MTYyOWEtYjliMC00YTU0LTkzMTEtZWU1YzFjMzk5ZDNkIiwiaWF0IjoxNzQzNjI0MzgxLCJleHAiOjE3NDM2NDIzODF9.vbKOYZVWssdxmHkTGWClj-UKmJILW0tlCqofbNsHMvo
+Authorization: Bearer    eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlkIjoiNGE5MDY4OTEtZDAyOC00YmQ5LWEwYjItNmQ3YTMxN2NiYWFlIiwiaWF0IjoxNzQ0MzAwMTY3LCJleHAiOjE3NDQzMTgxNjd9.RWMBAVzfISb-nTT7_CDSdtYWj52asaheH12FHUHKofA
 Content-Type: application/json
 
 {
@@ -207,4 +214,16 @@ Content-Type: application/json
   "targetType": "RESTAURANT",
   "rating": 4,
   "comment": "Yemekler sıcaktı ama biraz geç geldi."
+}
+
+#### restorana menü ekleme
+POST http://localhost:8080/api/restaurants/ad5c1f45-03cd-4686-ad60-76eb8aa0158f/menu
+Content-Type: application/json
+Authorization: Bearer   eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrZWJhcGNpQGV4YW1wbGUuY29tIiwicm9sZSI6InJlc3RhdXJhbnRfb3duZXIiLCJpZCI6ImFkNWMxZjQ1LTAzY2QtNDY4Ni1hZDYwLTc2ZWI4YWEwMTU4ZiIsImlhdCI6MTc0NDMwNTQxNSwiZXhwIjoxNzQ0MzIzNDE1fQ.cugQkxH_PVWAzA5ne3D1qzmygC9LprmjVD5P7ojeLu0
+
+{
+  "name": "Spaghetti Bolognese",
+  "description": "Traditional Italian pasta with meat sauce",
+  "price": 120.50,
+  "available": true
 }

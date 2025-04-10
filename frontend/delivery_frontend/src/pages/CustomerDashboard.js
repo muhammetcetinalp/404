@@ -49,6 +49,7 @@ const CustomerDashboard = () => {
         const fetchRestaurants = async () => {
             try {
                 const response = await api.get('/public/search-restaurants');
+                console.log('API Response:', response.data); // API yanıtını logla
                 setRestaurants(response.data);
                 setFilteredRestaurants(response.data);
             } catch (err) {
@@ -177,9 +178,7 @@ const CustomerDashboard = () => {
         }
     };
 
-    const handleViewCart = () => {
-        navigate('/cart');
-    };
+
 
     return (
         <div>
@@ -228,21 +227,13 @@ const CustomerDashboard = () => {
                                             className={`list-group-item list-group-item-action ${sortOption === opt.key ? 'active' : ''}`}
                                             onClick={() => setSortOption(opt.key)}
                                         >
-                                            <FontAwesomeIcon icon={opt.icon} className="mr-2" />
+                                            <FontAwesomeIcon icon={opt.icon} className="fa-fw me-1" />
                                             {opt.label}
                                         </button>
                                     ))}
                                 </div>
 
-                                <div className="mt-4">
-                                    <button
-                                        className="btn btn-warning btn-block"
-                                        onClick={handleViewCart}
-                                    >
-                                        <FontAwesomeIcon icon={faShoppingCart} className="mr-2" />
-                                        View Cart
-                                    </button>
-                                </div>
+
                             </div>
                         </div>
 
@@ -272,13 +263,42 @@ const CustomerDashboard = () => {
                                                             <div className="col-md-7">
                                                                 <h5>{restaurant.name}</h5>
                                                                 <div className="rating mb-2">
-                                                                    {[...Array(5)].map((_, i) => (
-                                                                        <FontAwesomeIcon
-                                                                            key={i}
-                                                                            icon={faStar}
-                                                                            className={i < restaurant.rating ? 'text-warning' : 'text-muted'}
-                                                                        />
-                                                                    ))}
+                                                                    {[1, 2, 3, 4, 5].map((star) => {
+                                                                        const rating = restaurant.rating || 0;
+                                                                        const fillPercentage = Math.max(0, Math.min(100, (rating - star + 1) * 100));
+
+                                                                        return (
+                                                                            <div
+                                                                                key={star}
+                                                                                className="star-container"
+                                                                                style={{
+                                                                                    display: 'inline-block',
+                                                                                    position: 'relative',
+                                                                                    width: '1em',
+                                                                                    height: '1em',
+                                                                                    marginRight: '2px'
+                                                                                }}
+                                                                            >
+                                                                                <FontAwesomeIcon icon={faStar} className="text-muted" />
+                                                                                <div
+                                                                                    className="star-fill"
+                                                                                    style={{
+                                                                                        position: 'absolute',
+                                                                                        top: 0,
+                                                                                        left: 0,
+                                                                                        width: `${fillPercentage}%`,
+                                                                                        overflow: 'hidden',
+                                                                                        whiteSpace: 'nowrap'
+                                                                                    }}
+                                                                                >
+                                                                                    <FontAwesomeIcon icon={faStar} className="text-warning" />
+                                                                                </div>
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                    <span className="ml-2 small text-muted">
+                                                                        ({restaurant.rating ? restaurant.rating.toFixed(1) : '0.0'})
+                                                                    </span>
                                                                 </div>
                                                                 <p><small>Type: {restaurant.cuisineType}</small></p>
                                                                 <p><small>Open: {restaurant.isOpen ? 'Yes' : 'No'}</small></p>
@@ -313,7 +333,7 @@ const CustomerDashboard = () => {
                                                                                     <div>
                                                                                         <h6>{item.name}</h6>
                                                                                         <p className="mb-1 small text-muted">{item.description}</p>
-                                                                                        <span className="text-warning font-weight-bold">${item.price.toFixed(2)}</span>
+                                                                                        <span className="text-warning font-weight-bold">{item.price.toFixed(2)} TL</span>
                                                                                     </div>
                                                                                     <button
                                                                                         className="btn btn-outline-warning add-to-cart-btn"

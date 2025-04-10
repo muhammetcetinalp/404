@@ -70,7 +70,7 @@ const Cart = () => {
     };
 
     const handleContinueShopping = () => {
-        navigate('/');
+        navigate('/dashboard');
     };
 
     const handleCheckout = () => {
@@ -133,9 +133,9 @@ const Cart = () => {
                                                         </div>
                                                     </div>
                                                     <div className="col-md-2 text-right">
-                                                        <p className="font-weight-bold">${(item.price * item.quantity).toFixed(2)}</p>
+                                                        <p className="font-weight-bold">{(item.price * item.quantity).toFixed(2)} TL</p>
                                                         <p className="text-muted">
-                                                            <small>${item.price.toFixed(2)} each</small>
+                                                            <small>{item.price.toFixed(2)} TL each</small>
                                                         </p>
                                                     </div>
                                                     <div className="col-md-2 text-right">
@@ -171,16 +171,16 @@ const Cart = () => {
                                 <h4 className="mb-4">Order Summary</h4>
                                 <div className="d-flex justify-content-between mb-2">
                                     <span>Subtotal</span>
-                                    <span>${subtotal.toFixed(2)}</span>
+                                    <span>{subtotal.toFixed(2)} TL</span>
                                 </div>
                                 <div className="d-flex justify-content-between mb-2">
                                     <span>Delivery Fee</span>
-                                    <span>${deliveryFee.toFixed(2)}</span>
+                                    <span>{deliveryFee.toFixed(2)} TL</span>
                                 </div>
                                 <hr />
                                 <div className="d-flex justify-content-between mb-4">
                                     <span className="font-weight-bold">Total</span>
-                                    <span className="font-weight-bold">${total.toFixed(2)}</span>
+                                    <span className="font-weight-bold">{total.toFixed(2)} TL</span>
                                 </div>
                                 <button
                                     className="btn btn-warning btn-block"

@@ -14,7 +14,7 @@ const ProfilePage = () => {
         const fetchUser = async () => {
             try {
                 const res = await api.get('/profile');
-                setForm(res.data);
+                setForm(res.data.profile || res.data); // 👈 DÜZENLENEN KISIM
             } catch (err) {
                 console.error("Failed to fetch user info", err);
                 setMessage("An error occurred while loading data.");
@@ -38,8 +38,6 @@ const ProfilePage = () => {
         }
     };
 
-    // Render Customer Profile Form
-    // Render Customer Profile Form (güncellenmiş versiyon)
     const renderCustomerForm = () => (
         <>
             <div className="form-group mb-3">
@@ -71,7 +69,6 @@ const ProfilePage = () => {
                     className="form-control bg-dark text-white"
                     disabled
                 />
-
             </div>
 
             <h5 className="mt-4 mb-3 border-bottom pb-2 text-white">Delivery Address</h5>
@@ -111,7 +108,42 @@ const ProfilePage = () => {
             </div>
         </>
     );
-    // Render Restaurant Profile Form
+
+    const renderCourierForm = () => (
+        <>
+            <div className="form-group mb-3">
+                <label className="text-white">Name</label>
+                <input
+                    name="name"
+                    value={form.name || ''}
+                    onChange={handleChange}
+                    className="form-control bg-dark text-light"
+                />
+            </div>
+
+            <div className="form-group mb-3">
+                <label className="text-white">Phone</label>
+                <input
+                    name="phone"
+                    value={form.phone || ''}
+                    onChange={handleChange}
+                    className="form-control bg-dark text-light"
+                />
+            </div>
+
+            <div className="form-group mb-3">
+                <label className="text-white">Email</label>
+                <input
+                    name="email"
+                    value={form.email || ''}
+                    className="form-control bg-dark text-light"
+                    disabled
+                />
+                <small className="text-muted">Email cannot be changed</small>
+            </div>
+        </>
+    );
+
     const renderRestaurantForm = () => (
         <>
             <div className="form-group mb-3">
@@ -139,11 +171,9 @@ const ProfilePage = () => {
                 <input
                     name="email"
                     value={form.email || ''}
-                    onChange={handleChange}
                     className="form-control bg-dark text-white"
                     disabled
                 />
-
             </div>
 
             <h5 className="mt-4 mb-3 border-bottom pb-2 text-white">Restaurant Address</h5>
@@ -205,27 +235,13 @@ const ProfilePage = () => {
                 </div>
                 <div className="col-md-6">
                     <div className="form-group mb-3">
-                        <label className="text-white">Average Preparation Time (minutes)</label>
-                        <input
-                            name="avgPrepTime"
-                            value={form.avgPrepTime || ''}
-                            onChange={handleChange}
-                            className="form-control bg-dark text-white"
-                            type="number"
-                        />
-                    </div>
-                </div>
-            </div>
-            <div className="row">
-                <div className="col-md-6">
-                    <div className="form-group mb-3">
                         <label className="text-white">Opening Time</label>
                         <input
                             name="businessHoursStart"
                             value={form.businessHoursStart || ''}
                             onChange={handleChange}
                             className="form-control bg-dark text-white"
-                            placeholder="e.g. 08:00 AM"
+                            placeholder="e.g. 08:00"
                         />
                     </div>
                 </div>
@@ -237,123 +253,16 @@ const ProfilePage = () => {
                             value={form.businessHoursEnd || ''}
                             onChange={handleChange}
                             className="form-control bg-dark text-white"
-                            placeholder="e.g. 10:00 PM"
+                            placeholder="e.g. 22:00"
                         />
                     </div>
                 </div>
             </div>
-            <div className="form-group mb-3">
-                <label className="text-white">Restaurant Description</label>
-                <textarea
-                    name="description"
-                    value={form.description || ''}
-                    onChange={handleChange}
-                    className="form-control bg-dark text-white"
-                    rows="3"
-                    placeholder="Tell customers about your restaurant..."
-                ></textarea>
-            </div>
-        </>
-    );
-
-    // Render Courier Profile Form
-    const renderCourierForm = () => (
-        <>
-            <div className="form-group mb-3">
-                <label className="text-white">Name</label>
-                <input
-                    name="name"
-                    value={form.name || ''}
-                    onChange={handleChange}
-                    className="form-control bg-dark text-light"
-                />
-            </div>
-
-            <div className="form-group mb-3">
-                <label className="text-white">Phone</label>
-                <input
-                    name="phone"
-                    value={form.phone || ''}
-                    onChange={handleChange}
-                    className="form-control bg-dark text-light"
-                />
-            </div>
-
-            <div className="form-group mb-3">
-                <label className="text-white">Email</label>
-                <input
-                    name="email"
-                    value={form.email || ''}
-                    onChange={handleChange}
-                    className="form-control bg-dark text-light"
-                    disabled
-                />
-                <small className="text-muted">Email cannot be changed</small>
-            </div>
-
-            {/* <h5 className="mt-4 mb-3 border-bottom pb-2">Vehicle Details</h5>
-            <div className="row">
-                <div className="col-md-6">
-                    <div className="form-group mb-3">
-                        <label>Vehicle Type</label>
-                        <select
-                            name="vehicleType"
-                            value={form.vehicleType || ''}
-                            onChange={handleChange}
-                            className="form-control bg-dark text-light"
-                        >
-                            <option value="">Select Vehicle Type</option>
-                            <option value="bicycle">Bicycle</option>
-                            <option value="motorcycle">Motorcycle</option>
-                            <option value="car">Car</option>
-                            <option value="scooter">Scooter</option>
-                        </select>
-                    </div>
-                </div>
-                <div className="col-md-6">
-                    <div className="form-group mb-3">
-                        <label>License Plate (if applicable)</label>
-                        <input
-                            name="licensePlate"
-                            value={form.licensePlate || ''}
-                            onChange={handleChange}
-                            className="form-control bg-dark text-light"
-                        />
-                    </div>
-                </div>
-            </div>
-            <div className="form-group mb-3">
-                <label>Delivery Areas</label>
-                <select
-                    name="deliveryAreas"
-                    value={form.deliveryAreas || []}
-                    onChange={(e) => {
-                        const options = e.target.options;
-                        const selectedAreas = [];
-                        for (let i = 0; i < options.length; i++) {
-                            if (options[i].selected) {
-                                selectedAreas.push(options[i].value);
-                            }
-                        }
-                        setForm({ ...form, deliveryAreas: selectedAreas });
-                    }}
-                    className="form-control bg-dark text-light"
-                    multiple
-                >
-                    <option value="north">North District</option>
-                    <option value="south">South District</option>
-                    <option value="east">East District</option>
-                    <option value="west">West District</option>
-                    <option value="central">Central District</option>
-                </select>
-                <small className="text-muted">Hold Ctrl/Cmd to select multiple areas</small>
-            </div> */}
         </>
     );
 
     return (
         <div className="text-light">
-            {/* Header component */}
             <div className="container-fluid dashboard-header bg-black">
                 <Header />
                 <div className="container dashboard-welcome-text">
@@ -366,22 +275,19 @@ const ProfilePage = () => {
                 </div>
             </div>
 
-            {/* Main content section */}
             <div className="container-fluid py-4 personel-info" style={{ minHeight: "70vh" }}>
                 <div className="container">
                     <div className="row justify-content-center">
                         <div className="col-lg-8 col-md-10 col-sm-12">
                             {loading ? (
                                 <div className="bg-dark p-5 rounded shadow text-center border border-secondary">
-                                    <div className="spinner-border text-warning" role="status">
-                                        <span className="sr-only">Loading...</span>
-                                    </div>
+                                    <div className="spinner-border text-warning" role="status" />
                                     <p className="mt-3 text-light">Loading your profile information...</p>
                                 </div>
                             ) : (
                                 <div className="bg-dark p-4 p-md-5 rounded shadow border border-secondary">
                                     <h4 className="mb-4 border-bottom border-secondary pb-3 text-warning">
-                                        {role === 'restaurant' ? 'Restaurant Profile' :
+                                        {role === 'restaurant_owner' ? 'Restaurant Profile' :
                                             role === 'courier' ? 'Courier Profile' : 'Customer Profile'}
                                     </h4>
 
@@ -402,7 +308,7 @@ const ProfilePage = () => {
                                         <button
                                             onClick={() => {
                                                 const homeLink = role === 'customer' ? '/customer-dashboard' :
-                                                    role === 'restaurant' ? '/restaurant-dashboard' :
+                                                    role === 'restaurant_owner' ? '/restaurant-dashboard' :
                                                         role === 'courier' ? '/courier-dashboard' : '/';
                                                 window.location.href = homeLink;
                                             }}
@@ -425,7 +331,7 @@ const ProfilePage = () => {
             </div>
 
             <Footer />
-        </div >
+        </div>
     );
 };
 

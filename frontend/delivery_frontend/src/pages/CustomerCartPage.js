@@ -77,7 +77,7 @@ const Cart = () => {
     };
 
     const handleContinueShopping = () => {
-        navigate('/dashboard');
+        navigate('/customer-dashboard');
     };
 
     const handleCheckout = () => {

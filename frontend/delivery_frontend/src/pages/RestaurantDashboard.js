@@ -478,13 +478,13 @@ const RestaurantDashboard = () => {
                                                                     <>
                                                                         <button
                                                                             className="btn btn-success btn-sm mb-2 w-100"
-                                                                            onClick={() => handleUpdateOrderStatus(order.orderId, 'ACCEPTED')}
+                                                                        //onClick={() => handleUpdateOrderStatus(order.orderId, 'ACCEPTED')}
                                                                         >
                                                                             Accept Order
                                                                         </button>
                                                                         <button
                                                                             className="btn btn-danger btn-sm w-100"
-                                                                            onClick={() => handleUpdateOrderStatus(order.orderId, 'CANCELLED')}
+                                                                        //onClick={() => handleUpdateOrderStatus(order.orderId, 'CANCELLED')}
                                                                         >
                                                                             Decline
                                                                         </button>

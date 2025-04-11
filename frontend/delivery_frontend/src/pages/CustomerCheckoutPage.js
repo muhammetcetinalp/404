@@ -43,13 +43,11 @@ const CheckoutPage = () => {
                 setAddress(profileRes.data.profile.address || '');
                 calculateTotals(cartRes.data);
 
-                // 🆕 Step 1: Extract restaurantId from first item
                 const firstItem = cartRes.data[0];
                 if (firstItem && firstItem.restaurantId) {
                     const resDetails = await api.get(`/restaurants/${firstItem.restaurantId}`);
                     const deliveryType = resDetails.data.deliveryType;
 
-                    // 🆕 Step 2: Set available delivery methods based on backend value
                     if (deliveryType === 'DELIVERY') {
                         setDeliveryMethod('delivery');
                     } else if (deliveryType === 'PICKUP') {
@@ -71,11 +69,11 @@ const CheckoutPage = () => {
     }, [navigate]);
 
 
-    const calculateTotals = (items) => {
+    const calculateTotals = (items, method) => {
         const sub = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
         const tax = Math.round(sub * 0.12);
         const tip = customTip ? parseFloat(customTip) || 0 : tipAmount || 0;
-        const shipping = deliveryMethod === 'delivery' ? 60 : 0;
+        const shipping = method === 'pickup' ? 0 : 60;
 
         setSubtotal(sub);
         setTax(tax);
@@ -137,11 +135,17 @@ const CheckoutPage = () => {
                                 <div className="bg-white p-4 rounded shadow-sm mb-4">
                                     <h5>Delivery Method</h5>
                                     <div className="form-check">
-                                        <input type="radio" id="pickup" name="delivery" className="form-check-input" checked={deliveryMethod === 'pickup'} onChange={() => { setDeliveryMethod('pickup'); calculateTotals(cartItems); }} />
+                                        <input type="radio" id="pickup" name="delivery" className="form-check-input" checked={deliveryMethod === 'pickup'} onChange={() => {
+                                            setDeliveryMethod('pickup');
+                                            calculateTotals(cartItems, 'pickup');
+                                        }} />
                                         <label htmlFor="pickup" className="form-check-label">Pickup</label>
                                     </div>
                                     <div className="form-check">
-                                        <input type="radio" id="delivery" name="delivery" className="form-check-input" checked={deliveryMethod === 'delivery'} onChange={() => { setDeliveryMethod('delivery'); calculateTotals(cartItems); }} />
+                                        <input type="radio" id="delivery" name="delivery" className="form-check-input" checked={deliveryMethod === 'delivery'} onChange={() => {
+                                            setDeliveryMethod('delivery');
+                                            calculateTotals(cartItems, 'delivery');
+                                        }} />
                                         <label htmlFor="delivery" className="form-check-label">Delivery</label>
                                     </div>
                                 </div>
@@ -223,7 +227,7 @@ const CheckoutPage = () => {
                                                     onClick={() => {
                                                         setTipAmount(tip);
                                                         setCustomTip('');
-                                                        calculateTotals(cartItems);
+                                                        calculateTotals(cartItems, deliveryMethod);
                                                     }}
                                                 >
                                                     {tip} TL
@@ -238,7 +242,7 @@ const CheckoutPage = () => {
                                             onChange={e => {
                                                 setCustomTip(e.target.value);
                                                 setTipAmount(null);
-                                                calculateTotals(cartItems);
+                                                calculateTotals(cartItems, deliveryMethod);
                                             }}
                                         />
                                     </div>

@@ -55,7 +55,6 @@ public class CartController {
 
         MenuItem newItem = menuItemOptional.get();
 
-        // 🚫 Farklı restorandan ürün eklenmesini engelle
         if (cart.getItems() != null && !cart.getItems().isEmpty()) {
             MenuItem existingItem = cart.getItems().keySet().iterator().next();
             String existingRestaurantId = existingItem.getRestaurant().getRestaurantId();

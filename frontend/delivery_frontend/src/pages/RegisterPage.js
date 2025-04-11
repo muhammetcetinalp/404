@@ -27,25 +27,52 @@ const RegisterPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    // For phone field, only allow numeric values
+    if (name === 'phone' && value !== '') {
+      const numericValue = value.replace(/[^0-9]/g, '');
+      setForm({ ...form, [name]: numericValue });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(''); // Clear any previous errors
+
+    // Validate passwords match
     if (form.password !== form.confirmPassword) {
-      return setError("Passwords do not match.");
+      setError("Passwords do not match.");
+      return; // Stop here and don't proceed with API call
     }
 
     setIsSubmitting(true);
     try {
       const payload = { ...form };
       delete payload.confirmPassword;
-      await api.post('/register', payload);
-      navigate('/login');
+
+      // Make API call
+      const response = await api.post('/register', payload);
+
+      // Only navigate to login if registration is successful
+      if (response && response.status === 200) {
+        navigate('/login');
+      }
     } catch (err) {
-      setError('Registration failed. Please check your information.');
+      // Show error and DON'T navigate
+      console.error("Registration error:", err);
+      setError(err.response?.data?.message || 'Registration failed. Please check your information.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handlePhoneKeyPress = (e) => {
+    // Allow only numeric input for phone field
+    if (!/[0-9]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Tab') {
+      e.preventDefault();
     }
   };
 
@@ -53,14 +80,18 @@ const RegisterPage = () => {
     <div className="register-page register-back1">
       <Header />
 
-      <div className="register-container ">
+      <div className="register-container">
         <div className="register-card">
           <div className="register-content">
             <div className="register-form-side">
               <h1 className="register-title">Create Account</h1>
               <p className="register-subtitle">Please fill in your details to get started</p>
 
-              {error && <div className="register-error">{error}</div>}
+              {error && (
+                <div className="register-error-container">
+                  <div className="register-error">{error}</div>
+                </div>
+              )}
 
               <form className="register-form" onSubmit={handleSubmit}>
                 <div className="form-group">
@@ -121,7 +152,10 @@ const RegisterPage = () => {
                     name="phone"
                     value={form.phone}
                     onChange={handleChange}
+                    onKeyDown={handlePhoneKeyPress}
                     required
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                   />
                 </div>
 

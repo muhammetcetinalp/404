@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../api';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -8,28 +8,39 @@ import '../styles/login.css';
 const LoginPage = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => setError(''), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [error]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    // Only clear error when user modifies fields
+    if (error) {
+      setError('');
+    }
   };
 
   const handleLogin = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevent form submission default behavior
+    console.log('Form submission prevented');
+    if (!form.email || !form.password) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(''); // Clear any previous errors
+
     try {
+      // Call login API
       const res = await api.post('/login', form);
+
+      // If successful, store data and navigate
       localStorage.setItem('name', res.data.name);
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('email', res.data.email);
       localStorage.setItem('role', res.data.role.toLowerCase());
 
+      // Navigate based on role
       const role = res.data.role.toLowerCase();
       if (role === 'admin') {
         navigate('/admin');
@@ -41,11 +52,17 @@ const LoginPage = () => {
         navigate('/courier-dashboard');
       }
     } catch (err) {
-      if (err.response && err.response.status === 403) {
-        setError(err.response.data);
-      } else {
-        setError('Login failed. Please check your credentials.');
-      }
+      console.error("Login error:", err);
+
+      setError(
+        typeof err.response?.data === 'string'
+          ? err.response.data
+          : err.response?.data?.message || 'Login failed. Please try again.'
+      );
+
+      // Important: Don't redirect or refresh here
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -62,12 +79,14 @@ const LoginPage = () => {
                 <p className="login-subtitle">Sign in to your account to continue</p>
 
                 {error && (
-                  <div className="login-error">
-                    {error}
+                  <div className="login-error-container">
+                    <div className="login-error">
+                      {error}
+                    </div>
                   </div>
                 )}
 
-                <form onSubmit={handleLogin} className="login-form">
+                <form onSubmit={handleLogin} className="login-form" noValidate>
                   <div className="form-group">
                     <label htmlFor="email">Email Address</label>
                     <input
@@ -95,25 +114,22 @@ const LoginPage = () => {
                   </div>
 
                   <div className="forgot-password">
-                    <span onClick={() => navigate('/forgot-password')}>
-                      Forgot Password?
-                    </span>
+                    <Link to="/forgot-password">Forgot Password?</Link>
                   </div>
 
-                  <button type="submit" className="login-button">
-                    Sign In
+                  <button
+                    type="submit"
+                    className="login-button"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Signing In...' : 'Sign In'}
                   </button>
                 </form>
 
                 <div className="register-link">
                   <p>
                     Don't have an account?{' '}
-                    <a href="#" onClick={(e) => {
-                      e.preventDefault();
-                      navigate('/register');
-                    }}>
-                      Create an account
-                    </a>
+                    <Link to="/register">Create an account</Link>
                   </p>
                 </div>
               </div>
@@ -146,9 +162,9 @@ const LoginPage = () => {
                     </div>
                   </div>
 
-                  <button className="register-button-alt" onClick={() => navigate('/register')}>
+                  <Link to="/register" className="register-button-alt">
                     Create Account
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>

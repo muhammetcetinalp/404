@@ -1,4 +1,5 @@
 package com.backend.delivery_backend.model;
+import com.backend.delivery_backend.ENUM.DeliveryType;
 import jakarta.persistence.*;
 
 @Entity

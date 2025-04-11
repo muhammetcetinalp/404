@@ -1,5 +1,6 @@
 package com.backend.delivery_backend.service;
 
+import com.backend.delivery_backend.ENUM.DeliveryType;
 import com.backend.delivery_backend.model.*;
 import com.backend.delivery_backend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;

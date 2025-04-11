@@ -1,6 +1,6 @@
 package com.backend.delivery_backend.controller;
 
-import com.backend.delivery_backend.model.DeliveryType;
+import com.backend.delivery_backend.ENUM.DeliveryType;
 import com.backend.delivery_backend.model.RestaurantOwner;
 import com.backend.delivery_backend.repository.RestaurantOwnerRepository;
 import org.springframework.beans.factory.annotation.Autowired;

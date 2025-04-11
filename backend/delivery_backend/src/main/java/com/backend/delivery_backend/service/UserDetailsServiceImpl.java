@@ -1,8 +1,9 @@
 package com.backend.delivery_backend.service;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.UUID;
+
+import com.backend.delivery_backend.ENUM.DeliveryType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,8 +13,6 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import com.backend.delivery_backend.model.*;
 import com.backend.delivery_backend.repository.*;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -23,7 +22,7 @@ import com.backend.delivery_backend.DTO.UserDTO;
 import com.backend.delivery_backend.model.PasswordResetToken;
 import com.backend.delivery_backend.model.User;
 import com.backend.delivery_backend.repository.TokenRepository;
-import java.time.LocalDateTime;
+
 import java.util.*;
 
 @Service

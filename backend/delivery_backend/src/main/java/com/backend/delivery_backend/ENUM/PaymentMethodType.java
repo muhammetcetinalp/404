@@ -1,4 +1,4 @@
-package com.backend.delivery_backend.model;
+package com.backend.delivery_backend.ENUM;
 
 public enum PaymentMethodType {
     CREDIT_CARD,

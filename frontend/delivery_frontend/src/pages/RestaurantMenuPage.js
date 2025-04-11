@@ -16,7 +16,6 @@ const RestaurantMenuPage = () => {
     const [error, setError] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [sortOption, setSortOption] = useState('nameAsc');
-    const [filterCategory, setFilterCategory] = useState('all');
     const [showAddForm, setShowAddForm] = useState(false);
     const [editItemId, setEditItemId] = useState(null);
 
@@ -25,15 +24,14 @@ const RestaurantMenuPage = () => {
         name: '',
         description: '',
         price: '',
-        available: true,
-        category: 'main'
+        available: true
     });
 
     const navigate = useNavigate();
 
     const token = localStorage.getItem('token');
 
-    // JWT token'dan restaurantId alınması
+    // Get restaurant ID from JWT token
     let restaurantId;
     try {
         const decoded = jwtDecode(token);
@@ -41,27 +39,18 @@ const RestaurantMenuPage = () => {
         console.log("Restaurant ID (from JWT):", restaurantId);
     } catch (error) {
         console.error("JWT decode error:", error);
-        // Fallback olarak localStorage'dan alma
+        // Fall back to localStorage
         restaurantId = localStorage.getItem('restaurantId');
         console.log("Restaurant ID (from localStorage):", restaurantId);
     }
 
-    // API istekleri için headers
+    // API request headers
     const headers = {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
     };
 
-    // Category options for filtering
-    const categoryOptions = [
-        { value: 'all', label: 'All Items' },
-        { value: 'appetizer', label: 'Appetizers' },
-        { value: 'main', label: 'Main Courses' },
-        { value: 'dessert', label: 'Desserts' },
-        { value: 'beverage', label: 'Beverages' }
-    ];
-
-    // Menü öğelerini getirme fonksiyonu
+    // Fetch menu items function
     const fetchMenuItems = async () => {
         try {
             setLoading(true);
@@ -103,11 +92,6 @@ const RestaurantMenuPage = () => {
             );
         }
 
-        // Apply category filter
-        if (filterCategory !== 'all') {
-            results = results.filter(item => item.category === filterCategory);
-        }
-
         // Apply sorting
         switch (sortOption) {
             case 'nameAsc':
@@ -122,15 +106,12 @@ const RestaurantMenuPage = () => {
             case 'priceDesc':
                 results = [...results].sort((a, b) => b.price - a.price);
                 break;
-            case 'ratingDesc':
-                results = [...results].sort((a, b) => (b.ratings || 0) - (a.ratings || 0));
-                break;
             default:
                 break;
         }
 
         setFilteredMenuItems(results);
-    }, [searchTerm, sortOption, filterCategory, menuItems]);
+    }, [searchTerm, sortOption, menuItems]);
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -146,8 +127,7 @@ const RestaurantMenuPage = () => {
             name: '',
             description: '',
             price: '',
-            available: true,
-            category: 'main'
+            available: true
         });
         setShowAddForm(false);
         setEditItemId(null);
@@ -198,8 +178,7 @@ const RestaurantMenuPage = () => {
                 name: itemToEdit.name,
                 description: itemToEdit.description,
                 price: itemToEdit.price,
-                available: itemToEdit.available !== undefined ? itemToEdit.available : true,
-                category: itemToEdit.category || 'main'
+                available: itemToEdit.available !== undefined ? itemToEdit.available : true
             });
             setEditItemId(id);
             setShowAddForm(true);
@@ -339,31 +318,6 @@ const RestaurantMenuPage = () => {
                                         >
                                             <span className="ml-2">Price (High to Low)</span>
                                         </button>
-                                        <button
-                                            className={`list-group-item list-group-item-action ${sortOption === 'ratingDesc' ? 'active' : ''}`}
-                                            onClick={() => setSortOption('ratingDesc')}
-                                        >
-                                            <span className="ml-2">Highest Rated</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <h5 className="mb-3">
-                                    <FontAwesomeIcon icon={faFilter} className="mr-2" />
-                                    Filter By Category
-                                </h5>
-
-                                <div className="ml-2">
-                                    <div className="list-group">
-                                        {categoryOptions.map(option => (
-                                            <button
-                                                key={option.value}
-                                                className={`list-group-item list-group-item-action ${filterCategory === option.value ? 'active' : ''}`}
-                                                onClick={() => setFilterCategory(option.value)}
-                                            >
-                                                <span className="ml-2">{option.label}</span>
-                                            </button>
-                                        ))}
                                     </div>
                                 </div>
                             </div>
@@ -393,7 +347,7 @@ const RestaurantMenuPage = () => {
                                         <div className="card-body">
                                             <form onSubmit={editItemId ? handleUpdateMenuItem : handleAddMenuItem}>
                                                 <div className="row">
-                                                    <div className="col-md-6 mb-3">
+                                                    <div className="col-md-8 mb-3">
                                                         <label htmlFor="name" className="form-label">Menu Item Name*</label>
                                                         <input
                                                             type="text"
@@ -405,7 +359,7 @@ const RestaurantMenuPage = () => {
                                                             required
                                                         />
                                                     </div>
-                                                    <div className="col-md-3 mb-3">
+                                                    <div className="col-md-4 mb-3">
                                                         <label htmlFor="price" className="form-label">Price ($)*</label>
                                                         <input
                                                             type="number"
@@ -418,22 +372,6 @@ const RestaurantMenuPage = () => {
                                                             onChange={handleInputChange}
                                                             required
                                                         />
-                                                    </div>
-                                                    <div className="col-md-3 mb-3">
-                                                        <label htmlFor="category" className="form-label">Category</label>
-                                                        <select
-                                                            className="form-select"
-                                                            id="category"
-                                                            name="category"
-                                                            value={newMenuItem.category}
-                                                            onChange={handleInputChange}
-                                                        >
-                                                            {categoryOptions.filter(cat => cat.value !== 'all').map(option => (
-                                                                <option key={option.value} value={option.value}>
-                                                                    {option.label}
-                                                                </option>
-                                                            ))}
-                                                        </select>
                                                     </div>
                                                 </div>
                                                 <div className="row mb-3">
@@ -502,21 +440,11 @@ const RestaurantMenuPage = () => {
                                                             <div className="col-md-8">
                                                                 <div className="d-flex align-items-center mb-2">
                                                                     <h5 className="card-title mb-0">{item.name}</h5>
-                                                                    <span className={`badge ms-2 ${item.category === 'main' ? 'bg-primary' :
-                                                                        item.category === 'appetizer' ? 'bg-info' :
-                                                                            item.category === 'dessert' ? 'bg-warning' : 'bg-secondary'}`}>
-                                                                        {item.category ? (item.category.charAt(0).toUpperCase() + item.category.slice(1)) : 'Main'}
-                                                                    </span>
                                                                     {item.available === false &&
                                                                         <span className="badge bg-danger ms-2">Not Available</span>
                                                                     }
                                                                 </div>
                                                                 <p className="text-muted mb-2">{item.description}</p>
-                                                                {item.ratings > 0 && (
-                                                                    <p className="mb-0 small">
-                                                                        <strong>Rating:</strong> {item.ratings.toFixed(1)}/5 ({item.numRatings} reviews)
-                                                                    </p>
-                                                                )}
                                                             </div>
                                                             <div className="col-md-4 text-md-end">
                                                                 <h5 className="text-warning mb-3">${item.price.toFixed(2)}</h5>

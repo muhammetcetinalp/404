@@ -13,9 +13,16 @@ import AdminAddUserPage from './pages/AdminAddUserPage';
 import ProfilePage from './pages/ProfilePage';
 import Unauthorized from './pages/Unauthorized';
 import PrivateRoute from './pages/PrivateRoute';
-import MenuPage from './pages/MenuPage';
-import CourierRegisterRestaurantPage from "./pages/CourierRegisterRestaurantPage";
-import DeliveryRequestPage from "./pages/DeliveryRequestPage";
+import AuthRoute from './components/AuthRoute';
+import CustomerDashboard from './pages/CustomerDashboard';
+import RestaurantDashboard from './pages/RestaurantDashboard.js';
+import CourierDashboard from './pages/CourierDashboard.js';
+import CustomerCartPage from './pages/CustomerCartPage.js';
+import CustomerOrderPage from './pages/CustomerOrderPage.js';
+import CustomerCheckoutPage from './pages/CustomerCheckoutPage.js';
+import RestaurantMenuPage from './pages/RestaurantMenuPage.js';
+import CourierDeliveriesPage from './pages/CourierDeliveriesPage.js';
+import CourierRestaurantsPage from './pages/CourierRestaurantsPage.js';
 
 
 const App = () => {
@@ -48,64 +55,6 @@ const App = () => {
         <Route path="/my-deliveries" element={<PrivateRoute allowedRoles={['courier']}> <CourierDeliveriesPage /> </PrivateRoute>} />
         <Route path="/courier-restaurant" element={<PrivateRoute allowedRoles={['courier']}> <CourierRestaurantsPage /> </PrivateRoute>} />
 
-        
-        {/* Sadece restoran sahibi erişebilir */}
-        <Route
-          path="/restaurant/menu"
-          element={
-            <PrivateRoute allowedRoles={['restaurant_owner']}>
-              <MenuPage />
-            </PrivateRoute>
-          }
-        />
-
-        {/* Sadece kuryeler erişebilir */}
-        <Route
-          path="/courier/register-restaurant"
-          element={
-            <PrivateRoute allowedRoles={["courier"]}>
-              <CourierRegisterRestaurantPage />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/courier/delivery-request"
-          element={
-            <PrivateRoute allowedRoles={["courier"]}>
-              <DeliveryRequestPage />
-            </PrivateRoute>
-          }
-        />
-
-
-
-
-        {/* Sadece admin erişebilir */}
-        <Route
-          path="/admin"
-          element={
-            <PrivateRoute allowedRoles={['admin']}>
-              <AdminDashboard />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/admin/users"
-          element={
-            <PrivateRoute allowedRoles={['admin']}>
-              <AdminUserListPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/admin/add-user"
-          element={
-            <PrivateRoute allowedRoles={['admin']}>
-              <AdminAddUserPage />
-            </PrivateRoute>
-          }
-        />
       </Routes>
     </Router>
   );

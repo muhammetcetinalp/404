@@ -1,8 +1,6 @@
 package com.backend.delivery_backend.controller;
 
-import com.backend.delivery_backend.DTO.CourierRegistrationDTO;
 import com.backend.delivery_backend.DTO.DeliveryRequestDTO;
-import com.backend.delivery_backend.model.Courier;
 import com.backend.delivery_backend.service.CourierService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

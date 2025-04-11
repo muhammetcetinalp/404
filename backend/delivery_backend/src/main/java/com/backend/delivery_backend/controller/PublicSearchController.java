@@ -30,8 +30,7 @@ public class PublicSearchController {
 
         Stream<RestaurantOwner> stream = restaurantOwnerRepository.findAll().stream()
 
-                // ✅ Her zaman sadece açık restoranları getir
-                .filter(RestaurantOwner::isOpen)
+                //.filter(RestaurantOwner::isOpen)
 
                 .filter(r -> {
                     if (keyword != null &&

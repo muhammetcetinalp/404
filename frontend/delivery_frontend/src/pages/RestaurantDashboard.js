@@ -48,7 +48,7 @@ const RestaurantDashboard = () => {
     const statusOptions = [
         { value: 'all', label: 'All Orders' },
         { value: 'PENDING', label: 'Pending' },
-        { value: 'ACCEPTED', label: 'Accepted' },
+        { value: 'IN PROGRESS', label: 'Accepted' },
         { value: 'PREPARING', label: 'Preparing' },
         { value: 'READY', label: 'Ready for Pickup' },
         { value: 'DELIVERED', label: 'Delivered' },
@@ -187,7 +187,7 @@ const RestaurantDashboard = () => {
             console.log(`Updating order ${orderId} status to ${newStatus}`);
 
             const response = await axios.patch(
-                `http://localhost:8080/api/orders/${orderId}/status`,
+                `http://localhost:8080/api/orders/status/${orderId}`,
                 { status: newStatus },
                 { headers }
             );
@@ -229,6 +229,7 @@ const RestaurantDashboard = () => {
     const getStatusBadgeClass = (status) => {
         switch (status) {
             case 'PENDING': return 'bg-warning';
+            case 'IN PROGRESS': return 'bg-primary';
             case 'ACCEPTED': return 'bg-primary';
             case 'PREPARING': return 'bg-info';
             case 'READY': return 'bg-success';
@@ -478,19 +479,18 @@ const RestaurantDashboard = () => {
                                                                     <>
                                                                         <button
                                                                             className="btn btn-success btn-sm mb-2 w-100"
-                                                                        //onClick={() => handleUpdateOrderStatus(order.orderId, 'ACCEPTED')}
+                                                                            onClick={() => handleUpdateOrderStatus(order.orderId, 'IN PROGRESS')}
                                                                         >
                                                                             Accept Order
                                                                         </button>
                                                                         <button
                                                                             className="btn btn-danger btn-sm w-100"
-                                                                        //onClick={() => handleUpdateOrderStatus(order.orderId, 'CANCELLED')}
+                                                                            onClick={() => handleUpdateOrderStatus(order.orderId, 'CANCELLED')}
                                                                         >
                                                                             Decline
                                                                         </button>
                                                                     </>
                                                                 )}
-
                                                                 {order.orderStatus === 'ACCEPTED' && (
                                                                     <button
                                                                         className="btn btn-info btn-sm w-100"

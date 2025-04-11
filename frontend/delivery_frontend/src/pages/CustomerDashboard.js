@@ -143,26 +143,29 @@ const CustomerDashboard = () => {
     };
 
     const handleAddToCart = async (item, restaurantId) => {
-        if (addingToCart) return; // Prevent multiple rapid clicks
+        if (addingToCart) return;
+
+        const selectedRestaurant = restaurants.find(r => r.restaurantId === restaurantId);
+        if (!selectedRestaurant?.open) {
+            alert('This restaurant is currently closed. You cannot add items to your cart.');
+            return;
+        }
 
         setAddingToCart(true);
 
         try {
-            // Make API call to add item to cart
             await api.post('/cart/add', null, {
                 params: {
                     menuItemId: item.id,
-                    quantity: 1 // Default to adding 1 item
+                    quantity: 1
                 }
             });
 
-            // Show success notification on the specific item
             setAddedItemIds(prev => ({
                 ...prev,
                 [item.id]: true
             }));
 
-            // Hide notification after 2 seconds
             setTimeout(() => {
                 setAddedItemIds(prev => ({
                     ...prev,
@@ -172,7 +175,6 @@ const CustomerDashboard = () => {
 
         } catch (err) {
             console.error('Error adding item to cart:', err);
-            // Could show an error notification if needed
         } finally {
             setAddingToCart(false);
         }
@@ -328,7 +330,9 @@ const CustomerDashboard = () => {
                                                                 <div className="row">
                                                                     {menuItems[restaurant.restaurantId].map(item => (
                                                                         <div className="col-md-6 mb-3" key={item.id}>
-                                                                            <div className="menu-item p-3 border rounded position-relative">
+                                                                            <div className="menu-item p-3 border rounded position-relative"
+                                                                                style={!restaurant.open ? { opacity: 0.5, pointerEvents: 'none' } : {}}
+                                                                            >
                                                                                 <div className="d-flex justify-content-between align-items-center">
                                                                                     <div>
                                                                                         <h6>{item.name}</h6>
@@ -338,7 +342,7 @@ const CustomerDashboard = () => {
                                                                                     <button
                                                                                         className="btn btn-outline-warning add-to-cart-btn"
                                                                                         onClick={() => handleAddToCart(item, restaurant.restaurantId)}
-                                                                                        disabled={addingToCart}
+                                                                                        disabled={addingToCart || !restaurant.open}
                                                                                     >
                                                                                         <FontAwesomeIcon icon={faPlus} />
                                                                                     </button>

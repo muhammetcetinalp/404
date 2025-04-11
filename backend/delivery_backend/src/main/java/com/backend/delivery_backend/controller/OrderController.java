@@ -204,7 +204,7 @@ public class OrderController {
 
     // In OrderController.java - Add this method
     @PreAuthorize("hasRole('RESTAURANT_OWNER')")
-    @PatchMapping("/orders/{orderId}/status")
+    @PatchMapping("/status/{orderId}")
     public ResponseEntity<?> updateOrderStatus(
             @PathVariable String orderId,
             @RequestBody Map<String, String> statusUpdate) {
@@ -221,10 +221,17 @@ public class OrderController {
             }
 
             Order order = orderOpt.get();
-            order.setOrderStatus(newStatus);
-            orderRepository.save(order);
 
-            return ResponseEntity.ok("Order status updated to " + newStatus);
+            // Eğer "ACCEPTED" geldiyse, veritabanına "IN_PROGRESS" olarak yaz
+            if (newStatus.equalsIgnoreCase("ACCEPTED")) {
+                order.setOrderStatus("IN_PROGRESS");
+            } else {
+                order.setOrderStatus(newStatus);
+            }
+
+            orderRepository.save(order);
+            return ResponseEntity.ok("Order status updated to " + order.getOrderStatus());
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error updating order status: " + e.getMessage());
@@ -234,7 +241,10 @@ public class OrderController {
     @PreAuthorize("hasRole('RESTAURANT_OWNER')")
     @GetMapping("/history/restaurant/{restaurantId}")
     public ResponseEntity<?> getPastOrdersByRestaurant(@PathVariable String restaurantId) {
-        List<Order> orders = orderRepository.findByRestaurantId(restaurantId);
+        List<Order> orders = orderRepository.findByRestaurantId(restaurantId)
+                .stream()
+                .sorted(Comparator.comparing(Order::getOrderDate).reversed())
+                .toList();
         if (orders.isEmpty()) {
             return ResponseEntity.ok(Collections.emptyList());
         }
@@ -250,7 +260,6 @@ public class OrderController {
             dto.setOrderStatus(order.getOrderStatus());
             dto.setDeliveryType(order.getDeliveryType().name());
 
-            // ✅ Müşteri ismini DTO’ya ekle
             if (order.getCustomer() != null) {
                 dto.setCustomerName(order.getCustomer().getName());
             } else {

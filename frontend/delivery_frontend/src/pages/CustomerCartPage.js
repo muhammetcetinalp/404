@@ -41,7 +41,7 @@ const Cart = () => {
     }, [navigate]);
 
     const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const deliveryFee = 3.99;
+    const deliveryFee = 60.0;
     const total = subtotal + deliveryFee;
 
     const handleQuantityChange = async (menuItemId, change) => {

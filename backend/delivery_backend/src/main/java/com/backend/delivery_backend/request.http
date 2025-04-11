@@ -5,7 +5,7 @@ Content-Type: application/json
 {
   "name": "Muhammet",
   "email": "m@gmail.com",
-  "password": "1234567890",
+  "password": "123",
   "phone": "5555555555",
   "role": "customer",
   "city": "Ankara",
@@ -105,7 +105,7 @@ Content-Type: application/json
 
 {
   "name": "Kebapçı Hakkı",
-  "email": "kebapci2@example.com",
+  "email": "kebapci3@example.com",
   "password": "kebap123",
   "phone": "5551000103",
   "role": "restaurant_owner",

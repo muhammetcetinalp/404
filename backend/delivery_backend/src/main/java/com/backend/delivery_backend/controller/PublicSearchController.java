@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalTime;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
@@ -77,7 +78,7 @@ public class PublicSearchController {
         List<RestaurantOwner> results = stream.toList();
 
         if (results.isEmpty()) {
-            return ResponseEntity.ok("No matching restaurants found");
+            return ResponseEntity.ok(Collections.emptyList());
         }
 
         return ResponseEntity.ok(results);

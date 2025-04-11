@@ -99,7 +99,7 @@ public class OrderController {
         Set<Order> orders = customer.getOrders();
 
         if (orders == null || orders.isEmpty()) {
-            return ResponseEntity.ok("No previous orders found.");
+            return ResponseEntity.ok(Collections.emptyList());
         }
 
         List<Map<String, Object>> response = new ArrayList<>();

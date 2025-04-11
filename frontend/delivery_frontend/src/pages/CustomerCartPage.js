@@ -16,6 +16,7 @@ const Cart = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const [warning, setWarning] = useState('');
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -53,8 +54,14 @@ const Cart = () => {
             const updated = await api.get('/cart/showcart');
             setCartItems(updated.data);
         } catch (err) {
-            console.error('Error updating quantity:', err);
-            setError('Could not update item quantity');
+            const msg = 'Could not update item quantity';
+            console.error('Error adding item to cart:', msg);
+
+            // Show warning on screen
+            setWarning('An error occurred');
+
+            // Hide after 3 seconds
+            setTimeout(() => setWarning(''), 3000);
         }
     };
 
@@ -93,6 +100,11 @@ const Cart = () => {
             <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
                 <div className="container">
                     {error && <div className="alert alert-danger">{error}</div>}
+                    {warning && (
+                        <div className="alert alert-warning alert-dismissible fade show" role="alert">
+                            {warning}
+                        </div>
+                    )}
 
                     <div className="row">
                         <div className="col-lg-8 col-md-12 mb-4">

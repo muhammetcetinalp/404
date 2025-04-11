@@ -53,7 +53,21 @@ public class CartController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Menu item not found");
         }
 
-        cart.addItem(menuItemOptional.get(), quantity);
+        MenuItem newItem = menuItemOptional.get();
+
+        // 🚫 Farklı restorandan ürün eklenmesini engelle
+        if (cart.getItems() != null && !cart.getItems().isEmpty()) {
+            MenuItem existingItem = cart.getItems().keySet().iterator().next();
+            String existingRestaurantId = existingItem.getRestaurant().getRestaurantId();
+            String newItemRestaurantId = newItem.getRestaurant().getRestaurantId();
+
+            if (!existingRestaurantId.equals(newItemRestaurantId)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Sepete sadece aynı restorana ait ürünler eklenebilir.");
+            }
+        }
+
+        cart.addItem(newItem, quantity);
         cartRepository.save(cart);
 
         return ResponseEntity.ok("Item added to cart");

@@ -29,20 +29,29 @@ public class CartService {
 
         if (cart == null) {
             cart = new Cart();
-
-            // Retrieve Customer by customerId
             Customer customer = customerRepository.findByCustomerId(customerId);
             cart.setCustomer(customer);
             cart.setId("cart-" + UUID.randomUUID());
-
             cartRepository.save(cart);
         }
 
-        // Add the item to the cart
-        MenuItem menuItem = menuItemRepository.findById(menuItemId)
+        // Get new menu item
+        MenuItem newItem = menuItemRepository.findById(menuItemId)
                 .orElseThrow(() -> new RuntimeException("Menu item not found"));
 
-        cart.addItem(menuItem, quantity);
+        // ✅ Mevcut sepetteki restoran ile karşılaştır
+        if (!cart.getItems().isEmpty()) {
+            MenuItem existingItem = cart.getItems().keySet().iterator().next();
+            String existingRestaurantId = existingItem.getRestaurant().getRestaurantId();
+            String newItemRestaurantId = newItem.getRestaurant().getRestaurantId();
+
+            if (!existingRestaurantId.equals(newItemRestaurantId)) {
+                throw new RuntimeException("Sepete sadece aynı restorana ait ürünler eklenebilir.");
+            }
+        }
+
+        // Eğer aynı restorandansa ekle
+        cart.addItem(newItem, quantity);
 
         return cartRepository.save(cart);
     }

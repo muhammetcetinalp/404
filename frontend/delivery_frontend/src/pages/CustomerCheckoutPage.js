@@ -27,6 +27,7 @@ const CheckoutPage = () => {
     const [tax, setTax] = useState(0);
     const [total, setTotal] = useState(0);
 
+    // Inside CheckoutPage component
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -41,6 +42,23 @@ const CheckoutPage = () => {
                 setCartItems(cartRes.data);
                 setAddress(profileRes.data.profile.address || '');
                 calculateTotals(cartRes.data);
+
+                // 🆕 Step 1: Extract restaurantId from first item
+                const firstItem = cartRes.data[0];
+                if (firstItem && firstItem.restaurantId) {
+                    const resDetails = await api.get(`/restaurants/${firstItem.restaurantId}`);
+                    const deliveryType = resDetails.data.deliveryType;
+
+                    // 🆕 Step 2: Set available delivery methods based on backend value
+                    if (deliveryType === 'DELIVERY') {
+                        setDeliveryMethod('delivery');
+                    } else if (deliveryType === 'PICKUP') {
+                        setDeliveryMethod('pickup');
+                    } else {
+                        // BOTH supported, let user choose
+                        setDeliveryMethod('delivery');
+                    }
+                }
             } catch (err) {
                 console.error("Checkout data fetch error", err);
                 alert("Failed to load checkout data.");
@@ -51,6 +69,7 @@ const CheckoutPage = () => {
 
         fetchData();
     }, [navigate]);
+
 
     const calculateTotals = (items) => {
         const sub = items.reduce((acc, item) => acc + item.price * item.quantity, 0);

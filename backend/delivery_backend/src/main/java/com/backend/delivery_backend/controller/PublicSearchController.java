@@ -1,15 +1,13 @@
 package com.backend.delivery_backend.controller;
 
+import com.backend.delivery_backend.model.DeliveryType;
 import com.backend.delivery_backend.model.RestaurantOwner;
 import com.backend.delivery_backend.repository.RestaurantOwnerRepository;
-import com.backend.delivery_backend.model.DeliveryType;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalTime;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
@@ -21,7 +19,6 @@ public class PublicSearchController {
     @Autowired
     private RestaurantOwnerRepository restaurantOwnerRepository;
 
-
     @GetMapping("/search-restaurants")
     public ResponseEntity<?> searchRestaurants(@RequestParam(required = false) String keyword,
                                                @RequestParam(required = false) Float minRating,
@@ -31,56 +28,57 @@ public class PublicSearchController {
                                                @RequestParam(required = false) String deliveryType,
                                                @RequestParam(required = false) Float topRated) {
 
-        Stream<RestaurantOwner> stream = restaurantOwnerRepository.findAll()
-                .stream()
+        Stream<RestaurantOwner> stream = restaurantOwnerRepository.findAll().stream()
+
+                // ✅ Her zaman sadece açık restoranları getir
+                .filter(RestaurantOwner::isOpen)
+
                 .filter(r -> {
-                    boolean match = true;
-
-                    if (keyword != null) {
-                        match = r.getName().toLowerCase().contains(keyword.toLowerCase()) ||
-                                r.getAddress().toLowerCase().contains(keyword.toLowerCase());
+                    if (keyword != null &&
+                            !(r.getName().toLowerCase().contains(keyword.toLowerCase()) ||
+                                    r.getAddress().toLowerCase().contains(keyword.toLowerCase()))) {
+                        return false;
                     }
 
-                    if (match && minRating != null) {
-                        match = r.getRating() >= minRating;
+                    if (minRating != null && r.getRating() < minRating) {
+                        return false;
                     }
 
-                    if (match && Boolean.TRUE.equals(openNow)) {
-                        match = isOpenNow(r.getBusinessHoursStart(), r.getBusinessHoursEnd());
+                    if (Boolean.TRUE.equals(openNow) &&
+                            !isOpenNow(r.getBusinessHoursStart(), r.getBusinessHoursEnd())) {
+                        return false;
                     }
 
-                    if (match && cuisineType != null) {
-                        match = r.getCuisineType() != null &&
-                                r.getCuisineType().equalsIgnoreCase(cuisineType);
+                    if (cuisineType != null &&
+                            (r.getCuisineType() == null ||
+                                    !r.getCuisineType().equalsIgnoreCase(cuisineType))) {
+                        return false;
                     }
 
-                    if (match && deliveryType != null) {
-                        match = r.getDeliveryType() != null &&
-                                (r.getDeliveryType().name().equalsIgnoreCase(deliveryType) ||
-                                        r.getDeliveryType() == DeliveryType.BOTH);
-                    }
-                    if (match && topRated != null) {
-                        match = r.getRating() >= topRated;
+                    if (deliveryType != null &&
+                            (r.getDeliveryType() == null ||
+                                    !(r.getDeliveryType().name().equalsIgnoreCase(deliveryType) ||
+                                            r.getDeliveryType() == DeliveryType.BOTH))) {
+                        return false;
                     }
 
-                    return match;
+                    if (topRated != null && r.getRating() < topRated) {
+                        return false;
+                    }
+
+                    return true;
                 });
 
-        // Sıralama uygulanacaksa
+        // Sıralama
         if (sortBy != null) {
             switch (sortBy.toLowerCase()) {
                 case "rating" -> stream = stream.sorted(Comparator.comparing(RestaurantOwner::getRating).reversed());
                 case "name" -> stream = stream.sorted(Comparator.comparing(RestaurantOwner::getName));
-                default -> {} // desteklenmeyen sortBy için sıralama yapma
+                default -> {}
             }
         }
 
         List<RestaurantOwner> results = stream.toList();
-
-        if (results.isEmpty()) {
-            return ResponseEntity.ok(Collections.emptyList());
-        }
-
         return ResponseEntity.ok(results);
     }
 
@@ -89,7 +87,6 @@ public class PublicSearchController {
             LocalTime now = LocalTime.now();
             LocalTime startTime = LocalTime.parse(start);
             LocalTime endTime = LocalTime.parse(end);
-
             return !now.isBefore(startTime) && !now.isAfter(endTime);
         } catch (Exception e) {
             return false;

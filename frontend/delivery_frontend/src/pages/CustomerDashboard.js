@@ -301,7 +301,7 @@ const CustomerDashboard = () => {
                                                                     </span>
                                                                 </div>
                                                                 <p><small>Type: {restaurant.cuisineType}</small></p>
-                                                                <p><small>Open: {restaurant.isOpen ? 'Yes' : 'No'}</small></p>
+                                                                <p><small>Open: {restaurant.open ? 'Yes' : 'No'}</small></p>
                                                             </div>
                                                             <div className="col-md-3 text-right">
                                                                 <button

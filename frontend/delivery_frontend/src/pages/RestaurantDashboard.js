@@ -445,7 +445,7 @@ const RestaurantDashboard = () => {
                                                             </div>
                                                             <div className="col-md-4">
                                                                 <p className="mb-1 small">
-                                                                    <strong>Customer:</strong> {order.customer?.name || 'Unknown'}
+                                                                    <strong>Customer:</strong> {order.customerName || 'Unknown'}
                                                                 </p>
                                                                 <p className="mb-1 small truncate-text">
                                                                     <strong>Delivery to:</strong> {order.deliveryAddress || 'N/A'}
@@ -460,8 +460,7 @@ const RestaurantDashboard = () => {
                                                                 </p>
                                                                 <h5 className="text-warning">${order.totalAmount.toFixed(2)}</h5>
                                                                 <p className="mb-0 small">
-                                                                    <strong>Items:</strong> {Object.values(order.items || {}).reduce((acc, qty) => acc + qty, 0)}
-                                                                </p>
+                                                                    <strong>Items:</strong> {order.items ? order.items.reduce((acc, item) => acc + (item.quantity || 0), 0) : 0}                                                                </p>
                                                             </div>
                                                             <div className="col-md-2 text-right">
                                                                 <button
@@ -540,17 +539,14 @@ const RestaurantDashboard = () => {
                                                                                     </tr>
                                                                                 </thead>
                                                                                 <tbody>
-                                                                                    {order.items && Object.entries(order.items).map(([itemId, quantity], index) => {
-                                                                                        const item = Object.keys(order.items)[index];
-                                                                                        return (
-                                                                                            <tr key={index}>
-                                                                                                <td>{item.name || `Item ${index + 1}`}</td>
-                                                                                                <td>{quantity}</td>
-                                                                                                <td>${item.price ? item.price.toFixed(2) : '0.00'}</td>
-                                                                                                <td>${item.price ? (quantity * item.price).toFixed(2) : '0.00'}</td>
-                                                                                            </tr>
-                                                                                        );
-                                                                                    })}
+                                                                                    {order.items && order.items.map((item, index) => (
+                                                                                        <tr key={index}>
+                                                                                            <td>{item.name}</td>
+                                                                                            <td>{item.quantity}</td>
+                                                                                            <td>${item.price.toFixed(2)}</td>
+                                                                                            <td>${(item.quantity * item.price).toFixed(2)}</td>
+                                                                                        </tr>
+                                                                                    ))}
                                                                                 </tbody>
                                                                                 <tfoot>
                                                                                     <tr>
@@ -599,21 +595,10 @@ const RestaurantDashboard = () => {
                                                                     <div className="row mt-3">
                                                                         <div className="col-12">
                                                                             <div className="card bg-light p-3">
-                                                                                <h6>Delivery Information</h6>
+                                                                                <h6>Customer Note</h6>
                                                                                 <p className="mb-0">
-                                                                                    <strong>Type:</strong> {order.deliveryType || 'Standard'}
+                                                                                    {order.note ? order.note : 'No note provided.'}
                                                                                 </p>
-                                                                                <p className="mb-0">
-                                                                                    <strong>Address:</strong> {order.deliveryAddress || 'N/A'}
-                                                                                </p>
-                                                                                <p className="mb-0">
-                                                                                    <strong>Payment Method:</strong> {order.paymentMethod || 'N/A'}
-                                                                                </p>
-                                                                                {order.tipAmount > 0 && (
-                                                                                    <p className="mb-0">
-                                                                                        <strong>Tip Amount:</strong> ${order.tipAmount.toFixed(2)}
-                                                                                    </p>
-                                                                                )}
                                                                             </div>
                                                                         </div>
                                                                     </div>

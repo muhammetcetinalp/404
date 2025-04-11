@@ -75,5 +75,14 @@ public class RestaurantOrderDTO {
 
     private List<Map<String, Object>> items;
 
-    // Getters ve Setters
+    private String customerName;
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
 }

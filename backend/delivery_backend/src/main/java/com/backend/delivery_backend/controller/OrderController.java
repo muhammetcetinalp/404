@@ -250,6 +250,13 @@ public class OrderController {
             dto.setOrderStatus(order.getOrderStatus());
             dto.setDeliveryType(order.getDeliveryType().name());
 
+            // ✅ Müşteri ismini DTO’ya ekle
+            if (order.getCustomer() != null) {
+                dto.setCustomerName(order.getCustomer().getName());
+            } else {
+                dto.setCustomerName("Unknown");
+            }
+
             List<Map<String, Object>> itemList = new ArrayList<>();
             for (Map.Entry<MenuItem, Integer> entry : order.getItems().entrySet()) {
                 Map<String, Object> item = new HashMap<>();

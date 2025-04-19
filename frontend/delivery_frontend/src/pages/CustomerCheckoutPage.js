@@ -7,6 +7,10 @@ import Footer from '../components/Footer';
 import api from '../api';
 import '../styles/dashboard.css';
 import '../styles/checkout.css';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
+
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
@@ -81,6 +85,8 @@ const CheckoutPage = () => {
         setTotal(sub + tax + shipping + tip);
     };
 
+
+
     const handlePlaceOrder = async () => {
         try {
             const tip = customTip ? parseFloat(customTip) || 0 : tipAmount || 0;
@@ -99,14 +105,25 @@ const CheckoutPage = () => {
             } : {};
 
             await api.post(`/orders/create?${queryParams.toString()}`, body);
-            alert('Order placed successfully!');
-            navigate('/customer-dashboard');
+
+            toast.success('Order placed successfully!', {
+                style: {
+                    backgroundColor: '#eb6825',
+                    color: 'white',
+                    fontWeight: 'bold',
+                },
+            });
+            setTimeout(() => {
+                navigate('/customer-dashboard');
+            }, 2000); // 1.5 saniye bekle
+
         } catch (err) {
             const message = err.response?.data?.message || err.response?.data || err.message;
             console.error("Order error", message);
-            alert("Order failed: " + message);
+            toast.error('Order failed: ' + message);
         }
     };
+
 
     return (
         <div className="checkout-page-wrapper d-flex flex-column min-vh-100">
@@ -121,7 +138,18 @@ const CheckoutPage = () => {
                     </div>
                 </div>
             </div>
-
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="colored"
+            />
             <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
                 <div className="container">
                     {loading ? (
@@ -293,7 +321,7 @@ const CheckoutPage = () => {
                                         <span className="font-weight-bold">{total} TL</span>
                                     </div>
                                     <button
-                                        className="btn btn-warning btn-block"
+                                        className="btn-orange btn btn-warning btn-block"
                                         onClick={handlePlaceOrder}
                                         disabled={loading}
                                     >

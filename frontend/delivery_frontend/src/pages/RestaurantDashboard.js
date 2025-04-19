@@ -280,13 +280,8 @@ const RestaurantDashboard = () => {
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         style={{ height: '50px' }}
                                     />
-                                    <button
-                                        className={`btn ${restaurantOpen ? 'btn-warning' : 'btn-secondary'}`}
-                                        onClick={toggleRestaurantStatus}
-                                        style={{ width: '80px' }}
-                                    >
-                                        <FontAwesomeIcon icon={restaurantOpen ? faToggleOn : faToggleOff} className="me-1" />
-                                        {restaurantOpen ? 'On' : 'Off'}
+                                    <button className="btn btn-orange border-0" style={{ height: '50px', width: '60px' }}>
+                                        <FontAwesomeIcon icon={faSearch} />
                                     </button>
                                 </div>
                             </div>
@@ -459,7 +454,7 @@ const RestaurantDashboard = () => {
                                                                 <p className="mb-1">
                                                                     <strong>Total Amount:</strong>
                                                                 </p>
-                                                                <h5 className="text-warning">${order.totalAmount.toFixed(2)}</h5>
+                                                                <h5 className="text-warning text-orange">${order.totalAmount.toFixed(2)}</h5>
                                                                 <p className="mb-0 small">
                                                                     <strong>Items:</strong> {order.items ? order.items.reduce((acc, item) => acc + (item.quantity || 0), 0) : 0}                                                                </p>
                                                             </div>

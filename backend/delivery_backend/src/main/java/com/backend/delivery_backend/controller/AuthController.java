@@ -2,6 +2,7 @@ package com.backend.delivery_backend.controller;
 
 import com.backend.delivery_backend.DTO.UserDTO;
 import com.backend.delivery_backend.model.PasswordResetToken;
+import com.backend.delivery_backend.model.RestaurantOwner;
 import com.backend.delivery_backend.model.User;
 import com.backend.delivery_backend.security.JwtUtil;
 import com.backend.delivery_backend.service.UserDetailsServiceImpl;
@@ -29,12 +30,28 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody UserDTO userDTO) {
         try {
+            // First authenticate the user
             Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(userDTO.getEmail(), userDTO.getPassword())
             );
 
             User user = userDetailsService.getUserByEmail(userDTO.getEmail());
-            String token = jwtUtil.generateToken(user.getEmail(), user.getRole(),user.getId());
+
+            // Check if user is a restaurant owner and if they're approved
+            if ("restaurant_owner".equalsIgnoreCase(user.getRole())) {
+                RestaurantOwner restaurant = (RestaurantOwner) user;
+
+                // If not approved, return error message
+                if (!restaurant.isApproved()) {
+                    return ResponseEntity.status(403).body(
+                            "Your restaurant account is pending approval by an administrator. " +
+                                    "Please wait for approval before logging in."
+                    );
+                }
+            }
+
+            // If user is approved or not a restaurant, proceed with login
+            String token = jwtUtil.generateToken(user.getEmail(), user.getRole(), user.getId());
 
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
@@ -47,6 +64,7 @@ public class AuthController {
             return ResponseEntity.status(401).body("Invalid credentials");
         }
     }
+
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
         // Logout işlemi sadece client-side'da token'ın silinmesi ile yapılır.
@@ -62,8 +80,15 @@ public class AuthController {
         if (userDetailsService.getUserByEmail(userDTO.getEmail()) != null) {
             return ResponseEntity.badRequest().body("This email is already in use");
         }
+
         try {
-            userDetailsService.save(userDTO);
+            User user = userDetailsService.save(userDTO);
+
+            // If user is a restaurant owner, return a special message
+            if ("restaurant_owner".equalsIgnoreCase(userDTO.getRole())) {
+                return ResponseEntity.ok("Registration successful. Your restaurant account is pending approval by an administrator.");
+            }
+
             return ResponseEntity.ok("Registration successful");
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Registration failed: " + e.getMessage());

@@ -37,6 +37,13 @@ public class AuthController {
 
             User user = userDetailsService.getUserByEmail(userDTO.getEmail());
 
+            // Check if user is banned
+            if ("BANNED".equals(user.getAccountStatus())) {
+                return ResponseEntity.status(403).body(
+                        "Your account has been banned. Please contact the administrator for further assistance."
+                );
+            }
+
             // Check if user is a restaurant owner and if they're approved
             if ("restaurant_owner".equalsIgnoreCase(user.getRole())) {
                 RestaurantOwner restaurant = (RestaurantOwner) user;
@@ -57,6 +64,7 @@ public class AuthController {
             response.put("token", token);
             response.put("role", user.getRole());
             response.put("email", user.getEmail());
+            response.put("accountStatus", user.getAccountStatus());
 
             return ResponseEntity.ok(response);
 

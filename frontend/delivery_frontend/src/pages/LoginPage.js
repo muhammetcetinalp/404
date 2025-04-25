@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import api from '../api';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -10,6 +10,15 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // URL'den banned parametresini kontrol et
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get('error') === 'banned') {
+      setError('Your account has been banned. Please contact the administrator for assistance.');
+    }
+  }, [location]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -39,6 +48,7 @@ const LoginPage = () => {
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('email', res.data.email);
       localStorage.setItem('role', res.data.role.toLowerCase());
+      localStorage.setItem('accountStatus', res.data.accountStatus || 'ACTIVE');
 
       // Navigate based on role
       const role = res.data.role.toLowerCase();

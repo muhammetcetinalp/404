@@ -8,6 +8,7 @@ import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import '../styles/restaurant-dashboard.css';
 import '../styles/dashboard.css';
+import { AccountStatusBanner, checkAccountStatus } from '../components/AccountStatusBanner';
 
 const RestaurantDashboard = () => {
     const [orders, setOrders] = useState([]);
@@ -99,6 +100,11 @@ const RestaurantDashboard = () => {
             return;
         }
 
+        // Kullanıcı durumunu kontrol et
+        if (!checkAccountStatus()) {
+            return; // Eğer BANNED ise, checkAccountStatus fonksiyonu yönlendirme yapacaktır
+        }
+
         fetchRestaurantDetails();
         fetchOrders();
     }, [token, navigate, restaurantId]);
@@ -152,7 +158,7 @@ const RestaurantDashboard = () => {
 
             console.log("Status toggle response:", response.data);
 
-            // Bu satır çalışmalı ve state’i doğrudan değiştirmeli
+            // Bu satır çalışmalı ve state'i doğrudan değiştirmeli
             setRestaurantOpen(response.data.open);
 
         } catch (err) {
@@ -267,6 +273,10 @@ const RestaurantDashboard = () => {
         <div>
             <div className="container-fluid dashboard-header">
                 <Header />
+
+                {/* Account Status Banner - Suspended kullanıcılar için uyarı */}
+                <AccountStatusBanner />
+
                 <div className="container dashboard-welcome-text">
                     <div className="row justify-content-center">
                         <div className="col-lg-5 col-md-10 col-sm-12">

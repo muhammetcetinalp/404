@@ -6,8 +6,9 @@ const AdminLayout = ({ children, active }) => {
     const navigate = useNavigate();
 
     // Get admin name from localStorage and display first initial and name
-    const adminName = localStorage.getItem('name') || 'Admin';
-    const adminInitial = adminName.charAt(0).toUpperCase();
+    // Şöyle değiştirmelisiniz:
+    const storedName = localStorage.getItem('name');
+    const adminName = (storedName && storedName !== "undefined") ? storedName : "Admin"; const adminInitial = adminName.charAt(0).toUpperCase();
 
     const handleNavigate = (path) => {
         navigate(path);
@@ -38,10 +39,10 @@ const AdminLayout = ({ children, active }) => {
                     <i className="nav-icon dashboard-icon"></i> Dashboard
                 </button>
                 <button
-                    className={`admin-nav-item ${active === 'users' ? 'active' : ''}`}
-                    onClick={() => handleNavigate('/admin/users')}
+                    className={`admin-nav-item ${active === 'customers' ? 'active' : ''}`}
+                    onClick={() => handleNavigate('/admin/customers')}
                 >
-                    <i className="nav-icon users-icon"></i> Users
+                    <i className="nav-icon users-icon"></i> Customers
                 </button>
                 <button
                     className={`admin-nav-item ${active === 'restaurants' ? 'active' : ''}`}
@@ -50,16 +51,22 @@ const AdminLayout = ({ children, active }) => {
                     <i className="nav-icon restaurants-icon"></i> Restaurants
                 </button>
                 <button
+                    className={`admin-nav-item ${active === 'couriers' ? 'active' : ''}`}
+                    onClick={() => handleNavigate('/admin/couriers')}
+                >
+                    <i className="nav-icon couriers-icon"></i> Couriers
+                </button>
+                <button
+                    className={`admin-nav-item ${active === 'admins' ? 'active' : ''}`}
+                    onClick={() => handleNavigate('/admin/admin-users')}
+                >
+                    <i className="nav-icon admin-icon"></i> Admins
+                </button>
+                <button
                     className={`admin-nav-item ${active === 'orders' ? 'active' : ''}`}
                     onClick={() => handleNavigate('/admin/orders')}
                 >
                     <i className="nav-icon orders-icon"></i> Orders
-                </button>
-                <button
-                    className={`admin-nav-item ${active === 'reports' ? 'active' : ''}`}
-                    onClick={() => handleNavigate('/admin/reports')}
-                >
-                    <i className="nav-icon reports-icon"></i> Reports
                 </button>
                 <button
                     className={`admin-nav-item ${active === 'settings' ? 'active' : ''}`}

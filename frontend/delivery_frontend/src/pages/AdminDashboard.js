@@ -180,9 +180,21 @@ const AdminDashboard = () => {
                             </div>
 
                             <div className="action-grid">
-                                <button onClick={() => navigate('/admin/users')} className="action-button">
-                                    <i className="action-icon add-user-icon"></i>
-                                    <span>Add User</span>
+                                <button onClick={() => navigate('/admin/customers')} className="action-button">
+                                    <i className="action-icon add-customer-icon"></i>
+                                    <span>Add Customer</span>
+                                </button>
+                                <button onClick={() => navigate('/admin/restaurants')} className="action-button">
+                                    <i className="action-icon add-restaurant-icon"></i>
+                                    <span>Add Restaurant</span>
+                                </button>
+                                <button onClick={() => navigate('/admin/couriers')} className="action-button">
+                                    <i className="action-icon add-courier-icon"></i>
+                                    <span>Add Courier</span>
+                                </button>
+                                <button onClick={() => navigate('/admin/admin-users')} className="action-button">
+                                    <i className="action-icon add-admin-icon"></i>
+                                    <span>Add Admin</span>
                                 </button>
                             </div>
                         </div>

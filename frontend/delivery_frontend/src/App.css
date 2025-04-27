@@ -1,6 +1,11 @@
+/* Global styles */
+html,
+body {
+  background-color: white;
+}
+
 body {
   font-family: Arial, sans-serif;
-  background-color: #f2f2f2;
   margin: 0;
   padding: 0;
 }
@@ -187,6 +192,15 @@ a:hover {
 
 .cursor-pointer {
   cursor: pointer;
+}
+
+.home-main {
+  background-color: rgb(33, 37, 41) !important;
+}
+
+.home-info-sec {
+  background-color: #F26522 !important;
+
 }
 
 /* For Home */

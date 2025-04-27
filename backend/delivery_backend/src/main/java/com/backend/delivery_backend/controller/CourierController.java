@@ -1,7 +1,6 @@
 package com.backend.delivery_backend.controller;
 
 import com.backend.delivery_backend.DTO.DeliveryRequestDTO;
-import com.backend.delivery_backend.model.Courier;
 import com.backend.delivery_backend.service.CourierService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,17 +30,18 @@ public class CourierController {
         }
     }
 
-    @PostMapping("/{courierId}/assign-restaurant-name/{restaurantName}")
+    @PostMapping("/{courierId}/assign-restaurant-by-name")
     public ResponseEntity<?> assignRestaurantByName(
             @PathVariable String courierId,
-            @PathVariable String restaurantName) {
+            @RequestParam String name) {
         try {
-            courierService.assignRestaurantToCourierByName(courierId, restaurantName);
-            return ResponseEntity.ok("Courier assigned to restaurant with name: " + restaurantName);
+            courierService.assignRestaurantToCourierByName(courierId, name);
+            return ResponseEntity.ok("Courier assigned to restaurant with name: " + name);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
 
     @PatchMapping("/{courierId}/delivery-requests/{requestId}")
     public ResponseEntity<?> handleDeliveryRequest(
@@ -75,14 +75,5 @@ public class CourierController {
     }
 
 
-    @GetMapping("/{courierId}")
-    public ResponseEntity<?> getCourierById(@PathVariable String courierId) {
-        try {
-            Courier courier = courierService.getCourierById(courierId);
-            return ResponseEntity.ok(courier);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
-    }
 
 }

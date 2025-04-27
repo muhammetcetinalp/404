@@ -29,7 +29,7 @@ public class RestaurantController {
 
     @GetMapping("/{id}/menu")
     public ResponseEntity<?> getMenu(@PathVariable String id) {
-        // First check if the restaurant is approved
+        // First check if the restaurant exists
         Optional<RestaurantOwner> restaurant = restaurantOwnerRepository.findById(id);
         if (restaurant.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Restaurant not found");
@@ -42,15 +42,22 @@ public class RestaurantController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Restaurant is pending approval");
         }
 
-        // If restaurant is banned or suspended, return 403 Forbidden
-        if ("BANNED".equals(restaurantOwner.getAccountStatus()) || "SUSPENDED".equals(restaurantOwner.getAccountStatus())) {
+        // Bu kısmı kaldırmanız/değiştirmeniz gerekiyor:
+    /* If restaurant is banned or suspended, return 403 Forbidden
+    if ("BANNED".equals(restaurantOwner.getAccountStatus()) || "SUSPENDED".equals(restaurantOwner.getAccountStatus())) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Restaurant is currently unavailable");
+    }
+    */
+
+        // Yeni kod: Askıya alınmış restoranlara kendi menülerini görüntüleme izni verelim
+        // Sadece BANNED olanlar için kısıtlama kalsın
+        if ("BANNED".equals(restaurantOwner.getAccountStatus())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Restaurant is currently unavailable");
         }
 
         List<MenuItem> items = restaurantOwnerService.getMenuItemsByRestaurant(id);
         return ResponseEntity.ok(items);
     }
-
     @PatchMapping("/{id}/toggle-status")
     @PreAuthorize("hasRole('RESTAURANT_OWNER')")
     public ResponseEntity<?> toggleRestaurantStatus(@PathVariable String id) {

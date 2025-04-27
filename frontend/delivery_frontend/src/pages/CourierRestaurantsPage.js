@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { jwtDecode } from "jwt-decode"; 
 import {
     faUtensils,
     faMapMarkerAlt,
@@ -21,10 +20,16 @@ import api from '../api';
 import '../styles/dashboard.css';
 import '../styles/restaurant-dashboard.css';
 
+import restaurantImg1 from '../assets/images/exampleRestaurants/image1.png';
+import restaurantImg2 from '../assets/images/exampleRestaurants/image2.png';
+import restaurantImg3 from '../assets/images/exampleRestaurants/image3.png';
+import restaurantImg4 from '../assets/images/exampleRestaurants/image4.png';
+import restaurantImg5 from '../assets/images/exampleRestaurants/image5.png';
+import restaurantImg6 from '../assets/images/exampleRestaurants/image6.png';
+
 const CourierRestaurantsPage = () => {
     const [restaurants, setRestaurants] = useState([]);
     const [filteredRestaurants, setFilteredRestaurants] = useState([]);
-    const [courier, setCourier] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [sortOption, setSortOption] = useState('name');
@@ -62,29 +67,83 @@ const CourierRestaurantsPage = () => {
             navigate('/login');
             return;
         }
-    
-        const fetchRestaurants = async () => {
-            try {
-                const response = await api.get('/public/search-restaurants', {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-    
-                const data = response.data;
-    
-                setRestaurants(data);
-                setFilteredRestaurants(data);
-                setLoading(false);
-            } catch (err) {
-                console.error('Error:', err);
-                setError('Failed to load restaurants. Please try again later.');
-                setLoading(false);
+
+        // Enhanced example restaurants data with images
+        const exampleRestaurants = [
+            {
+                id: 1,
+                name: "Apple Jabba",
+                cuisine: "Italian",
+                location: "123 Main St, City",
+                rating: 4.7,
+                totalOrders: 156,
+                status: "registered",
+                registerDate: "2025-01-15T10:30:00",
+                imageUrl: restaurantImg1
+            },
+            {
+                id: 2,
+                name: "BB.Q Chicken",
+                cuisine: "Korean Fried Chicken",
+                location: "789 Broadway, City",
+                rating: 4.5,
+                totalOrders: 89,
+                status: "pending",
+                registerDate: "2025-03-28T14:00:00",
+                imageUrl: restaurantImg2
+            },
+            {
+                id: 3,
+                name: "Beef Rosati",
+                cuisine: "Steakhouse",
+                location: "567 5th Ave, City",
+                rating: 4.8,
+                totalOrders: 210,
+                status: "not_registered",
+                registerDate: null,
+                imageUrl: restaurantImg3
+            },
+            {
+                id: 4,
+                name: "Istanbul Kebab",
+                cuisine: "Turkish",
+                location: "432 Oak St, City",
+                rating: 4.6,
+                totalOrders: 178,
+                status: "registered",
+                registerDate: "2025-02-20T09:15:00",
+                imageUrl: restaurantImg4
+            },
+            {
+                id: 5,
+                name: "Sushi Master",
+                cuisine: "Japanese",
+                location: "901 Pine St, City",
+                rating: 4.9,
+                totalOrders: 312,
+                status: "not_registered",
+                registerDate: null,
+                imageUrl: restaurantImg5
+            },
+            {
+                id: 6,
+                name: "Taj Mahal",
+                cuisine: "Indian",
+                location: "345 Elm St, City",
+                rating: 4.4,
+                totalOrders: 95,
+                status: "pending",
+                registerDate: "2025-03-30T11:45:00",
+                imageUrl: restaurantImg6
             }
-        };
-    
-        fetchRestaurants();
-    }, [token, navigate]);    
+        ];
+
+        setRestaurants(exampleRestaurants);
+        setFilteredRestaurants(exampleRestaurants);
+        setLoading(false);
+
+        //  fetch data from API
+    }, [token, navigate]);
 
     useEffect(() => {
         let results = restaurants;
@@ -171,26 +230,6 @@ const CourierRestaurantsPage = () => {
             setError('Failed to cancel registration request. Please try again.');
         }
     };
-
-    const handleJoinRestaurant = async (restaurantName) => {
-        try {
-          const token = localStorage.getItem('token');
-          const decoded = jwtDecode(token);
-          const courierId = decoded.id;
-      
-          await api.post(`/couriers/${courierId}/assign-restaurant-by-name`, null, {
-            params: { name: restaurantName },
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-      
-          alert(`Successfully requested to join ${restaurantName}`);
-        } catch (error) {
-          console.error('Error:', error);
-          alert('Failed to send join request.');
-        }
-      };
 
     const formatDate = (dateTimeStr) => {
         if (!dateTimeStr) return 'N/A';

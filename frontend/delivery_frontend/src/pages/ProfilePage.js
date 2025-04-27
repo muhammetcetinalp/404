@@ -268,7 +268,7 @@ const ProfilePage = () => {
                 <div className="container dashboard-welcome-text">
                     <div className="row justify-content-center">
                         <div className="col-lg-8 col-md-10">
-                            <h2 className="text-warning text-center mb-3">Profile Settings</h2>
+                            <h2 className="text-orange text-warning text-center mb-3">Profile Settings</h2>
                             <p className="text-light text-center">Update your personal information</p>
                         </div>
                     </div>
@@ -286,7 +286,7 @@ const ProfilePage = () => {
                                 </div>
                             ) : (
                                 <div className="bg-dark p-4 p-md-5 rounded shadow border border-secondary">
-                                    <h4 className="mb-4 border-bottom border-secondary pb-3 text-warning">
+                                    <h4 className="text-white mb-4 border-bottom border-secondary pb-3 text-warning">
                                         {role === 'restaurant_owner' ? 'Restaurant Profile' :
                                             role === 'courier' ? 'Courier Profile' : 'Customer Profile'}
                                     </h4>
@@ -318,7 +318,7 @@ const ProfilePage = () => {
                                         </button>
                                         <button
                                             onClick={handleSave}
-                                            className="btn btn-warning"
+                                            className="btn-orange btn btn-warning"
                                         >
                                             Save Changes
                                         </button>

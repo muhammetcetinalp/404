@@ -7,6 +7,10 @@ import Footer from '../components/Footer';
 import api from '../api';
 import '../styles/dashboard.css';
 import '../styles/checkout.css';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
+
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
@@ -15,7 +19,7 @@ const CheckoutPage = () => {
     const [address, setAddress] = useState('');
     const [deliveryMethod, setDeliveryMethod] = useState('delivery');
     const [paymentMethod, setPaymentMethod] = useState('creditCard');
-    const [tipAmount, setTipAmount] = useState(null);
+    const [tipAmount, setTipAmount] = useState(0);
     const [customTip, setCustomTip] = useState('');
     const [cardNumber, setCardNumber] = useState('');
     const [cardExpiry, setCardExpiry] = useState('');
@@ -69,11 +73,21 @@ const CheckoutPage = () => {
     }, [navigate]);
 
 
-    const calculateTotals = (items, method) => {
+    const calculateTotals = (items, method, customTipOverride = null) => {
         const sub = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
         const tax = Math.round(sub * 0.12);
-        const tip = customTip ? parseFloat(customTip) || 0 : tipAmount || 0;
         const shipping = method === 'pickup' ? 0 : 60;
+
+        let tip = 0;
+        if (customTipOverride !== null) {
+            tip = parseInt(customTipOverride) || 0;
+        } else if (customTip) {
+            tip = parseInt(customTip) || 0;
+        } else if (tipAmount !== null) {
+            tip = parseInt(tipAmount) || 0;
+        }
+
+        tip = Math.max(tip, 0); // Negatifse sıfır yap
 
         setSubtotal(sub);
         setTax(tax);
@@ -81,8 +95,30 @@ const CheckoutPage = () => {
         setTotal(sub + tax + shipping + tip);
     };
 
+
+
     const handlePlaceOrder = async () => {
         try {
+            if (paymentMethod === 'creditCard') {
+                // Kart bilgilerini doğrula
+
+                const cardNumberDigits = cardNumber.replace(/\s/g, ''); // boşlukları sil
+                if (cardNumberDigits.length !== 16) {
+                    toast.error("Please enter a valid 16-digit card number!");
+                    return;
+                }
+
+                if (!/^\d{2}\/\d{2}$/.test(cardExpiry)) {
+                    toast.error("Please enter a valid expiry date (MM/YY)!");
+                    return;
+                }
+
+                if (cardCVV.length !== 3) {
+                    toast.error("Please enter a valid 3-digit CVV!");
+                    return;
+                }
+            }
+
             const tip = customTip ? parseFloat(customTip) || 0 : tipAmount || 0;
 
             const queryParams = new URLSearchParams({
@@ -93,20 +129,33 @@ const CheckoutPage = () => {
             });
 
             const body = paymentMethod === 'creditCard' ? {
-                cardNumber,
+                cardNumber: cardNumber.replace(/\s/g, ''),
                 expiryDate: cardExpiry,
                 cvv: cardCVV
             } : {};
 
             await api.post(`/orders/create?${queryParams.toString()}`, body);
-            alert('Order placed successfully!');
-            navigate('/customer-dashboard');
+
+            toast.success('Order placed successfully!', {
+                style: {
+                    backgroundColor: '#eb6825',
+                    color: 'white',
+                    fontWeight: 'bold',
+                },
+            });
+
+            setTimeout(() => {
+                navigate('/customer-dashboard');
+            }, 2000);
+
         } catch (err) {
             const message = err.response?.data?.message || err.response?.data || err.message;
             console.error("Order error", message);
-            alert("Order failed: " + message);
+            toast.error('Order failed: ' + message);
         }
     };
+
+
 
     return (
         <div className="checkout-page-wrapper d-flex flex-column min-vh-100">
@@ -121,7 +170,18 @@ const CheckoutPage = () => {
                     </div>
                 </div>
             </div>
-
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="colored"
+            />
             <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
                 <div className="container">
                     {loading ? (
@@ -176,10 +236,20 @@ const CheckoutPage = () => {
                                                 <input
                                                     type="text"
                                                     className="form-control"
-                                                    placeholder="Credit card number"
+                                                    placeholder="1234 5678 9012 3456"
+                                                    maxLength={19}
                                                     value={cardNumber}
-                                                    onChange={e => setCardNumber(e.target.value.replace(/\D/g, '').slice(0, 16))}
+                                                    onChange={(e) => {
+                                                        let value = e.target.value.replace(/\D/g, '');
+                                                        if (value.length > 16) {
+                                                            value = value.slice(0, 16);
+                                                        }
+
+                                                        const formatted = value.match(/.{1,4}/g)?.join(' ') || '';
+                                                        setCardNumber(formatted);
+                                                    }}
                                                 />
+
                                             </div>
                                             <div className="row">
                                                 <div className="col-md-6">
@@ -223,11 +293,11 @@ const CheckoutPage = () => {
                                             {[0, 1, 3, 5].map(tip => (
                                                 <button
                                                     key={tip}
-                                                    className={`btn ${tipAmount === tip && !customTip ? 'btn-primary' : 'btn-outline-secondary'} mr-2`}
+                                                    className={`btn ${tipAmount === tip && customTip === '' ? 'btn-primary' : 'btn-outline-secondary'} mr-2`}
                                                     onClick={() => {
                                                         setTipAmount(tip);
                                                         setCustomTip('');
-                                                        calculateTotals(cartItems, deliveryMethod);
+                                                        calculateTotals(cartItems, deliveryMethod, tip);
                                                     }}
                                                 >
                                                     {tip} TL
@@ -235,14 +305,17 @@ const CheckoutPage = () => {
                                             ))}
                                         </div>
                                         <input
-                                            type="number"
+                                            type="text"
                                             className="form-control"
                                             placeholder="Enter custom amount"
                                             value={customTip}
-                                            onChange={e => {
-                                                setCustomTip(e.target.value);
-                                                setTipAmount(null);
-                                                calculateTotals(cartItems, deliveryMethod);
+                                            onChange={(e) => {
+                                                let value = e.target.value;
+                                                if (/^[0-9]*$/.test(value)) {
+                                                    setCustomTip(value);
+                                                    setTipAmount(null);
+                                                    calculateTotals(cartItems, deliveryMethod, value);
+                                                }
                                             }}
                                         />
                                     </div>
@@ -293,7 +366,7 @@ const CheckoutPage = () => {
                                         <span className="font-weight-bold">{total} TL</span>
                                     </div>
                                     <button
-                                        className="btn btn-warning btn-block"
+                                        className="btn-orange btn btn-warning btn-block"
                                         onClick={handlePlaceOrder}
                                         disabled={loading}
                                     >

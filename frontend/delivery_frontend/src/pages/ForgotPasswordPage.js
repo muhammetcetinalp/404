@@ -26,9 +26,9 @@ const ForgotPasswordPage = () => {
     e.preventDefault();
     try {
       await api.post('/forgot-password', { email });
-      setMsg("📧 Please check your email to reset your password.");
+      setMsg("Please check your email to reset your password.");
     } catch (err) {
-      setError("❌ Something went wrong. Please try again.");
+      setError("Something went wrong. Please try again.");
     }
   };
 

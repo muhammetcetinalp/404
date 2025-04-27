@@ -48,6 +48,30 @@ const RestaurantDashboard = () => {
         'Content-Type': 'application/json'
     };
 
+    const CustomCloseButton = ({ closeToast }) => (
+        <button
+            onClick={closeToast}
+            style={{
+                background: 'transparent',
+                border: 'none',
+                fontSize: '16px',
+                color: 'white',
+                cursor: 'pointer',
+                padding: '4px',
+                margin: '0',
+                width: '35px',
+                height: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
+            ×
+        </button>
+    );
+    const TAX_AMOUNT = 5;
+    const DELIVERY_FEE = 60;
+
     // Status options for filtering
     const statusOptions = [
         { value: 'all', label: 'All Orders' },
@@ -300,6 +324,7 @@ const RestaurantDashboard = () => {
         }
     };
 
+
     return (
         <div>
             <div className="container-fluid dashboard-header">
@@ -329,16 +354,21 @@ const RestaurantDashboard = () => {
 
             <ToastContainer
                 position="top-right"
-                autoClose={5000}
+                autoClose={3000}
                 hideProgressBar={false}
-                newestOnTop
+                newestOnTop={false}
                 closeOnClick
                 rtl={false}
                 pauseOnFocusLoss
                 draggable
                 pauseOnHover
                 theme="colored"
+                closeButton={<CustomCloseButton />}
+                toastClassName="custom-toast"
+                bodyClassName="custom-toast-body"
+                icon={true}
             />
+
 
             <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
                 <div className="container">
@@ -382,7 +412,7 @@ const RestaurantDashboard = () => {
                                         >
                                             <FontAwesomeIcon
                                                 icon={restaurantOpen ? faToggleOn : faToggleOff}
-                                                className={restaurantOpen ? 'text-white' : ''}
+                                                className={restaurantOpen ? 'text-white me-1' : ''}
                                             />
                                             <span className={restaurantOpen ? 'text-white' : ''}>
                                                 {restaurantOpen ? 'On' : 'Off'}
@@ -483,10 +513,15 @@ const RestaurantDashboard = () => {
                                 ) : filteredOrders.length > 0 ? (
                                     <div className="order-list">
                                         {filteredOrders.map(order => (
+
+
+
+
                                             <div className="order-item mb-4" key={order.orderId}>
                                                 <div className="card">
                                                     <div className="card-body">
                                                         <div className="row align-items-center">
+
                                                             <div className="col-md-3">
                                                                 <div className="order-info-column">
                                                                     <h5 className="card-title">Order #{order.orderId}</h5>
@@ -513,7 +548,8 @@ const RestaurantDashboard = () => {
                                                                 <p className="mb-1">
                                                                     <strong>Total Amount:</strong>
                                                                 </p>
-                                                                <h5 className="text-warning text-orange">${order.totalAmount.toFixed(2)}</h5>
+                                                                <h5 className="text-warning text-orange">{(order.totalAmount + TAX_AMOUNT + DELIVERY_FEE).toFixed(2)} TL</h5>
+
                                                                 <p className="mb-0 small">
                                                                     <strong>Items:</strong> {order.items ? order.items.reduce((acc, item) => acc + (item.quantity || 0), 0) : 0}
                                                                 </p>
@@ -602,15 +638,31 @@ const RestaurantDashboard = () => {
                                                                                         <tr key={index}>
                                                                                             <td>{item.name}</td>
                                                                                             <td>{item.quantity}</td>
-                                                                                            <td>${item.price.toFixed(2)}</td>
-                                                                                            <td>${(item.quantity * item.price).toFixed(2)}</td>
+                                                                                            <td>{item.price.toFixed(2)} TL</td>
+                                                                                            <td>{(item.quantity * item.price).toFixed(2)} TL</td>
                                                                                         </tr>
                                                                                     ))}
                                                                                 </tbody>
                                                                                 <tfoot>
                                                                                     <tr>
-                                                                                        <td colSpan="3" className="text-right"><strong>Subtotal:</strong></td>
-                                                                                        <td>${order.totalAmount.toFixed(2)}</td>
+                                                                                        <td colSpan="3" className="text-right"><strong>Tip:</strong></td>
+                                                                                        <td>
+                                                                                            {order.items
+                                                                                                ? (order.totalAmount - order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)).toFixed(2)
+                                                                                                : "0.00"} TL
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td colSpan="3" className="text-right"><strong>Tax:</strong></td>
+                                                                                        <td>{TAX_AMOUNT.toFixed(2)} TL</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td colSpan="3" className="text-right"><strong>Delivery Fee:</strong></td>
+                                                                                        <td>{DELIVERY_FEE.toFixed(2)} TL</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td colSpan="3" className="text-right"><strong>Grand Total:</strong></td>
+                                                                                        <td>{(order.totalAmount + TAX_AMOUNT + DELIVERY_FEE).toFixed(2)} TL</td>
                                                                                     </tr>
                                                                                 </tfoot>
                                                                             </table>

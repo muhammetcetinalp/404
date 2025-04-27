@@ -57,7 +57,7 @@ const CheckoutPage = () => {
     // Toplam hesaplama fonksiyonu
     const calculateTotals = (items, method, customTipOverride = null) => {
         const sub = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-        const tax = Math.round(sub * 0.12);
+        const tax = 5;
         const shipping = method === 'pickup' ? 0 : 60;
 
         let tip = 0;

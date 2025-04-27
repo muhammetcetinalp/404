@@ -143,16 +143,9 @@ const CheckoutPage = () => {
                     fontWeight: 'bold',
                 },
             });
-<<<<<<< HEAD
             setTimeout(() => {
                 navigate('/customer-dashboard');
             }, 2000); // 1.5 saniye bekle
-=======
-
-            setTimeout(() => {
-                navigate('/customer-dashboard');
-            }, 2000);
->>>>>>> origin/main
 
         } catch (err) {
             const message = err.response?.data?.message || err.response?.data || err.message;
@@ -160,12 +153,6 @@ const CheckoutPage = () => {
             toast.error('Order failed: ' + message);
         }
     };
-
-
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
     return (
         <div className="checkout-page-wrapper d-flex flex-column min-vh-100">
             {/* Restore the header styling from the first version */}

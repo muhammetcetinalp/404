@@ -783,8 +783,6 @@
 .btn-orange:hover {
     background-color: #d25b1e;
     color: white;
-<<<<<<< HEAD
-=======
 }
 
 /* CSS stillerini dashboard.css dosyasına ekleyin */
@@ -895,5 +893,109 @@
 .btn-adminstatus:hover {
     background-color: #000000;
     color: rgb(0, 0, 0);
->>>>>>> origin/main
+}
+
+/* Add these styles to your dashboard.css file */
+
+/* Favorite Button Styles */
+.favorite-button {
+    background: none !important;
+    border: none !important;
+    padding: 4px 8px;
+    transition: all 0.2s;
+    display: inline-block;
+    margin-left: 8px;
+    position: relative;
+    top: -1px;
+}
+
+.favorite-button:hover {
+    transform: scale(1.2);
+    background: transparent !important;
+}
+
+.favorite-button:focus,
+.favorite-button:active {
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.restaurant-name-container {
+    display: flex;
+    align-items: center;
+}
+
+.restaurant-name {
+    display: inline;
+    margin-right: 5px;
+}
+
+/* Restaurant name container in modal */
+.restaurant-name-with-favorite {
+    display: flex;
+    align-items: center;
+}
+
+.restaurant-name-with-favorite h4 {
+    margin-bottom: 0;
+    margin-right: 10px;
+}
+
+.favorite-button-modal {
+    background: none !important;
+    border: none !important;
+    padding: 4px 8px;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.favorite-button-modal:hover {
+    transform: scale(1.2);
+    background: transparent !important;
+}
+
+.favorite-button-modal:focus,
+.favorite-button-modal:active {
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Menu modal header styling */
+.menu-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Favorite List Styles */
+.favorite-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.favorite-item {
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.favorite-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Make sure the heart is always visible */
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.text-secondary {
+    color: #6c757d !important;
+}
+
+/* Add cursor style to clickable elements */
+.cursor-pointer {
+    cursor: pointer;
 }

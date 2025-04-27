@@ -29,6 +29,17 @@ public class RestaurantController {
 
     @GetMapping("/{id}/menu")
     public ResponseEntity<?> getMenu(@PathVariable String id) {
+        // First check if the restaurant is approved
+        Optional<RestaurantOwner> restaurant = restaurantOwnerRepository.findById(id);
+        if (restaurant.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Restaurant not found");
+        }
+
+        // If restaurant is not approved, return 403 Forbidden
+        if (!restaurant.get().isApproved()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Restaurant is pending approval");
+        }
+
         List<MenuItem> items = restaurantOwnerService.getMenuItemsByRestaurant(id);
         return ResponseEntity.ok(items);
     }
@@ -90,12 +101,12 @@ public class RestaurantController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Restaurant not found");
         }
 
+        // If restaurant is not approved, return 403 Forbidden
+        if (!restaurant.get().isApproved()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Restaurant is pending approval");
+        }
+
         boolean isOpen = restaurant.get().isOpen();  // açık mı?
         return ResponseEntity.ok(new RestaurantStatusDTO(isOpen));
     }
-
-
-
-
 }
-

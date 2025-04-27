@@ -190,3 +190,71 @@
         margin-bottom: 8px;
     }
 }
+
+/* Custom styles for the confirmation alert dialog */
+.custom-ui {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 25px;
+    text-align: center;
+    width: 350px;
+    max-width: 90%;
+}
+
+.custom-ui h1 {
+    font-size: 22px;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.custom-ui p {
+    color: #666;
+    margin-bottom: 25px;
+}
+
+.custom-ui-icon {
+    margin-bottom: 15px;
+    color: #ff6b35;
+    /* Your orange theme color */
+    font-size: 40px;
+}
+
+.custom-ui-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.btn-delete {
+    background-color: #ff6b35;
+    /* Your orange theme color */
+    border: none;
+    color: white;
+    padding: 8px 25px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-delete:hover {
+    background-color: #e85a2a;
+}
+
+.btn-cancel {
+    background-color: #e7e7e7;
+    border: none;
+    color: #333;
+    padding: 8px 25px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-cancel:hover {
+    background-color: #d7d7d7;
+}
+
+.react-confirm-alert-overlay {
+    background: rgba(0, 0, 0, 0.6);
+}

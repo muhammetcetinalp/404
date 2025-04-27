@@ -1,17 +1,6 @@
 package com.backend.delivery_backend.model;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-
-
 import jakarta.persistence.*;
-import java.util.UUID;
 
 @MappedSuperclass
 public abstract class User {
@@ -31,6 +20,10 @@ public abstract class User {
 	@Column(nullable = false)
 	private String role;
 
+	// Yeni eklenen alan - kullanıcı durumu
+	@Column(name = "account_status")
+	private String accountStatus = "ACTIVE"; // Varsayılan olarak ACTIVE
+
 	public abstract String getId();
 
 	// Getter/setter
@@ -48,4 +41,8 @@ public abstract class User {
 
 	public String getRole() { return role; }
 	public void setRole(String role) { this.role = role; }
+
+	// Yeni getter ve setter
+	public String getAccountStatus() { return accountStatus; }
+	public void setAccountStatus(String accountStatus) { this.accountStatus = accountStatus; }
 }

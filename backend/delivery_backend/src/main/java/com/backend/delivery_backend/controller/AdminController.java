@@ -122,6 +122,12 @@ public class AdminController {
             }
         }
 
+        // Kullanıcı statüsü güncellemesi
+        if (updates.containsKey("status")) {
+            String newStatus = (String) updates.get("status");
+            ((User) user).setAccountStatus(newStatus);
+        }
+
         if (user instanceof Customer customer) {
             if (updates.containsKey("name")) customer.setName((String) updates.get("name"));
             if (updates.containsKey("phone")) customer.setPhone((String) updates.get("phone"));
@@ -139,5 +145,4 @@ public class AdminController {
             if (updates.containsKey("address")) ro.setAddress((String) updates.get("address"));
         }
     }
-
 }

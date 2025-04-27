@@ -169,7 +169,8 @@ const OrderPage = () => {
                                                                 <td>
                                                                     <span className={`badge ${order.orderStatus.toLowerCase() === 'delivered' ? 'bg-success' :
                                                                         order.orderStatus.toLowerCase() === 'pending' ? 'bg-warning' :
-                                                                            'bg-info'
+                                                                            order.orderStatus.toLowerCase() === 'cancelled' ? 'bg-danger' :
+                                                                                'bg-info'
                                                                         }`}>
                                                                         {order.orderStatus}
                                                                     </span>

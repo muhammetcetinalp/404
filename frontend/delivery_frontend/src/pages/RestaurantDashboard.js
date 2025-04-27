@@ -8,7 +8,6 @@ import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import '../styles/restaurant-dashboard.css';
 import '../styles/dashboard.css';
-import { AccountStatusBanner, checkAccountStatus } from '../components/AccountStatusBanner';
 
 const RestaurantDashboard = () => {
     const [orders, setOrders] = useState([]);
@@ -100,11 +99,6 @@ const RestaurantDashboard = () => {
             return;
         }
 
-        // Kullanıcı durumunu kontrol et
-        if (!checkAccountStatus()) {
-            return; // Eğer BANNED ise, checkAccountStatus fonksiyonu yönlendirme yapacaktır
-        }
-
         fetchRestaurantDetails();
         fetchOrders();
     }, [token, navigate, restaurantId]);
@@ -158,7 +152,7 @@ const RestaurantDashboard = () => {
 
             console.log("Status toggle response:", response.data);
 
-            // Bu satır çalışmalı ve state'i doğrudan değiştirmeli
+            // Bu satır çalışmalı ve state’i doğrudan değiştirmeli
             setRestaurantOpen(response.data.open);
 
         } catch (err) {
@@ -273,10 +267,6 @@ const RestaurantDashboard = () => {
         <div>
             <div className="container-fluid dashboard-header">
                 <Header />
-
-                {/* Account Status Banner - Suspended kullanıcılar için uyarı */}
-                <AccountStatusBanner />
-
                 <div className="container dashboard-welcome-text">
                     <div className="row justify-content-center">
                         <div className="col-lg-5 col-md-10 col-sm-12">
@@ -290,13 +280,8 @@ const RestaurantDashboard = () => {
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         style={{ height: '50px' }}
                                     />
-                                    <button
-                                        className={`btn ${restaurantOpen ? 'btn-warning' : 'btn-secondary'}`}
-                                        onClick={toggleRestaurantStatus}
-                                        style={{ width: '80px' }}
-                                    >
-                                        <FontAwesomeIcon icon={restaurantOpen ? faToggleOn : faToggleOff} className="me-1" />
-                                        {restaurantOpen ? 'On' : 'Off'}
+                                    <button className="btn btn-orange border-0" style={{ height: '50px', width: '60px' }}>
+                                        <FontAwesomeIcon icon={faSearch} />
                                     </button>
                                 </div>
                             </div>
@@ -469,7 +454,7 @@ const RestaurantDashboard = () => {
                                                                 <p className="mb-1">
                                                                     <strong>Total Amount:</strong>
                                                                 </p>
-                                                                <h5 className="text-warning">${order.totalAmount.toFixed(2)}</h5>
+                                                                <h5 className="text-warning text-orange">${order.totalAmount.toFixed(2)}</h5>
                                                                 <p className="mb-0 small">
                                                                     <strong>Items:</strong> {order.items ? order.items.reduce((acc, item) => acc + (item.quantity || 0), 0) : 0}                                                                </p>
                                                             </div>

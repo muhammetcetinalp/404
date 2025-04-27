@@ -262,7 +262,7 @@ const RestaurantMenuPage = () => {
                                         style={{ height: '50px' }}
                                     />
                                     <button
-                                        className="btn btn-warning border-0"
+                                        className="btn-orange btn btn-warning border-0"
                                         type="button"
                                         style={{ height: '50px', width: '60px' }}
                                     >
@@ -329,7 +329,7 @@ const RestaurantMenuPage = () => {
                                 <div className="menu-header">
                                     <h4>Menu Management</h4>
                                     <button
-                                        className="btn btn-warning d-inline-block"
+                                        className="btn-orange btn btn-warning d-inline-block"
                                         onClick={() => setShowAddForm(!showAddForm)}
                                         style={{ width: 'auto' }}
                                     >
@@ -413,7 +413,7 @@ const RestaurantMenuPage = () => {
                                                     >
                                                         Cancel
                                                     </button>
-                                                    <button type="submit" className="btn btn-warning">
+                                                    <button type="submit" className="btn-orange btn btn-warning">
                                                         <FontAwesomeIcon icon={faSave} className="me-2" />
                                                         {editItemId ? 'Update Item' : 'Add Item'}
                                                     </button>
@@ -425,7 +425,7 @@ const RestaurantMenuPage = () => {
 
                                 {loading ? (
                                     <div className="text-center py-5">
-                                        <div className="spinner-border text-warning" role="status">
+                                        <div className="text-orange spinner-border text-warning" role="status">
                                             <span className="sr-only">Loading...</span>
                                         </div>
                                         <p className="mt-2">Loading menu items...</p>
@@ -446,8 +446,8 @@ const RestaurantMenuPage = () => {
                                                                 </div>
                                                                 <p className="text-muted mb-2">{item.description}</p>
                                                             </div>
-                                                            <div className="col-md-4 text-md-end">
-                                                                <h5 className="text-warning mb-3">${item.price.toFixed(2)}</h5>
+                                                            <div className="col-md-4 d-flex flex-column justify-content-between align-items-end text-md-end">
+                                                                <h5 className="text-orange mb-3">${item.price.toFixed(2)}</h5>
                                                                 <div className="btn-group" role="group">
                                                                     <button
                                                                         className="btn btn-outline-secondary"
@@ -463,6 +463,7 @@ const RestaurantMenuPage = () => {
                                                                     </button>
                                                                 </div>
                                                             </div>
+
                                                         </div>
                                                     </div>
                                                 </div>

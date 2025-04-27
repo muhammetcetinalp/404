@@ -218,19 +218,70 @@
     margin: 0 !important;
 }
 
-.admin-navbar {
-    background-color: #2c3e50 !important;
+/* Admin için siyah başlık */
+.navbar-dark {
+    background-color: #000 !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
-.navbar-nav .nav-item {
-    display: flex;
-    align-items: center;
-    height: 100%;
+/* Customer, Restaurant ve Courier için şeffaf başlık */
+.navbar-transparent {
+    background-color: transparent !important;
+    box-shadow: none;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
-.navbar .dropdown-toggle::after {
-    vertical-align: middle;
-    margin-left: 0.3rem;
+.navbar-dark .navbar-brand,
+.navbar-transparent .navbar-brand {
+    color: white !important;
+}
+
+.navbar-dark .custom-link,
+.navbar-transparent .custom-link {
+    color: white !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    margin-right: 1rem;
+}
+
+.navbar-dark .custom-link:hover,
+.navbar-transparent .custom-link:hover {
+    color: #eb6825 !important;
+}
+
+.navbar-dark .nav-dropdown .dropdown-toggle,
+.navbar-transparent .nav-dropdown .dropdown-toggle {
+    color: white !important;
+}
+
+.navbar-dark .nav-dropdown .dropdown-menu,
+.navbar-transparent .nav-dropdown .dropdown-menu {
+    background-color: #000 !important;
+    border: 1px solid #fff !important;
+}
+
+.navbar-dark .dropdown-item,
+.navbar-transparent .dropdown-item {
+    color: #fff !important;
+}
+
+.navbar-dark .dropdown-item:hover,
+.navbar-dark .dropdown-item:focus,
+.navbar-transparent .dropdown-item:hover,
+.navbar-transparent .dropdown-item:focus {
+    background-color: #333 !important;
+    color: #eb6825 !important;
+}
+
+.admin-nav {
+    background-color: transparent !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
 }
 
 .navbar {
@@ -243,10 +294,4 @@
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.admin-nav {
-    background-color: #2c3e50;
-    padding: 10px;
-    border-radius: 6px;
 }

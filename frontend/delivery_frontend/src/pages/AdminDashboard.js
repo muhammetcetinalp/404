@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+    faUsers, faUtensils, faTruck, faUserPlus,
+    faStoreAlt, faUserCog, faCheckCircle, faTimesCircle,
+    faEnvelope, faMapMarkerAlt
+} from '@fortawesome/free-solid-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
@@ -106,9 +112,16 @@ const AdminDashboard = () => {
                 <AdminLayout active="dashboard"></AdminLayout>
 
                 <div className="admin-content">
+                    <div className="admin-header">
+
+
+                    </div>
+
                     <div className="admin-stats-grid">
                         <div className="admin-stat-card">
-                            <div className="stat-icon customers-icon"></div>
+                            <div className="stat-icon customers-icon">
+                                <FontAwesomeIcon icon={faUsers} size="2x" />
+                            </div>
                             <div className="stat-info">
                                 <h3>Customers</h3>
                                 <p className="stat-value">{stats.customers || 0}</p>
@@ -116,7 +129,9 @@ const AdminDashboard = () => {
                         </div>
 
                         <div className="admin-stat-card">
-                            <div className="stat-icon restaurants-icon"></div>
+                            <div className="stat-icon restaurants-icon">
+                                <FontAwesomeIcon icon={faUtensils} size="2x" />
+                            </div>
                             <div className="stat-info">
                                 <h3>Restaurants</h3>
                                 <p className="stat-value">{stats.restaurants || 0}</p>
@@ -124,7 +139,9 @@ const AdminDashboard = () => {
                         </div>
 
                         <div className="admin-stat-card">
-                            <div className="stat-icon couriers-icon"></div>
+                            <div className="stat-icon couriers-icon">
+                                <FontAwesomeIcon icon={faTruck} size="2x" />
+                            </div>
                             <div className="stat-info">
                                 <h3>Couriers</h3>
                                 <p className="stat-value">{stats.couriers || 0}</p>
@@ -145,9 +162,18 @@ const AdminDashboard = () => {
                                             <div className="restaurant-info">
                                                 <h4 className="restaurant-name">{restaurant.name}</h4>
                                                 <div className="restaurant-details">
-                                                    <p className="restaurant-email"><i className="email-icon"></i>{restaurant.email}</p>
-                                                    <p className="restaurant-address"><i className="address-icon"></i>{restaurant.address}, {restaurant.city}</p>
-                                                    <p className="restaurant-cuisine"><i className="cuisine-icon"></i>Cuisine: {restaurant.cuisineType || 'N/A'}</p>
+                                                    <p className="restaurant-email">
+                                                        <FontAwesomeIcon icon={faEnvelope} />
+                                                        {restaurant.email}
+                                                    </p>
+                                                    <p className="restaurant-address">
+                                                        <FontAwesomeIcon icon={faMapMarkerAlt} />
+                                                        {restaurant.address}, {restaurant.city}
+                                                    </p>
+                                                    <p className="restaurant-cuisine">
+                                                        <FontAwesomeIcon icon={faUtensils} />
+                                                        Cuisine: {restaurant.cuisineType || 'N/A'}
+                                                    </p>
                                                 </div>
                                             </div>
                                             <div className="restaurant-approval-actions">
@@ -155,13 +181,13 @@ const AdminDashboard = () => {
                                                     onClick={() => handleApproveRestaurant(restaurant.restaurantId)}
                                                     className="btn-approve"
                                                 >
-                                                    <i className="approve-icon"></i> Approve
+                                                    <FontAwesomeIcon icon={faCheckCircle} /> Approve
                                                 </button>
                                                 <button
                                                     onClick={() => handleRejectRestaurant(restaurant.restaurantId)}
                                                     className="btn-reject"
                                                 >
-                                                    <i className="reject-icon"></i> Reject
+                                                    <FontAwesomeIcon icon={faTimesCircle} /> Reject
                                                 </button>
                                             </div>
                                         </div>
@@ -181,19 +207,19 @@ const AdminDashboard = () => {
 
                             <div className="action-grid">
                                 <button onClick={() => navigate('/admin/customers')} className="action-button">
-                                    <i className="action-icon add-customer-icon"></i>
+                                    <FontAwesomeIcon icon={faUserPlus} className="action-icon" />
                                     <span>Add Customer</span>
                                 </button>
                                 <button onClick={() => navigate('/admin/restaurants')} className="action-button">
-                                    <i className="action-icon add-restaurant-icon"></i>
+                                    <FontAwesomeIcon icon={faStoreAlt} className="action-icon" />
                                     <span>Add Restaurant</span>
                                 </button>
                                 <button onClick={() => navigate('/admin/couriers')} className="action-button">
-                                    <i className="action-icon add-courier-icon"></i>
+                                    <FontAwesomeIcon icon={faTruck} className="action-icon" />
                                     <span>Add Courier</span>
                                 </button>
                                 <button onClick={() => navigate('/admin/admin-users')} className="action-button">
-                                    <i className="action-icon add-admin-icon"></i>
+                                    <FontAwesomeIcon icon={faUsers} className="action-icon" />
                                     <span>Add Admin</span>
                                 </button>
                             </div>
@@ -201,6 +227,7 @@ const AdminDashboard = () => {
                     </div>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 };

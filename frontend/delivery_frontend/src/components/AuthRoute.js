@@ -12,6 +12,7 @@ const AuthRoute = ({ children }) => {
         const token = localStorage.getItem('token');
         const role = localStorage.getItem('role');
 
+
         if (token) {
             setIsAuthenticated(true);
             setUserRole(role);

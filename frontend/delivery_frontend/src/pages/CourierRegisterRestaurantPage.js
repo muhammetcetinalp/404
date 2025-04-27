@@ -15,15 +15,14 @@ const CourierRegisterRestaurantPage = () => {
     e.preventDefault();
     try {
         await axios.post(
-            `http://localhost:8080/api/couriers/${courierId}/assign-restaurant-by-name`,
-            null,
-            {
-              params: { name: restaurantName }, // 👈 query param olarak geçiyoruz
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
+          `http://localhost:8080/api/couriers/${courierId}/assign-restaurant-by-name`,
+          { name: restaurantName }, // ← buraya dikkat
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
       setMessage("Successfully registered with restaurant.");
     } catch (err) {
       setMessage("Error registering with restaurant.");

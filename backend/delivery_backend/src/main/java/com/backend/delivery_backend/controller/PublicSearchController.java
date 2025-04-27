@@ -29,8 +29,10 @@ public class PublicSearchController {
                                                @RequestParam(required = false) Float topRated) {
 
         Stream<RestaurantOwner> stream = restaurantOwnerRepository.findAll().stream()
-                // Only show approved restaurants
+                // Sadece onaylanmış restoranları göster
                 .filter(RestaurantOwner::isApproved)
+                // Ban veya suspended edilmiş restoranları gösterme
+                .filter(r -> !"BANNED".equals(r.getAccountStatus()) && !"SUSPENDED".equals(r.getAccountStatus()))
                 .filter(r -> {
                     if (keyword != null &&
                             !(r.getName().toLowerCase().contains(keyword.toLowerCase()) ||

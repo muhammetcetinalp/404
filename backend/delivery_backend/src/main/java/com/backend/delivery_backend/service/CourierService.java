@@ -38,12 +38,18 @@ public class CourierService {
     }
 
     public void assignRestaurantToCourierByName(String courierId, String restaurantName) {
-        RestaurantOwner restaurant = restaurantOwnerRepository.findByName(restaurantName);
-        if (restaurant == null) {
+        Courier courier = courierRepository.findByCourierId(courierId);
+        if (courier == null) {
+            throw new RuntimeException("Courier not found with ID: " + courierId);
+        }
+
+        RestaurantOwner restaurantOwner = restaurantOwnerRepository.findByName(restaurantName);
+        if (restaurantOwner == null) {
             throw new RuntimeException("Restaurant not found with name: " + restaurantName);
         }
-        Long restaurantID = Long.valueOf(restaurant.getRestaurantId());
-        assignRestaurantToCourier(courierId, restaurantID); // mevcut method
+
+        courier.setRestaurantOwner(restaurantOwner);
+        courierRepository.save(courier);
     }
 
     public void updateCourierStatus(String courierId, String statusString) {
@@ -67,6 +73,10 @@ public class CourierService {
         System.out.println("[INFO] Courier " + courierId + " status set to " + status);
     }
 
+    public Courier getCourierById(String courierId) {
+        return courierRepository.findById(courierId)
+                .orElseThrow(() -> new RuntimeException("Courier not found"));
+    }
 
     public void respondToDeliveryRequest(Long courierId, Long requestId, String statusString) {
         DeliveryRequest request = deliveryRequestRepository.findById(requestId)

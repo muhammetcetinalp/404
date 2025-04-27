@@ -16,9 +16,9 @@ const DeliveryRequestPage = () => {
     try {
       await axios.patch(
         `http://localhost:8080/api/couriers/${courierId}/delivery-requests/${requestId}`,
-        null,
+        { status },
         {
-          params: { status },
+          // params: { status },
           headers: {
             Authorization: `Bearer ${token}`,
           },

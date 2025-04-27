@@ -35,9 +35,16 @@ public class RestaurantController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Restaurant not found");
         }
 
+        RestaurantOwner restaurantOwner = restaurant.get();
+
         // If restaurant is not approved, return 403 Forbidden
-        if (!restaurant.get().isApproved()) {
+        if (!restaurantOwner.isApproved()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Restaurant is pending approval");
+        }
+
+        // If restaurant is banned or suspended, return 403 Forbidden
+        if ("BANNED".equals(restaurantOwner.getAccountStatus()) || "SUSPENDED".equals(restaurantOwner.getAccountStatus())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Restaurant is currently unavailable");
         }
 
         List<MenuItem> items = restaurantOwnerService.getMenuItemsByRestaurant(id);
@@ -101,12 +108,19 @@ public class RestaurantController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Restaurant not found");
         }
 
+        RestaurantOwner restaurantOwner = restaurant.get();
+
         // If restaurant is not approved, return 403 Forbidden
-        if (!restaurant.get().isApproved()) {
+        if (!restaurantOwner.isApproved()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Restaurant is pending approval");
         }
 
-        boolean isOpen = restaurant.get().isOpen();  // açık mı?
+        // If restaurant is banned or suspended, return 403 Forbidden
+        if ("BANNED".equals(restaurantOwner.getAccountStatus()) || "SUSPENDED".equals(restaurantOwner.getAccountStatus())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Restaurant is currently unavailable");
+        }
+
+        boolean isOpen = restaurantOwner.isOpen();  // açık mı?
         return ResponseEntity.ok(new RestaurantStatusDTO(isOpen));
     }
 }

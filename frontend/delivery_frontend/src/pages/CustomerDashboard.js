@@ -236,7 +236,7 @@ const CustomerDashboard = () => {
     };
 
     return (
-        <div>
+        <div className="d-flex flex-column min-vh-100">
             <div className="container-fluid dashboard-header">
                 <Header />
                 <div className="container dashboard-welcome-text">
@@ -261,273 +261,223 @@ const CustomerDashboard = () => {
                     </div>
                 </div>
             </div>
+            <div className="flex-grow-1" style={{ background: "#EBEDF3" }}>
+                <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
+                    <div className="container">
+                        {error && <div className="alert alert-danger">{error}</div>}
 
-            <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
-                <div className="container">
-                    {error && <div className="alert alert-danger">{error}</div>}
-
-                    <div className="row">
-                        <div className="col-lg-2 col-md-3 col-sm-12 mb-4">
-                            <div className="bg-white p-4 dashboard-sidebar">
-                                <h5 className="mb-3"><FontAwesomeIcon icon={faFilter} className="mr-2 me-1" />Sort By</h5>
-                                <div className="ml-2 list-group">
-                                    {[
-                                        { key: 'bestMatch', icon: faThumbsUp, label: 'Best Match' },
-                                        { key: 'alphabetical', icon: faFont, label: 'Alphabetical' },
-                                        { key: 'rating', icon: faStar, label: 'Rating' },
-                                        { key: 'favorites', icon: faHeartSolid, label: 'My Favorites' }
-                                    ].map(opt => (
-                                        <button
-                                            key={opt.key}
-                                            className={`list-group-item list-group-item-action ${sortOption === opt.key ? 'active' : ''}`}
-                                            onClick={() => setSortOption(opt.key)}
-                                        >
-                                            <FontAwesomeIcon icon={opt.icon} className="fa-fw me-1" />
-                                            {opt.label}
-                                        </button>
-                                    ))}
+                        <div className="row">
+                            <div className="col-lg-2 col-md-3 col-sm-12 mb-4">
+                                <div className="bg-white p-4 dashboard-sidebar">
+                                    <h5 className="mb-3"><FontAwesomeIcon icon={faFilter} className="mr-2 me-1" />Sort By</h5>
+                                    <div className="ml-2 list-group">
+                                        {[
+                                            { key: 'bestMatch', icon: faThumbsUp, label: 'Best Match' },
+                                            { key: 'alphabetical', icon: faFont, label: 'Alphabetical' },
+                                            { key: 'rating', icon: faStar, label: 'Rating' },
+                                            { key: 'favorites', icon: faHeartSolid, label: 'My Favorites' }
+                                        ].map(opt => (
+                                            <button
+                                                key={opt.key}
+                                                className={`list-group-item list-group-item-action ${sortOption === opt.key ? 'active' : ''}`}
+                                                onClick={() => setSortOption(opt.key)}
+                                            >
+                                                <FontAwesomeIcon icon={opt.icon} className="fa-fw me-1" />
+                                                {opt.label}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="col-lg-7 col-md-6 col-sm-12">
-                            <div className="bg-white p-4 mb-4">
-                                <h4 className="mb-4">Restaurants</h4>
+                            <div className="col-lg-7 col-md-6 col-sm-12">
+                                <div className="bg-white p-4 mb-4">
+                                    <h4 className="mb-4">Restaurants</h4>
 
-                                {loading ? (
-                                    <div className="text-center py-5">
-                                        <div className="spinner-border text-orange" role="status" />
-                                        <p className="mt-2">Loading restaurants...</p>
-                                    </div>
-                                ) : filteredRestaurants.length > 0 ? (
-                                    <div className="restaurant-list">
-                                        {filteredRestaurants.map(restaurant => (
-                                            <div className="restaurant-item mb-4" key={restaurant.restaurantId}>
-                                                <div className="card">
-                                                    <div className="card-body">
-                                                        <div className="row align-items-center">
-                                                            <div className="col-md-2">
+                                    {loading ? (
+                                        <div className="text-center py-5">
+                                            <div className="spinner-border text-orange" role="status" />
+                                            <p className="mt-2">Loading restaurants...</p>
+                                        </div>
+                                    ) : filteredRestaurants.length > 0 ? (
+                                        <div className="restaurant-list">
+                                            {filteredRestaurants.map(restaurant => (
+
+                                                <div className="restaurant-item mb-4" key={restaurant.restaurantId}>
+                                                    <div className="card shadow-sm restaurant-card">
+                                                        <div className="row g-0 align-items-center">
+                                                            {/* Image */}
+                                                            <div className="col-md-3 text-center p-2">
                                                                 <img
                                                                     src={require("../assets/images/symbolshop.png")}
                                                                     alt={restaurant.name}
-                                                                    className="img-fluid restaurant-image"
+                                                                    className="img-fluid rounded restaurant-image"
                                                                 />
                                                             </div>
-                                                            <div className="col-md-7">
-                                                                <div className="restaurant-name-container">
-                                                                    <h5 className="restaurant-name">{restaurant.name}
-                                                                        <button
-                                                                            className="favorite-button"
-                                                                            onClick={(e) => handleToggleFavorite(restaurant.restaurantId, e)}
-                                                                            disabled={addingToFavorite}
-                                                                            title={favoriteRestaurants.includes(restaurant.restaurantId) ? "Remove from favorites" : "Add to favorites"}
-                                                                        >
-                                                                            <FontAwesomeIcon
-                                                                                icon={favoriteRestaurants.includes(restaurant.restaurantId) ? faHeartSolid : faHeartRegular}
-                                                                                className={favoriteRestaurants.includes(restaurant.restaurantId) ? "text-danger" : "text-secondary"}
-                                                                            />
-                                                                        </button>
-                                                                    </h5>
-                                                                </div>
+
+                                                            {/* Info */}
+                                                            <div className="col-md-6 p-3">
+                                                                <h5 className="card-title mb-2 text-nowrap text-truncate">
+                                                                    {restaurant.name}
+                                                                </h5>
+
                                                                 <div className="rating mb-2">
                                                                     {[1, 2, 3, 4, 5].map((star) => {
                                                                         const rating = restaurant.rating || 0;
                                                                         const fillPercentage = Math.max(0, Math.min(100, (rating - star + 1) * 100));
 
                                                                         return (
-                                                                            <div
-                                                                                key={star}
-                                                                                className="star-container"
-                                                                                style={{
-                                                                                    display: 'inline-block',
-                                                                                    position: 'relative',
-                                                                                    width: '1em',
-                                                                                    height: '1em',
-                                                                                    marginRight: '2px'
-                                                                                }}
-                                                                            >
+                                                                            <div key={star} className="star-container d-inline-block position-relative" style={{ width: '1em', height: '1em', marginRight: '3px' }}>
                                                                                 <FontAwesomeIcon icon={faStar} className="text-muted" />
-                                                                                <div
-                                                                                    className="star-fill"
-                                                                                    style={{
-                                                                                        position: 'absolute',
-                                                                                        top: 0,
-                                                                                        left: 0,
-                                                                                        width: `${fillPercentage}%`,
-                                                                                        overflow: 'hidden',
-                                                                                        whiteSpace: 'nowrap'
-                                                                                    }}
-                                                                                >
-                                                                                    <FontAwesomeIcon icon={faStar} className="text-orange" />
+                                                                                <div className="star-fill position-absolute top-0 start-0" style={{ width: `${fillPercentage}%`, overflow: 'hidden' }}>
+                                                                                    <FontAwesomeIcon icon={faStar} className="text-warning" />
                                                                                 </div>
                                                                             </div>
                                                                         );
                                                                     })}
-                                                                    <span className="ml-2 small text-muted">
-                                                                        ({restaurant.rating ? restaurant.rating.toFixed(1) : '0.0'})
-                                                                    </span>
+                                                                    <small className="text-muted ms-2">({restaurant.rating ? restaurant.rating.toFixed(1) : "0.0"})</small>
                                                                 </div>
-                                                                <p><small>Type: {restaurant.cuisineType}</small></p>
-                                                                <p><small>Open: {restaurant.open ? 'Yes' : 'No'}</small></p>
+
+                                                                <p className="mb-1 text-muted small">Type: {restaurant.cuisineType || "N/A"}</p>
+                                                                <p className="mb-0 text-muted small">Open: {restaurant.open ? "Yes" : "No"}</p>
                                                             </div>
-                                                            <div className="col-md-3 text-right">
+
+                                                            {/* Button Column - Add position-relative here */}
+                                                            <div className="col-md-3 text-end p-3 d-flex flex-column align-items-end position-relative">
+                                                                {/* Moved Favorite Button back inside col-md-3 */}
                                                                 <button
-                                                                    onClick={() => handleViewRestaurant(restaurant)}
-                                                                    className="btn btn-orange btn-sm d-flex justify-content-between align-items-center w-100"
-                                                                    style={{ padding: '0.5rem 1rem' }}
+                                                                    /* Use flexbox to align icon within the button */
+                                                                    className="btn btn-link p-0 d-inline-flex justify-content-end"
+                                                                    onClick={(e) => handleToggleFavorite(restaurant.restaurantId, e)}
+                                                                    title={favoriteRestaurants.includes(restaurant.restaurantId) ? "Remove from favorites" : "Add to favorites"}
+                                                                    style={{
+                                                                        position: 'absolute',
+                                                                        top: '0.75rem',
+                                                                        right: '1rem',
+                                                                        zIndex: 1
+                                                                    }}
                                                                 >
-                                                                    <span>View Menus</span>
-                                                                    <FontAwesomeIcon icon={faChevronDown} />
+                                                                    <FontAwesomeIcon
+                                                                        icon={favoriteRestaurants.includes(restaurant.restaurantId) ? faHeartSolid : faHeartRegular}
+                                                                        className={favoriteRestaurants.includes(restaurant.restaurantId) ? "text-danger" : "text-secondary"}
+                                                                        size="lg"
+                                                                    />
+                                                                </button>
+
+                                                                {/* View Menus Button - Add margin-top */}
+                                                                <button
+                                                                    className="btn btn-orange w-100 mt-5" /* Added mt-5 */
+                                                                    onClick={() => handleViewRestaurant(restaurant)}
+                                                                >
+                                                                    View Menus <FontAwesomeIcon icon={faChevronDown} className="ms-2" />
                                                                 </button>
                                                             </div>
                                                         </div>
                                                     </div>
+
                                                 </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-4">
+                                            <h5>No restaurants found</h5>
+                                            <p>Try changing your search or filter criteria</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="col-lg-3 col-md-3 col-sm-12 mb-4">
+                                <div className="bg-white p-4 dashboard-sidebar">
+                                    <h5 className="mb-3"><FontAwesomeIcon icon={faFilter} className="mr-2 me-1" />Categories</h5>
+                                    <div className="category-list">
+                                        {categories.map(category => (
+                                            <div
+                                                key={category}
+                                                className={`category-item ${selectedCategories.includes(category) ? 'selected' : ''}`}
+                                                onClick={() => handleCategoryToggle(category)}
+                                            >
+                                                {category}
                                             </div>
                                         ))}
                                     </div>
-                                ) : (
-                                    <div className="text-center py-4">
-                                        <h5>No restaurants found</h5>
-                                        <p>Try changing your search or filter criteria</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="col-lg-3 col-md-3 col-sm-12 mb-4">
-                            <div className="bg-white p-4 dashboard-sidebar">
-                                <h5 className="mb-3"><FontAwesomeIcon icon={faFilter} className="mr-2 me-1" />Categories</h5>
-                                <div className="category-list">
-                                    {categories.map(category => (
-                                        <div
-                                            key={category}
-                                            className={`category-item ${selectedCategories.includes(category) ? 'selected' : ''}`}
-                                            onClick={() => handleCategoryToggle(category)}
-                                        >
-                                            {category}
-                                        </div>
-                                    ))}
                                 </div>
-                            </div>
 
-                            {/* Favorites Section */}
-                            {favoriteRestaurants.length > 0 && (
-                                <div className="bg-white p-4 dashboard-sidebar mt-4">
-                                    <h5 className="mb-3">
-                                        <FontAwesomeIcon icon={faHeartSolid} className="mr-2 me-1 text-danger" />
-                                        My Favorite Restaurants
-                                    </h5>
-                                    <div className="favorite-list">
-                                        {restaurants
-                                            .filter(restaurant => favoriteRestaurants.includes(restaurant.restaurantId))
-                                            .map(restaurant => (
-                                                <div
-                                                    key={restaurant.restaurantId}
-                                                    className="favorite-item py-2 border-bottom cursor-pointer"
-                                                    onClick={() => handleViewRestaurant(restaurant)}
-                                                >
-                                                    <div className="d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <strong>{restaurant.name}</strong>
-                                                            <div className="small text-muted">{restaurant.cuisineType}</div>
-                                                        </div>
-                                                        <button
-                                                            className="btn btn-sm btn-link text-danger"
-                                                            onClick={(e) => handleToggleFavorite(restaurant.restaurantId, e)}
-                                                            title="Remove from favorites"
-                                                        >
-                                                            <FontAwesomeIcon icon={faHeartSolid} />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                    </div>
-                                </div>
-                            )}
+
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Menu Modal */}
-            {showModal && selectedRestaurant && (
-                <div className="menu-modal-overlay">
-                    <div className="menu-modal">
-                        <div className="menu-modal-header">
-                            <div className="restaurant-name-with-favorite">
-                                <h4>{selectedRestaurant.name}</h4>
-                                <button
-                                    className="favorite-button-modal"
-                                    onClick={(e) => handleToggleFavorite(selectedRestaurant.restaurantId, e)}
-                                    disabled={addingToFavorite}
-                                    title={favoriteRestaurants.includes(selectedRestaurant.restaurantId) ? "Remove from favorites" : "Add to favorites"}
-                                >
-                                    <FontAwesomeIcon
-                                        icon={favoriteRestaurants.includes(selectedRestaurant.restaurantId) ? faHeartSolid : faHeartRegular}
-                                        className={favoriteRestaurants.includes(selectedRestaurant.restaurantId) ? "text-danger" : "text-secondary"}
-                                        size="lg"
-                                    />
+                {/* Menu Modal */}
+                {showModal && selectedRestaurant && (
+                    <div className="menu-modal-overlay">
+                        <div className="menu-modal">
+                            <div className="menu-modal-header d-flex align-items-center justify-content-between">
+                                <div className="d-flex align-items-center w-100">
+                                    <h4 className="mb-0 text-truncate" style={{ maxWidth: '85%' }}>
+                                        {selectedRestaurant.name}
+                                    </h4>
+
+                                </div>
+                                <button className="btn-close ms-3" onClick={handleCloseModal}>
+                                    <FontAwesomeIcon icon={faTimes} />
                                 </button>
                             </div>
-                            <button className="btn-close" onClick={handleCloseModal}>
-                                <FontAwesomeIcon icon={faTimes} />
-                            </button>
-                        </div>
-                        {cartError && (
-                            <div className="alert alert-danger mx-3 mt-3">
-                                {cartError}
-                            </div>
-                        )}
-                        <div className="menu-modal-body">
-                            {loadingMenu ? (
-                                <div className="text-center py-3">
-                                    <div className="spinner-border spinner-border-sm text-orange" role="status" />
-                                    <p className="mt-2 small">Loading menu items...</p>
+                            {cartError && (
+                                <div className="alert alert-danger mx-3 mt-3">
+                                    {cartError}
                                 </div>
-                            ) : (menuItems[selectedRestaurant.restaurantId]?.length > 0 ? (
-                                <div className="row">
-                                    {menuItems[selectedRestaurant.restaurantId].map(item => (
-                                        <div className="menu-item mb-3" key={item.id}
-                                            style={!selectedRestaurant.open ? { opacity: 0.5, pointerEvents: 'none' } : {}}
-                                        >
-                                            <div className="d-flex justify-content-between align-items-center w-100">
-                                                {/* Sol kısım: yemek bilgileri */}
-                                                <div>
-                                                    <h6 className="mb-1">{item.name}</h6>
-                                                    <p className="mb-1 small text-muted">{item.description}</p>
-                                                    <span className="text-orange font-weight-bold">{item.price.toFixed(2)} TL</span>
-                                                </div>
+                            )}
+                            <div className="menu-modal-body">
+                                {loadingMenu ? (
+                                    <div className="text-center py-3">
+                                        <div className="spinner-border spinner-border-sm text-orange" role="status" />
+                                        <p className="mt-2 small">Loading menu items...</p>
+                                    </div>
+                                ) : (menuItems[selectedRestaurant.restaurantId]?.length > 0 ? (
+                                    <div className="row">
+                                        {menuItems[selectedRestaurant.restaurantId].map(item => (
+                                            <div className="menu-item mb-3" key={item.id}
+                                                style={!selectedRestaurant.open ? { opacity: 0.5, pointerEvents: 'none' } : {}}
+                                            >
+                                                <div className="d-flex justify-content-between align-items-center w-100">
+                                                    {/* Sol kısım: yemek bilgileri */}
+                                                    <div>
+                                                        <h6 className="mb-1">{item.name}</h6>
+                                                        <p className="mb-1 small text-muted">{item.description}</p>
+                                                        <span className="text-orange font-weight-bold">{item.price.toFixed(2)} TL</span>
+                                                    </div>
 
-                                                {/* Sağ kısım: buton */}
-                                                <div>
-                                                    <button
-                                                        className="btn btn-outline-orange add-to-cart-btn"
-                                                        onClick={() => handleAddToCart(item, selectedRestaurant.restaurantId)}
-                                                        disabled={addingToCart || !selectedRestaurant.open}
-                                                    >
-                                                        <FontAwesomeIcon icon={faPlus} />
-                                                    </button>
-                                                    {addedItemIds[item.id] && (
-                                                        <div className="item-added-notification">
-                                                            Added to Cart!
-                                                        </div>
-                                                    )}
+                                                    {/* Sağ kısım: buton */}
+                                                    <div>
+                                                        <button
+                                                            className="btn btn-outline-orange add-to-cart-btn"
+                                                            onClick={() => handleAddToCart(item, selectedRestaurant.restaurantId)}
+                                                            disabled={addingToCart || !selectedRestaurant.open}
+                                                        >
+                                                            <FontAwesomeIcon icon={faPlus} />
+                                                        </button>
+                                                        {addedItemIds[item.id] && (
+                                                            <div className="item-added-notification">
+                                                                Added to Cart!
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                    ))}
-                                </div>
+                                        ))}
+                                    </div>
 
-                            ) : (
-                                <p className="text-center text-muted">No menu items available</p>
-                            ))}
+                                ) : (
+                                    <p className="text-center text-muted">No menu items available</p>
+                                ))}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-
+                )}
+            </div>
             <Footer />
         </div>
     );

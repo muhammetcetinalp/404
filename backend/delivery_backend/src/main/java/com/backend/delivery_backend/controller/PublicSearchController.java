@@ -29,9 +29,8 @@ public class PublicSearchController {
                                                @RequestParam(required = false) Float topRated) {
 
         Stream<RestaurantOwner> stream = restaurantOwnerRepository.findAll().stream()
-
-                //.filter(RestaurantOwner::isOpen)
-
+                // Only show approved restaurants
+                .filter(RestaurantOwner::isApproved)
                 .filter(r -> {
                     if (keyword != null &&
                             !(r.getName().toLowerCase().contains(keyword.toLowerCase()) ||

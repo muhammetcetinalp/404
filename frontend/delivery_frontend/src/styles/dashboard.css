@@ -1,4 +1,12 @@
 /* Dashboard Styles */
+body {
+    background-color: #EBEDF3;
+}
+
+.container-fluid {
+    background-color: #EBEDF3;
+}
+
 .dashboard-header {
     background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('../assets/images/main_banner.jpg');
     background-position: center;
@@ -33,11 +41,11 @@
 
 .dashboard-menu li:hover {
     background-color: #f8f9fa;
-    color: #ff8c00;
+    color: #eb6825;
 }
 
 .dashboard-menu li.active {
-    background-color: #ff8c00;
+    background-color: #eb6825;
     color: white;
 }
 
@@ -52,7 +60,7 @@
 }
 
 .quick-action-card:hover {
-    background-color: #ff8c00;
+    background-color: #eb6825;
     color: white;
     transform: translateY(-5px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
@@ -283,65 +291,23 @@
     border: none;
 }
 
+/* Ana içerik bölümü ile footer arasında boşluk */
+.flex-grow-1 {
+    margin-bottom: 80px;
+    background-color: #EBEDF3;
+}
 
+/* Responsive tasarım için */
+@media (max-width: 768px) {
+    .flex-grow-1 {
+        margin-bottom: 50px;
+    }
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+.dashboard-sidebar {
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
 
 /* Dashboard Styles */
 .dashboard-header {
@@ -494,8 +460,6 @@
     background-color: #eb6825;
     color: white;
 }
-
-
 
 .restaurant-image {
     width: 100%;
@@ -715,10 +679,6 @@
     margin: 0;
     /* Bootstrap'ın alt boşluğunu kaldır */
 }
-
-
-
-
 
 .menu-modal-body .menu-item {
     width: 100%;
@@ -955,8 +915,6 @@
     box-shadow: none !important;
     outline: none !important;
 }
-
-
 
 /* Favorite List Styles */
 .favorite-list {

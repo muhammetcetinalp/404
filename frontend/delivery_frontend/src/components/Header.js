@@ -32,8 +32,16 @@ const Header = () => {
   );
 
   const renderAdminMenu = () => (
-    <Nav className="admin-nav align-items-center ms-auto me-3">
+    <Nav className="align-items-center ms-auto me-3">
 
+      <NavDropdown
+        title={email || 'Admin'}
+        id="admin-dropdown"
+        align="end"
+        className="custom-link nav-dropdown"
+      >
+        <NavDropdown.Item onClick={handleLogOut}>Logout</NavDropdown.Item>
+      </NavDropdown>
     </Nav>
   );
 
@@ -121,18 +129,16 @@ const Header = () => {
   };
 
   return (
-    <Navbar variant="dark" expand="lg" className={role === 'admin' ? 'admin-navbar' : ''}>
-      {role !== 'admin' && (
-        <Navbar.Brand>
-          <Link className="navbar-brand" to={getHomeLink()}>
-            <img
-              alt="Mealmate Logo"
-              src={require("../assets/images/mmatelogo2.png")}
-              className="navbar-logo"
-            />
-          </Link>
-        </Navbar.Brand>
-      )}
+    <Navbar variant="dark" expand="lg" className={role === 'admin' ? 'navbar-dark' : 'navbar-transparent'}>
+      <Navbar.Brand>
+        <Link className="navbar-brand" to={getHomeLink()}>
+          <img
+            alt="Mealmate Logo"
+            src={require("../assets/images/mmatelogo2.png")}
+            className="navbar-logo"
+          />
+        </Link>
+      </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
       <Navbar.Collapse id="basic-navbar-nav">
         {renderMenu()}

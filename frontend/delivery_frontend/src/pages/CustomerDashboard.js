@@ -261,8 +261,8 @@ const CustomerDashboard = () => {
                     </div>
                 </div>
             </div>
-            <div className="flex-grow-1" style={{ background: "#EBEDF3" }}>
-                <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
+            <div className="flex-grow-1">
+                <div className="container-fluid py-4">
                     <div className="container">
                         {error && <div className="alert alert-danger">{error}</div>}
 

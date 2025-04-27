@@ -222,7 +222,7 @@ const CourierDashboard = () => {
                 </div>
             </div>
 
-            <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
+            <div className="container-fluid py-4">
                 <div className="container">
                     {error && (
                         <div className="alert alert-danger" role="alert">

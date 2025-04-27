@@ -14,3 +14,22 @@ footer a:hover {
     color: #eb6825;
     text-decoration: underline;
 }
+
+/* Admin için siyah footer */
+.footer-admin {
+    background-color: #000 !important;
+}
+
+/* Footer ile içerik arasındaki boşluğu artır */
+footer {
+    margin-top: 80px;
+    padding-top: 40px;
+}
+
+/* Responsive düzenleme */
+@media (max-width: 768px) {
+    footer {
+        margin-top: 50px;
+        padding-top: 30px;
+    }
+}

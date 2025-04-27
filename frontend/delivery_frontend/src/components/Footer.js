@@ -6,8 +6,17 @@ import '../styles/footer.css';
 
 class Footer extends React.Component {
     render() {
+        // LocalStorage'dan role bilgisini al
+        const role = localStorage.getItem('role');
+        // Eğer rol admin ise footer-admin sınıfını ekle, değilse mevcut sınıfları kullan
+        const footerClassName = role === 'admin'
+            ? 'footer-admin text-white pt-5 pb-4'
+            : 'bg-dark text-white pt-5 pb-4 how-it-works-bg';
+
         return (
-            <footer className="bg-dark text-white pt-5 pb-4 how-it-works-bg">
+
+            <footer className={footerClassName}>
+
                 <div className="container text-center">
 
                     {/* Navigation Links */}

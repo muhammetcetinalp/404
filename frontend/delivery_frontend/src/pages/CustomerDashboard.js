@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faSearch, faStar, faFilter, faSortAmountDown, faFont,
-    faThumbsUp, faChevronDown, faChevronUp, faHeart, faPlus, faShoppingCart, faTimes
+    faThumbsUp, faChevronDown, faChevronUp, faHeart as faHeartSolid,
+    faPlus, faShoppingCart, faTimes
 } from '@fortawesome/free-solid-svg-icons';
+import { faHeart as faHeartRegular } from '@fortawesome/free-regular-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
@@ -25,6 +27,8 @@ const CustomerDashboard = () => {
     const [addingToCart, setAddingToCart] = useState(false);
     const [addedItemIds, setAddedItemIds] = useState({});
     const [showModal, setShowModal] = useState(false);
+    const [cartError, setCartError] = useState('');
+    const [addingToFavorite, setAddingToFavorite] = useState(false);
     const navigate = useNavigate();
 
     const token = localStorage.getItem('token');
@@ -68,7 +72,7 @@ const CustomerDashboard = () => {
         const fetchFavorites = async () => {
             try {
                 const response = await api.get('/profile/favorites');
-                // Extract just the restaurant IDs from the response if needed
+                // Extract just the restaurant IDs from the response
                 const favoriteIds = response.data.map(restaurant => restaurant.restaurantId);
                 setFavoriteRestaurants(favoriteIds);
             } catch (err) {
@@ -99,23 +103,24 @@ const CustomerDashboard = () => {
             );
         }
 
-        switch (sortOption) {
-            case 'alphabetical':
-                results.sort((a, b) => a.name.localeCompare(b.name));
-                break;
-            case 'rating':
-                results.sort((a, b) => b.rating - a.rating);
-                break;
-            case 'favorites':
-                results.sort((a, b) => {
-                    const aFav = favoriteRestaurants.includes(a.restaurantId);
-                    const bFav = favoriteRestaurants.includes(b.restaurantId);
-                    return bFav - aFav;
-                });
-                break;
-            case 'bestMatch':
-            default:
-                break;
+        // Sort By: My Favorites - Sadece favori restoranları göster
+        if (sortOption === 'favorites') {
+            results = results.filter(restaurant =>
+                favoriteRestaurants.includes(restaurant.restaurantId)
+            );
+        } else {
+            // Diğer sıralama seçenekleri
+            switch (sortOption) {
+                case 'alphabetical':
+                    results.sort((a, b) => a.name.localeCompare(b.name));
+                    break;
+                case 'rating':
+                    results.sort((a, b) => b.rating - a.rating);
+                    break;
+                case 'bestMatch':
+                default:
+                    break;
+            }
         }
 
         setFilteredRestaurants(results);
@@ -145,6 +150,7 @@ const CustomerDashboard = () => {
     const handleCloseModal = () => {
         setShowModal(false);
         setSelectedRestaurant(null);
+        setCartError('');
     };
 
     const handleAddToCart = async (item, restaurantId) => {
@@ -157,6 +163,7 @@ const CustomerDashboard = () => {
         }
 
         setAddingToCart(true);
+        setCartError('');
 
         try {
             await api.post('/cart/add', null, {
@@ -180,8 +187,51 @@ const CustomerDashboard = () => {
 
         } catch (err) {
             console.error('Error adding item to cart:', err);
+
+            // Show error message if different restaurant items added
+            if (err.response && err.response.status === 400) {
+                setCartError(err.response.data || 'Cannot add items from different restaurants to the same cart.');
+            } else {
+                setCartError('Failed to add item to cart. Please try again.');
+            }
         } finally {
             setAddingToCart(false);
+        }
+    };
+
+    const handleToggleFavorite = async (restaurantId, event) => {
+        // Prevent the click from propagating to parent elements
+        event.stopPropagation();
+
+        if (addingToFavorite) return;
+
+        setAddingToFavorite(true);
+
+        try {
+            const isFavorite = favoriteRestaurants.includes(restaurantId);
+
+            if (isFavorite) {
+                // Remove from favorites
+                await api.delete('/profile/favorites/remove', {
+                    params: { restaurantId }
+                });
+
+                // Update local state
+                setFavoriteRestaurants(prev => prev.filter(id => id !== restaurantId));
+            } else {
+                // Add to favorites
+                await api.post('/profile/favorites/add', null, {
+                    params: { restaurantId }
+                });
+
+                // Update local state
+                setFavoriteRestaurants(prev => [...prev, restaurantId]);
+            }
+        } catch (err) {
+            console.error('Error toggling favorite restaurant:', err);
+            setError('Failed to update favorites. Please try again.');
+        } finally {
+            setAddingToFavorite(false);
         }
     };
 
@@ -225,7 +275,7 @@ const CustomerDashboard = () => {
                                         { key: 'bestMatch', icon: faThumbsUp, label: 'Best Match' },
                                         { key: 'alphabetical', icon: faFont, label: 'Alphabetical' },
                                         { key: 'rating', icon: faStar, label: 'Rating' },
-                                        { key: 'favorites', icon: faHeart, label: 'My Favorites' }
+                                        { key: 'favorites', icon: faHeartSolid, label: 'My Favorites' }
                                     ].map(opt => (
                                         <button
                                             key={opt.key}
@@ -264,7 +314,21 @@ const CustomerDashboard = () => {
                                                                 />
                                                             </div>
                                                             <div className="col-md-7">
-                                                                <h5>{restaurant.name}</h5>
+                                                                <div className="restaurant-name-container">
+                                                                    <h5 className="restaurant-name">{restaurant.name}
+                                                                        <button
+                                                                            className="favorite-button"
+                                                                            onClick={(e) => handleToggleFavorite(restaurant.restaurantId, e)}
+                                                                            disabled={addingToFavorite}
+                                                                            title={favoriteRestaurants.includes(restaurant.restaurantId) ? "Remove from favorites" : "Add to favorites"}
+                                                                        >
+                                                                            <FontAwesomeIcon
+                                                                                icon={favoriteRestaurants.includes(restaurant.restaurantId) ? faHeartSolid : faHeartRegular}
+                                                                                className={favoriteRestaurants.includes(restaurant.restaurantId) ? "text-danger" : "text-secondary"}
+                                                                            />
+                                                                        </button>
+                                                                    </h5>
+                                                                </div>
                                                                 <div className="rating mb-2">
                                                                     {[1, 2, 3, 4, 5].map((star) => {
                                                                         const rating = restaurant.rating || 0;
@@ -346,6 +410,41 @@ const CustomerDashboard = () => {
                                     ))}
                                 </div>
                             </div>
+
+                            {/* Favorites Section */}
+                            {favoriteRestaurants.length > 0 && (
+                                <div className="bg-white p-4 dashboard-sidebar mt-4">
+                                    <h5 className="mb-3">
+                                        <FontAwesomeIcon icon={faHeartSolid} className="mr-2 me-1 text-danger" />
+                                        My Favorite Restaurants
+                                    </h5>
+                                    <div className="favorite-list">
+                                        {restaurants
+                                            .filter(restaurant => favoriteRestaurants.includes(restaurant.restaurantId))
+                                            .map(restaurant => (
+                                                <div
+                                                    key={restaurant.restaurantId}
+                                                    className="favorite-item py-2 border-bottom cursor-pointer"
+                                                    onClick={() => handleViewRestaurant(restaurant)}
+                                                >
+                                                    <div className="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <strong>{restaurant.name}</strong>
+                                                            <div className="small text-muted">{restaurant.cuisineType}</div>
+                                                        </div>
+                                                        <button
+                                                            className="btn btn-sm btn-link text-danger"
+                                                            onClick={(e) => handleToggleFavorite(restaurant.restaurantId, e)}
+                                                            title="Remove from favorites"
+                                                        >
+                                                            <FontAwesomeIcon icon={faHeartSolid} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -356,11 +455,30 @@ const CustomerDashboard = () => {
                 <div className="menu-modal-overlay">
                     <div className="menu-modal">
                         <div className="menu-modal-header">
-                            <h4>{selectedRestaurant.name} - Menu</h4>
-                            <button className="btn-close " onClick={handleCloseModal}>
+                            <div className="restaurant-name-with-favorite">
+                                <h4>{selectedRestaurant.name}</h4>
+                                <button
+                                    className="favorite-button-modal"
+                                    onClick={(e) => handleToggleFavorite(selectedRestaurant.restaurantId, e)}
+                                    disabled={addingToFavorite}
+                                    title={favoriteRestaurants.includes(selectedRestaurant.restaurantId) ? "Remove from favorites" : "Add to favorites"}
+                                >
+                                    <FontAwesomeIcon
+                                        icon={favoriteRestaurants.includes(selectedRestaurant.restaurantId) ? faHeartSolid : faHeartRegular}
+                                        className={favoriteRestaurants.includes(selectedRestaurant.restaurantId) ? "text-danger" : "text-secondary"}
+                                        size="lg"
+                                    />
+                                </button>
+                            </div>
+                            <button className="btn-close" onClick={handleCloseModal}>
                                 <FontAwesomeIcon icon={faTimes} />
                             </button>
                         </div>
+                        {cartError && (
+                            <div className="alert alert-danger mx-3 mt-3">
+                                {cartError}
+                            </div>
+                        )}
                         <div className="menu-modal-body">
                             {loadingMenu ? (
                                 <div className="text-center py-3">

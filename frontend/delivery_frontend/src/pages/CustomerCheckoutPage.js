@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCreditCard, faMoneyBill } from '@fortawesome/free-solid-svg-icons';
+import { faCreditCard, faMoneyBill, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
@@ -10,8 +10,6 @@ import '../styles/checkout.css';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
-import { CloseButton } from 'react-toastify';
-
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
@@ -26,53 +24,14 @@ const CheckoutPage = () => {
     const [cardExpiry, setCardExpiry] = useState('');
     const [cardCVV, setCardCVV] = useState('');
     const [loading, setLoading] = useState(true);
+    const [accountStatus, setAccountStatus] = useState('ACTIVE');
 
     const [subtotal, setSubtotal] = useState(0);
     const [shippingFee, setShippingFee] = useState(0);
     const [tax, setTax] = useState(0);
     const [total, setTotal] = useState(0);
 
-    // Inside CheckoutPage component
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            navigate('/login');
-            return;
-        }
-
-        const fetchData = async () => {
-            try {
-                const cartRes = await api.get('/cart/showcart');
-                const profileRes = await api.get('/profile');
-                setCartItems(cartRes.data);
-                setAddress(profileRes.data.profile.address || '');
-                calculateTotals(cartRes.data);
-
-                const firstItem = cartRes.data[0];
-                if (firstItem && firstItem.restaurantId) {
-                    const resDetails = await api.get(`/restaurants/${firstItem.restaurantId}`);
-                    const deliveryType = resDetails.data.deliveryType;
-
-                    if (deliveryType === 'DELIVERY') {
-                        setDeliveryMethod('delivery');
-                    } else if (deliveryType === 'PICKUP') {
-                        setDeliveryMethod('pickup');
-                    } else {
-                        // BOTH supported, let user choose
-                        setDeliveryMethod('delivery');
-                    }
-                }
-            } catch (err) {
-                console.error("Checkout data fetch error", err);
-                alert("Failed to load checkout data.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [navigate]);
-
+    // Özel kapatma butonu
     const CustomCloseButton = ({ closeToast }) => (
         <button
             onClick={closeToast}
@@ -95,7 +54,7 @@ const CheckoutPage = () => {
         </button>
     );
 
-
+    // Toplam hesaplama fonksiyonu
     const calculateTotals = (items, method, customTipOverride = null) => {
         const sub = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
         const tax = Math.round(sub * 0.12);
@@ -118,28 +77,148 @@ const CheckoutPage = () => {
         setTotal(sub + tax + shipping + tip);
     };
 
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            navigate('/login');
+            return;
+        }
 
+        const fetchData = async () => {
+            try {
+                // Profil bilgisini al
+                const profileRes = await api.get('/profile');
+
+                // Hesap durumunu kontrol et
+                const accountStatus = profileRes.data.profile?.accountStatus;
+                setAccountStatus(accountStatus || 'ACTIVE');
+
+                if (accountStatus === 'BANNED') {
+                    toast.error('Your account has been banned. You cannot place orders.', {
+                        closeButton: <CustomCloseButton />
+                    });
+                    setTimeout(() => {
+                        navigate('/customer-dashboard');
+                    }, 2000);
+                    return;
+                }
+
+                if (accountStatus === 'SUSPENDED') {
+                    toast.error('Your account has been suspended. You cannot place orders at this time.', {
+                        closeButton: <CustomCloseButton />
+                    });
+                    setTimeout(() => {
+                        navigate('/customer-dashboard');
+                    }, 2000);
+                    return;
+                }
+
+                // Sepeti kontrol et
+                const cartRes = await api.get('/cart/showcart');
+                setCartItems(cartRes.data);
+                setAddress(profileRes.data.profile.address || '');
+                calculateTotals(cartRes.data);
+
+                // Restoran teslimat tipi bilgisini al
+                const firstItem = cartRes.data[0];
+                if (firstItem && firstItem.restaurantId) {
+                    const resDetails = await api.get(`/restaurants/${firstItem.restaurantId}`);
+                    const deliveryType = resDetails.data.deliveryType;
+
+                    if (deliveryType === 'DELIVERY') {
+                        setDeliveryMethod('delivery');
+                    } else if (deliveryType === 'PICKUP') {
+                        setDeliveryMethod('pickup');
+                    } else {
+                        // BOTH supported, let user choose
+                        setDeliveryMethod('delivery');
+                    }
+                }
+            } catch (err) {
+                console.error("Checkout data fetch error", err);
+
+                // Hata mesajını göster
+                const errorMessage = err.response?.data || "Failed to load checkout data.";
+                toast.error(errorMessage, {
+                    closeButton: <CustomCloseButton />
+                });
+
+                if (err.response?.status === 403) {
+                    // Eğer yasaklanmış ya da askıya alınmışsa ana sayfaya geri dön
+                    setTimeout(() => {
+                        navigate('/customer-dashboard');
+                    }, 2000);
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [navigate]);
 
     const handlePlaceOrder = async () => {
         try {
             if (paymentMethod === 'creditCard') {
                 // Kart bilgilerini doğrula
-
                 const cardNumberDigits = cardNumber.replace(/\s/g, ''); // boşlukları sil
                 if (cardNumberDigits.length !== 16) {
-                    toast.error("Please enter a valid 16-digit card number!");
+                    toast.error("Please enter a valid 16-digit card number!", {
+                        closeButton: <CustomCloseButton />
+                    });
                     return;
                 }
 
                 if (!/^\d{2}\/\d{2}$/.test(cardExpiry)) {
-                    toast.error("Please enter a valid expiry date (MM/YY)!");
+                    toast.error("Please enter a valid expiry date (MM/YY)!", {
+                        closeButton: <CustomCloseButton />
+                    });
                     return;
                 }
 
-                if (cardCVV.length !== 3) {
-                    toast.error("Please enter a valid 3-digit CVV!");
+                const [expMonth, expYear] = cardExpiry.split('/').map(num => parseInt(num, 10));
+
+                // Ayın 1 ile 12 arasında olup olmadığını kontrol et
+                if (expMonth < 1 || expMonth > 12) {
+                    toast.error("Expiry month must be between 01 and 12!", {
+                        closeButton: <CustomCloseButton />
+                    });
                     return;
                 }
+
+                // Yıl ve ay günümüzden eski mi diye kontrol et
+                const now = new Date();
+                const currentYear = now.getFullYear() % 100; // Son iki rakamı alıyoruz, mesela 2025 -> 25
+                const currentMonth = now.getMonth() + 1; // getMonth() 0-11 arası verir, +1 yapıyoruz
+
+                if (expYear < currentYear || (expYear === currentYear && expMonth < currentMonth)) {
+                    toast.error("Expiry date cannot be in the past!", {
+                        closeButton: <CustomCloseButton />
+                    });
+                    return;
+                }
+
+
+                if (cardCVV.length !== 3) {
+                    toast.error("Please enter a valid 3-digit CVV!", {
+                        closeButton: <CustomCloseButton />
+                    });
+                    return;
+                }
+            }
+
+            // Profil bilgisini yeniden kontrol et (hesap durumu değişmiş olabilir)
+            const profileRes = await api.get('/profile');
+            const currentStatus = profileRes.data.profile?.accountStatus;
+
+            if (currentStatus === 'BANNED' || currentStatus === 'SUSPENDED') {
+                toast.error(`Your account has been ${currentStatus.toLowerCase()}. You cannot place orders at this time.`, {
+                    closeButton: <CustomCloseButton />
+                });
+                setTimeout(() => {
+                    navigate('/customer-dashboard');
+                }, 2000);
+                return;
             }
 
             const tip = customTip ? parseFloat(customTip) || 0 : tipAmount || 0;
@@ -165,17 +244,22 @@ const CheckoutPage = () => {
                     color: 'white',
                     fontWeight: 'bold',
                 },
+                closeButton: <CustomCloseButton />
             });
+
             setTimeout(() => {
                 navigate('/customer-dashboard');
-            }, 2000); // 1.5 saniye bekle
+            }, 2000);
 
         } catch (err) {
             const message = err.response?.data?.message || err.response?.data || err.message;
             console.error("Order error", message);
-            toast.error('Order failed: ' + message);
+            toast.error('Order failed: ' + message, {
+                closeButton: <CustomCloseButton />
+            });
         }
     };
+
     return (
         <div className="checkout-page-wrapper d-flex flex-column min-vh-100">
             {/* Restore the header styling from the first version */}
@@ -206,7 +290,6 @@ const CheckoutPage = () => {
                 icon={true}
             />
 
-
             <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
                 <div className="container">
                     {loading ? (
@@ -216,21 +299,47 @@ const CheckoutPage = () => {
                         </div>
                     ) : (
                         <div className="row">
+                            {accountStatus === 'SUSPENDED' && (
+                                <div className="col-12 mb-4">
+                                    <div className="alert alert-warning" role="alert">
+                                        <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
+                                        <strong>Your account has been suspended!</strong> You cannot place orders at this time.
+                                        Please contact support for assistance.
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="col-lg-8">
                                 <div className="bg-white p-4 rounded shadow-sm mb-4">
                                     <h5>Delivery Method</h5>
                                     <div className="form-check">
-                                        <input type="radio" id="pickup" name="delivery" className="form-check-input" checked={deliveryMethod === 'pickup'} onChange={() => {
-                                            setDeliveryMethod('pickup');
-                                            calculateTotals(cartItems, 'pickup');
-                                        }} />
+                                        <input
+                                            type="radio"
+                                            id="pickup"
+                                            name="delivery"
+                                            className="form-check-input"
+                                            checked={deliveryMethod === 'pickup'}
+                                            onChange={() => {
+                                                setDeliveryMethod('pickup');
+                                                calculateTotals(cartItems, 'pickup');
+                                            }}
+                                            disabled={accountStatus === 'SUSPENDED' || accountStatus === 'BANNED'}
+                                        />
                                         <label htmlFor="pickup" className="form-check-label">Pickup</label>
                                     </div>
                                     <div className="form-check">
-                                        <input type="radio" id="delivery" name="delivery" className="form-check-input" checked={deliveryMethod === 'delivery'} onChange={() => {
-                                            setDeliveryMethod('delivery');
-                                            calculateTotals(cartItems, 'delivery');
-                                        }} />
+                                        <input
+                                            type="radio"
+                                            id="delivery"
+                                            name="delivery"
+                                            className="form-check-input"
+                                            checked={deliveryMethod === 'delivery'}
+                                            onChange={() => {
+                                                setDeliveryMethod('delivery');
+                                                calculateTotals(cartItems, 'delivery');
+                                            }}
+                                            disabled={accountStatus === 'SUSPENDED' || accountStatus === 'BANNED'}
+                                        />
                                         <label htmlFor="delivery" className="form-check-label">Delivery</label>
                                     </div>
                                 </div>
@@ -241,6 +350,7 @@ const CheckoutPage = () => {
                                         <button
                                             className={`btn ${paymentMethod === 'creditCard' ? 'btn-primary' : 'btn-outline-secondary'} mr-2`}
                                             onClick={() => setPaymentMethod('creditCard')}
+                                            disabled={accountStatus === 'SUSPENDED' || accountStatus === 'BANNED'}
                                         >
                                             <FontAwesomeIcon icon={faCreditCard} className="mr-2" />
                                             Credit or Debit Card
@@ -249,6 +359,7 @@ const CheckoutPage = () => {
                                         <button
                                             className={`btn ${paymentMethod === 'cashOnDelivery' ? 'btn-primary' : 'btn-outline-secondary'}`}
                                             onClick={() => setPaymentMethod('cashOnDelivery')}
+                                            disabled={accountStatus === 'SUSPENDED' || accountStatus === 'BANNED'}
                                         >
                                             <FontAwesomeIcon icon={faMoneyBill} className="mr-2" />
                                             Cash on Delivery
@@ -273,6 +384,7 @@ const CheckoutPage = () => {
                                                         const formatted = value.match(/.{1,4}/g)?.join(' ') || '';
                                                         setCardNumber(formatted);
                                                     }}
+                                                    disabled={accountStatus === 'SUSPENDED' || accountStatus === 'BANNED'}
                                                 />
 
                                             </div>
@@ -292,6 +404,7 @@ const CheckoutPage = () => {
                                                                     setCardExpiry(value);
                                                                 }
                                                             }}
+                                                            disabled={accountStatus === 'SUSPENDED' || accountStatus === 'BANNED'}
                                                         />
                                                     </div>
                                                 </div>
@@ -303,6 +416,7 @@ const CheckoutPage = () => {
                                                             placeholder="CVV"
                                                             value={cardCVV}
                                                             onChange={e => setCardCVV(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                                                            disabled={accountStatus === 'SUSPENDED' || accountStatus === 'BANNED'}
                                                         />
                                                     </div>
                                                 </div>
@@ -324,6 +438,7 @@ const CheckoutPage = () => {
                                                         setCustomTip('');
                                                         calculateTotals(cartItems, deliveryMethod, tip);
                                                     }}
+                                                    disabled={accountStatus === 'SUSPENDED' || accountStatus === 'BANNED'}
                                                 >
                                                     {tip} TL
                                                 </button>
@@ -342,6 +457,7 @@ const CheckoutPage = () => {
                                                     calculateTotals(cartItems, deliveryMethod, value);
                                                 }
                                             }}
+                                            disabled={accountStatus === 'SUSPENDED' || accountStatus === 'BANNED'}
                                         />
                                     </div>
                                 )}
@@ -353,6 +469,7 @@ const CheckoutPage = () => {
                                         rows={3}
                                         value={address}
                                         onChange={e => setAddress(e.target.value)}
+                                        disabled={accountStatus === 'SUSPENDED' || accountStatus === 'BANNED'}
                                     />
                                 </div>
                             </div>
@@ -393,7 +510,7 @@ const CheckoutPage = () => {
                                     <button
                                         className="btn-orange btn btn-warning btn-block"
                                         onClick={handlePlaceOrder}
-                                        disabled={loading}
+                                        disabled={loading || accountStatus === 'SUSPENDED' || accountStatus === 'BANNED'}
                                     >
                                         Place Order
                                     </button>

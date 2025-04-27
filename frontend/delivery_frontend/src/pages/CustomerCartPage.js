@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faTrash, faArrowLeft, faCreditCard,
-    faMinusCircle, faPlusCircle
+    faMinusCircle, faPlusCircle, faExclamationTriangle
 } from '@fortawesome/free-solid-svg-icons';
 import { faShoppingCart } from '@fortawesome/free-solid-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import '../styles/dashboard.css';
 import '../styles/cart.css';
 
@@ -16,8 +18,9 @@ const Cart = () => {
     const [cartItems, setCartItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const navigate = useNavigate();
     const [warning, setWarning] = useState('');
+    const [accountStatus, setAccountStatus] = useState('ACTIVE');
+    const navigate = useNavigate();
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -26,18 +29,50 @@ const Cart = () => {
             return;
         }
 
+        const fetchUserProfile = async () => {
+            try {
+                const response = await api.get('/profile');
+
+                if (response.data && response.data.profile) {
+                    setAccountStatus(response.data.profile.accountStatus || 'ACTIVE');
+
+                    // Askıya alınmış kullanıcılar için uyarı
+                    if (response.data.profile.accountStatus === 'SUSPENDED') {
+                        toast.warning('Your account has been suspended. You cannot place orders.');
+                    } else if (response.data.profile.accountStatus === 'BANNED') {
+                        // Ban edilmiş kullanıcıları giriş sayfasına yönlendir
+                        toast.error('Your account has been banned. You cannot access this page.');
+                        localStorage.clear();
+                        setTimeout(() => {
+                            navigate('/login');
+                        }, 2000);
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching user profile:', err);
+            }
+        };
+
         const fetchCart = async () => {
             try {
                 const response = await api.get('/cart/showcart');
                 setCartItems(response.data);
             } catch (err) {
                 console.error('Error fetching cart:', err);
-                setError('Failed to load cart');
+
+                if (err.response && err.response.status === 403) {
+                    // Yasaklı restoranlar veya askıya alınmış müşteriler için hata
+                    setError(err.response.data || 'Failed to load cart');
+                } else {
+                    setError('Failed to load cart');
+                }
             } finally {
                 setLoading(false);
             }
         };
 
+        fetchUserProfile();
         fetchCart();
     }, [navigate]);
 
@@ -46,6 +81,12 @@ const Cart = () => {
     const total = subtotal + deliveryFee;
 
     const handleQuantityChange = async (menuItemId, change) => {
+        // Askıya alınmış kullanıcılar sepet içeriğini değiştiremez
+        if (accountStatus === 'SUSPENDED' || accountStatus === 'BANNED') {
+            toast.error(`Your account has been ${accountStatus.toLowerCase()}. You cannot modify your cart.`);
+            return;
+        }
+
         try {
             if (change === 1) {
                 await api.post(`/cart/add?menuItemId=${menuItemId}&quantity=1`);
@@ -55,11 +96,12 @@ const Cart = () => {
             const updated = await api.get('/cart/showcart');
             setCartItems(updated.data);
         } catch (err) {
-            const msg = 'Could not update item quantity';
-            console.error('Error adding item to cart:', msg);
+            const errorMsg = err.response?.data || 'Could not update item quantity';
+            console.error('Error updating cart:', errorMsg);
 
             // Show warning on screen
-            setWarning('An error occurred');
+            setWarning(errorMsg);
+            toast.error(errorMsg);
 
             // Hide after 3 seconds
             setTimeout(() => setWarning(''), 3000);
@@ -67,13 +109,21 @@ const Cart = () => {
     };
 
     const handleRemoveItem = async (menuItemId) => {
+        // Askıya alınmış kullanıcılar sepet içeriğini değiştiremez
+        if (accountStatus === 'SUSPENDED' || accountStatus === 'BANNED') {
+            toast.error(`Your account has been ${accountStatus.toLowerCase()}. You cannot modify your cart.`);
+            return;
+        }
+
         try {
             await api.delete(`/orders/remove-all?menuItemId=${menuItemId}`);
             const updated = await api.get('/cart/showcart');
             setCartItems(updated.data);
         } catch (err) {
             console.error('Error removing item:', err);
-            setError('Could not remove item');
+            const errorMsg = err.response?.data || 'Could not remove item';
+            setError(errorMsg);
+            toast.error(errorMsg);
         }
     };
 
@@ -82,6 +132,12 @@ const Cart = () => {
     };
 
     const handleCheckout = () => {
+        // Askıya alınmış kullanıcılar ödeme sayfasına gidemez
+        if (accountStatus === 'SUSPENDED' || accountStatus === 'BANNED') {
+            toast.error(`Your account has been ${accountStatus.toLowerCase()}. You cannot checkout.`);
+            return;
+        }
+
         navigate('/checkout');
     };
 
@@ -98,6 +154,19 @@ const Cart = () => {
                 </div>
             </div>
 
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="colored"
+            />
+
             <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
                 <div className="cart-section-wrapper">
 
@@ -106,6 +175,14 @@ const Cart = () => {
                         {warning && (
                             <div className="alert alert-warning alert-dismissible fade show" role="alert">
                                 {warning}
+                            </div>
+                        )}
+
+                        {accountStatus === 'SUSPENDED' && (
+                            <div className="alert alert-warning" role="alert">
+                                <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
+                                <strong>Your account has been suspended!</strong> You can view your cart but cannot place orders.
+                                Please contact support for assistance.
                             </div>
                         )}
 
@@ -135,6 +212,7 @@ const Cart = () => {
                                                                 <button
                                                                     className="btn btn-sm text-muted"
                                                                     onClick={() => handleQuantityChange(item.id, -1)}
+                                                                    disabled={accountStatus === 'SUSPENDED' || accountStatus === 'BANNED'}
                                                                 >
                                                                     <FontAwesomeIcon icon={faMinusCircle} />
                                                                 </button>
@@ -142,6 +220,7 @@ const Cart = () => {
                                                                 <button
                                                                     className="btn btn-sm text-muted"
                                                                     onClick={() => handleQuantityChange(item.id, 1)}
+                                                                    disabled={accountStatus === 'SUSPENDED' || accountStatus === 'BANNED'}
                                                                 >
                                                                     <FontAwesomeIcon icon={faPlusCircle} />
                                                                 </button>
@@ -157,6 +236,7 @@ const Cart = () => {
                                                             <button
                                                                 className="btn btn-outline-danger btn-sm"
                                                                 onClick={() => handleRemoveItem(item.id)}
+                                                                disabled={accountStatus === 'SUSPENDED' || accountStatus === 'BANNED'}
                                                             >
                                                                 <FontAwesomeIcon icon={faTrash} />
                                                             </button>
@@ -206,7 +286,7 @@ const Cart = () => {
                                     <button
                                         className="btn-orange btn btn-warning btn-block"
                                         onClick={handleCheckout}
-                                        disabled={cartItems.length === 0}
+                                        disabled={cartItems.length === 0 || accountStatus === 'SUSPENDED' || accountStatus === 'BANNED'}
                                     >
                                         <FontAwesomeIcon icon={faCreditCard} className="mr-2" />
                                         Proceed to Checkout

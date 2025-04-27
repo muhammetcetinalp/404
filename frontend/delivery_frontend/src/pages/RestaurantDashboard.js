@@ -6,6 +6,9 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
 import '../styles/restaurant-dashboard.css';
 import '../styles/dashboard.css';
 
@@ -21,6 +24,7 @@ const RestaurantDashboard = () => {
     const [orderDetails, setOrderDetails] = useState({});
     const [loadingOrderDetails, setLoadingOrderDetails] = useState(false);
     const [restaurantOpen, setRestaurantOpen] = useState();
+    const [accountStatus, setAccountStatus] = useState('ACTIVE');
     const navigate = useNavigate();
 
     const token = localStorage.getItem('token');
@@ -54,6 +58,25 @@ const RestaurantDashboard = () => {
         { value: 'DELIVERED', label: 'Delivered' },
         { value: 'CANCELLED', label: 'Cancelled' }
     ];
+
+    // Fetch restaurant profile to check account status
+    const fetchRestaurantProfile = async () => {
+        try {
+            const response = await axios.get(
+                'http://localhost:8080/api/profile',
+                { headers }
+            );
+            console.log("Restaurant profile:", response.data);
+
+            if (response.data && response.data.accountStatus) {
+                setAccountStatus(response.data.accountStatus);
+
+
+            }
+        } catch (err) {
+            console.error('Error fetching restaurant profile:', err);
+        }
+    };
 
     // Fetch restaurant details including open status
     const fetchRestaurantDetails = async () => {
@@ -99,6 +122,7 @@ const RestaurantDashboard = () => {
             return;
         }
 
+        fetchRestaurantProfile();
         fetchRestaurantDetails();
         fetchOrders();
     }, [token, navigate, restaurantId]);
@@ -144,6 +168,12 @@ const RestaurantDashboard = () => {
         try {
             console.log("Toggling restaurant status for:", restaurantId);
 
+            // Askıya alınmış restoran durumu değiştiremez
+            if (accountStatus === 'SUSPENDED') {
+                toast.error('Your restaurant is suspended. You cannot change restaurant status.');
+                return;
+            }
+
             const response = await axios.patch(
                 `http://localhost:8080/api/restaurants/${restaurantId}/toggle-status`,
                 {},
@@ -151,8 +181,6 @@ const RestaurantDashboard = () => {
             );
 
             console.log("Status toggle response:", response.data);
-
-            // Bu satır çalışmalı ve state’i doğrudan değiştirmeli
             setRestaurantOpen(response.data.open);
 
         } catch (err) {
@@ -160,7 +188,6 @@ const RestaurantDashboard = () => {
             setError('Failed to update restaurant status. Please try again.');
         }
     };
-
 
     const handleViewOrderDetails = (orderId) => {
         if (expandedOrderId === orderId) {
@@ -184,6 +211,12 @@ const RestaurantDashboard = () => {
 
     const handleUpdateOrderStatus = async (orderId, newStatus) => {
         try {
+            // Askıya alınmış restoran sipariş durumunu değiştiremez
+            if (accountStatus === 'SUSPENDED') {
+                toast.error('Your restaurant is suspended. You cannot update order status.');
+                return;
+            }
+
             console.log(`Updating order ${orderId} status to ${newStatus}`);
 
             const response = await axios.patch(
@@ -196,7 +229,7 @@ const RestaurantDashboard = () => {
 
             // Update local state after successful API call
             const updatedOrders = orders.map(order =>
-                order.orderId === orderId ? { ...order, orderStatus: newStatus } : order
+                order.orderId === orderId ? { ...order, orderStatus: newStatus === 'ACCEPTED' ? 'IN PROGRESS' : newStatus } : order
             );
             setOrders(updatedOrders);
 
@@ -204,12 +237,15 @@ const RestaurantDashboard = () => {
             if (expandedOrderId === orderId) {
                 setOrderDetails({
                     ...orderDetails,
-                    [orderId]: { ...orderDetails[orderId], orderStatus: newStatus }
+                    [orderId]: { ...orderDetails[orderId], orderStatus: newStatus === 'ACCEPTED' ? 'IN PROGRESS' : newStatus }
                 });
             }
+
+            toast.success(`Order status updated to ${newStatus === 'ACCEPTED' ? 'IN PROGRESS' : newStatus}`);
         } catch (err) {
             console.error('Error updating order status:', err);
-            setError('Failed to update order status. Please try again.');
+            const errorMessage = err.response?.data || 'Failed to update order status. Please try again.';
+            toast.error(errorMessage);
         }
     };
 
@@ -252,6 +288,7 @@ const RestaurantDashboard = () => {
         switch (order.orderStatus) {
             case 'PENDING':
                 return '30-45 min';
+            case 'IN PROGRESS':
             case 'ACCEPTED':
                 return '25-35 min';
             case 'PREPARING':
@@ -290,11 +327,31 @@ const RestaurantDashboard = () => {
                 </div>
             </div>
 
+            <ToastContainer
+                position="top-right"
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="colored"
+            />
+
             <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
                 <div className="container">
                     {error && (
                         <div className="alert alert-danger" role="alert">
                             {error}
+                        </div>
+                    )}
+
+                    {accountStatus === 'SUSPENDED' && (
+                        <div className="alert alert-warning" role="alert">
+                            <strong>Your restaurant account has been suspended!</strong> You cannot accept new orders or change restaurant status.
+                            All pending orders have been automatically cancelled. Please contact support for assistance.
                         </div>
                     )}
 
@@ -321,6 +378,7 @@ const RestaurantDashboard = () => {
                                             className={`btn ${restaurantOpen ? 'btn-status' : 'btn-secondary'}`}
                                             onClick={toggleRestaurantStatus}
                                             style={{ width: '80px' }}
+                                            disabled={accountStatus === 'SUSPENDED'}
                                         >
                                             <FontAwesomeIcon
                                                 icon={restaurantOpen ? faToggleOn : faToggleOff}
@@ -457,7 +515,8 @@ const RestaurantDashboard = () => {
                                                                 </p>
                                                                 <h5 className="text-warning text-orange">${order.totalAmount.toFixed(2)}</h5>
                                                                 <p className="mb-0 small">
-                                                                    <strong>Items:</strong> {order.items ? order.items.reduce((acc, item) => acc + (item.quantity || 0), 0) : 0}                                                                </p>
+                                                                    <strong>Items:</strong> {order.items ? order.items.reduce((acc, item) => acc + (item.quantity || 0), 0) : 0}
+                                                                </p>
                                                             </div>
                                                             <div className="col-md-2 text-right">
                                                                 <button
@@ -475,22 +534,25 @@ const RestaurantDashboard = () => {
                                                                     <>
                                                                         <button
                                                                             className="btn btn-success btn-sm mb-2 w-100"
-                                                                            onClick={() => handleUpdateOrderStatus(order.orderId, 'IN PROGRESS')}
+                                                                            onClick={() => handleUpdateOrderStatus(order.orderId, 'ACCEPTED')}
+                                                                            disabled={accountStatus === 'SUSPENDED'}
                                                                         >
                                                                             Accept Order
                                                                         </button>
                                                                         <button
                                                                             className="btn btn-danger btn-sm w-100"
                                                                             onClick={() => handleUpdateOrderStatus(order.orderId, 'CANCELLED')}
+                                                                            disabled={accountStatus === 'SUSPENDED'}
                                                                         >
                                                                             Decline
                                                                         </button>
                                                                     </>
                                                                 )}
-                                                                {order.orderStatus === 'ACCEPTED' && (
+                                                                {order.orderStatus === 'IN PROGRESS' && (
                                                                     <button
                                                                         className="btn btn-info btn-sm w-100"
                                                                         onClick={() => handleUpdateOrderStatus(order.orderId, 'PREPARING')}
+                                                                        disabled={accountStatus === 'SUSPENDED'}
                                                                     >
                                                                         Start Preparing
                                                                     </button>
@@ -500,6 +562,7 @@ const RestaurantDashboard = () => {
                                                                     <button
                                                                         className="btn btn-success btn-sm w-100"
                                                                         onClick={() => handleUpdateOrderStatus(order.orderId, 'READY')}
+                                                                        disabled={accountStatus === 'SUSPENDED'}
                                                                     >
                                                                         Ready for Pickup
                                                                     </button>
@@ -558,33 +621,36 @@ const RestaurantDashboard = () => {
                                                                                 <ul className="list-group list-group-flush">
                                                                                     <li className="list-group-item d-flex justify-content-between align-items-center">
                                                                                         <span>Order Placed</span>
-                                                                                        <span className="badge bg-success">Completed</span>
+                                                                                        <span className={`badge ${order.orderStatus === 'CANCELLED' ? 'bg-danger' : 'bg-success'}`}>
+                                                                                            {order.orderStatus === 'CANCELLED' ? 'Cancelled' : 'Completed'}
+                                                                                        </span>
                                                                                     </li>
                                                                                     <li className="list-group-item d-flex justify-content-between align-items-center">
                                                                                         <span>Order Accepted</span>
-                                                                                        <span className={`badge ${order.orderStatus === 'PENDING' ? 'bg-secondary' : 'bg-success'}`}>
-                                                                                            {order.orderStatus === 'PENDING' ? 'Pending' : 'Completed'}
+                                                                                        <span className={`badge ${order.orderStatus === 'CANCELLED' ? 'bg-danger' : (order.orderStatus === 'PENDING' ? 'bg-secondary' : 'bg-success')}`}>
+                                                                                            {order.orderStatus === 'CANCELLED' ? 'Cancelled' : (order.orderStatus === 'PENDING' ? 'Pending' : 'Completed')}
                                                                                         </span>
                                                                                     </li>
                                                                                     <li className="list-group-item d-flex justify-content-between align-items-center">
                                                                                         <span>Preparing</span>
-                                                                                        <span className={`badge ${(['PENDING', 'ACCEPTED'].includes(order.orderStatus)) ? 'bg-secondary' : 'bg-success'}`}>
-                                                                                            {(['PENDING', 'ACCEPTED'].includes(order.orderStatus)) ? 'Pending' : 'Completed'}
+                                                                                        <span className={`badge ${order.orderStatus === 'CANCELLED' ? 'bg-danger' : (['PENDING', 'IN PROGRESS'].includes(order.orderStatus) ? 'bg-secondary' : 'bg-success')}`}>
+                                                                                            {order.orderStatus === 'CANCELLED' ? 'Cancelled' : (['PENDING', 'IN PROGRESS'].includes(order.orderStatus) ? 'Pending' : 'Completed')}
                                                                                         </span>
                                                                                     </li>
                                                                                     <li className="list-group-item d-flex justify-content-between align-items-center">
                                                                                         <span>Ready for Pickup</span>
-                                                                                        <span className={`badge ${(['PENDING', 'ACCEPTED', 'PREPARING'].includes(order.orderStatus)) ? 'bg-secondary' : 'bg-success'}`}>
-                                                                                            {(['PENDING', 'ACCEPTED', 'PREPARING'].includes(order.orderStatus)) ? 'Pending' : 'Completed'}
+                                                                                        <span className={`badge ${order.orderStatus === 'CANCELLED' ? 'bg-danger' : (['PENDING', 'IN PROGRESS', 'PREPARING'].includes(order.orderStatus) ? 'bg-secondary' : 'bg-success')}`}>
+                                                                                            {order.orderStatus === 'CANCELLED' ? 'Cancelled' : (['PENDING', 'IN PROGRESS', 'PREPARING'].includes(order.orderStatus) ? 'Pending' : 'Completed')}
                                                                                         </span>
                                                                                     </li>
                                                                                     <li className="list-group-item d-flex justify-content-between align-items-center">
                                                                                         <span>Delivered</span>
-                                                                                        <span className={`badge ${order.orderStatus === 'DELIVERED' ? 'bg-success' : 'bg-secondary'}`}>
-                                                                                            {order.orderStatus === 'DELIVERED' ? 'Completed' : 'Pending'}
+                                                                                        <span className={`badge ${order.orderStatus === 'CANCELLED' ? 'bg-danger' : (order.orderStatus === 'DELIVERED' ? 'bg-success' : 'bg-secondary')}`}>
+                                                                                            {order.orderStatus === 'CANCELLED' ? 'Cancelled' : (order.orderStatus === 'DELIVERED' ? 'Completed' : 'Pending')}
                                                                                         </span>
                                                                                     </li>
                                                                                 </ul>
+
                                                                             </div>
                                                                         </div>
                                                                     </div>

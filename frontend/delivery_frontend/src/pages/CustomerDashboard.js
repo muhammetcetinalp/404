@@ -4,12 +4,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faSearch, faStar, faFilter, faSortAmountDown, faFont,
     faThumbsUp, faChevronDown, faChevronUp, faHeart as faHeartSolid,
-    faPlus, faShoppingCart, faTimes
+    faPlus, faShoppingCart, faTimes, faExclamationTriangle
 } from '@fortawesome/free-solid-svg-icons';
 import { faHeart as faHeartRegular } from '@fortawesome/free-regular-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import '../styles/dashboard.css';
 
 const CustomerDashboard = () => {
@@ -29,6 +31,7 @@ const CustomerDashboard = () => {
     const [showModal, setShowModal] = useState(false);
     const [cartError, setCartError] = useState('');
     const [addingToFavorite, setAddingToFavorite] = useState(false);
+    const [accountStatus, setAccountStatus] = useState('ACTIVE');
     const navigate = useNavigate();
 
     const token = localStorage.getItem('token');
@@ -45,11 +48,33 @@ const CustomerDashboard = () => {
         );
     };
 
+    const fetchUserProfile = async () => {
+        try {
+            if (!token) return;
+
+            const response = await api.get('/profile');
+
+            if (response.data) {
+                setAccountStatus(response.data.accountStatus || 'ACTIVE');
+
+                if (response.data.accountStatus === 'SUSPENDED') {
+                    toast.warning('Your account has been suspended. You can browse but cannot place orders.');
+                }
+            }
+        } catch (err) {
+            console.error('Error fetching user profile:', err);
+        }
+    };
+
+
     useEffect(() => {
         if (!token) {
             navigate('/login');
             return;
         }
+
+        // Kullanıcı profilini al
+        fetchUserProfile();
 
         const fetchRestaurants = async () => {
             try {
@@ -156,9 +181,15 @@ const CustomerDashboard = () => {
     const handleAddToCart = async (item, restaurantId) => {
         if (addingToCart) return;
 
+        // Askıya alınmış kullanıcılar sipariş veremez
+        if (accountStatus === 'SUSPENDED' || accountStatus === 'BANNED') {
+            toast.error(`Your account has been ${accountStatus.toLowerCase()}. You cannot add items to your cart.`);
+            return;
+        }
+
         const selectedRest = restaurants.find(r => r.restaurantId === restaurantId);
         if (!selectedRest?.open) {
-            alert('This restaurant is currently closed. You cannot add items to your cart.');
+            toast.warning('This restaurant is currently closed. You cannot add items to your cart.');
             return;
         }
 
@@ -178,6 +209,8 @@ const CustomerDashboard = () => {
                 [item.id]: true
             }));
 
+            toast.success('Item added to cart!');
+
             setTimeout(() => {
                 setAddedItemIds(prev => ({
                     ...prev,
@@ -189,11 +222,9 @@ const CustomerDashboard = () => {
             console.error('Error adding item to cart:', err);
 
             // Show error message if different restaurant items added
-            if (err.response && err.response.status === 400) {
-                setCartError(err.response.data || 'Cannot add items from different restaurants to the same cart.');
-            } else {
-                setCartError('Failed to add item to cart. Please try again.');
-            }
+            const errorMessage = err.response?.data || 'Failed to add item to cart. Please try again.';
+            setCartError(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setAddingToCart(false);
         }
@@ -218,6 +249,7 @@ const CustomerDashboard = () => {
 
                 // Update local state
                 setFavoriteRestaurants(prev => prev.filter(id => id !== restaurantId));
+                toast.success('Removed from favorites');
             } else {
                 // Add to favorites
                 await api.post('/profile/favorites/add', null, {
@@ -226,10 +258,12 @@ const CustomerDashboard = () => {
 
                 // Update local state
                 setFavoriteRestaurants(prev => [...prev, restaurantId]);
+                toast.success('Added to favorites');
             }
         } catch (err) {
             console.error('Error toggling favorite restaurant:', err);
             setError('Failed to update favorites. Please try again.');
+            toast.error('Failed to update favorites');
         } finally {
             setAddingToFavorite(false);
         }
@@ -261,10 +295,32 @@ const CustomerDashboard = () => {
                     </div>
                 </div>
             </div>
-            <div className="flex-grow-1">
-                <div className="container-fluid py-4">
+
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="colored"
+            />
+
+            <div className="flex-grow-1" style={{ background: "#EBEDF3" }}>
+                <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
                     <div className="container">
                         {error && <div className="alert alert-danger">{error}</div>}
+
+                        {accountStatus === 'SUSPENDED' && (
+                            <div className="alert alert-warning" role="alert">
+                                <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
+                                <strong>Your account has been suspended!</strong> You can browse restaurants but cannot place orders.
+                                Please contact support for assistance.
+                            </div>
+                        )}
 
                         <div className="row">
                             <div className="col-lg-2 col-md-3 col-sm-12 mb-4">
@@ -302,7 +358,6 @@ const CustomerDashboard = () => {
                                     ) : filteredRestaurants.length > 0 ? (
                                         <div className="restaurant-list">
                                             {filteredRestaurants.map(restaurant => (
-
                                                 <div className="restaurant-item mb-4" key={restaurant.restaurantId}>
                                                     <div className="card shadow-sm restaurant-card">
                                                         <div className="row g-0 align-items-center">
@@ -339,7 +394,15 @@ const CustomerDashboard = () => {
                                                                 </div>
 
                                                                 <p className="mb-1 text-muted small">Type: {restaurant.cuisineType || "N/A"}</p>
-                                                                <p className="mb-0 text-muted small">Open: {restaurant.open ? "Yes" : "No"}</p>
+                                                                <p className="mb-0 text-muted small">
+                                                                    Status: {restaurant.open ?
+                                                                        <span className="text-success">Open</span> :
+                                                                        <span className="text-danger">Closed</span>
+                                                                    }
+                                                                    {restaurant.accountStatus === 'SUSPENDED' &&
+                                                                        <span className="text-warning"> (Suspended)</span>
+                                                                    }
+                                                                </p>
                                                             </div>
 
                                                             {/* Button Column - Add position-relative here */}
@@ -374,7 +437,6 @@ const CustomerDashboard = () => {
                                                             </div>
                                                         </div>
                                                     </div>
-
                                                 </div>
                                             ))}
                                         </div>

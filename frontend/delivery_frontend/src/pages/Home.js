@@ -56,7 +56,7 @@ const Home = () => {
       </div>
 
       {/* restaurant, registered user --> information section */}
-      <div className="home-info-sec container-fluid py-2 bg-warning-custom text-center ">
+      <div className="home-info-sec container-fluid py-2 bg-warning-custom text-white text-center ">
         <div className="row">
           <div className="col-lg-4"><p className="my-2"><b className="h5 mr-2">18 </b>Restaurant</p></div>
           <div className="col-lg-4"><p className="my-2"><b className="h5 mr-2">9 </b>People Served</p></div>

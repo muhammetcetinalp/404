@@ -10,6 +10,7 @@ import '../styles/checkout.css';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
+import { CloseButton } from 'react-toastify';
 
 
 const CheckoutPage = () => {
@@ -71,6 +72,28 @@ const CheckoutPage = () => {
 
         fetchData();
     }, [navigate]);
+
+    const CustomCloseButton = ({ closeToast }) => (
+        <button
+            onClick={closeToast}
+            style={{
+                background: 'transparent',
+                border: 'none',
+                fontSize: '16px',
+                color: 'white',
+                cursor: 'pointer',
+                padding: '4px',
+                margin: '0',
+                width: '35px',
+                height: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
+            ×
+        </button>
+    );
 
 
     const calculateTotals = (items, method, customTipOverride = null) => {
@@ -177,7 +200,13 @@ const CheckoutPage = () => {
                 draggable
                 pauseOnHover
                 theme="colored"
+                closeButton={<CustomCloseButton />}
+                toastClassName="custom-toast"
+                bodyClassName="custom-toast-body"
+                icon={true}
             />
+
+
             <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
                 <div className="container">
                     {loading ? (

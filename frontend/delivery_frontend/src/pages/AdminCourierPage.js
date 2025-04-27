@@ -4,6 +4,13 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import '../styles/admin.css';
 import AdminLayout from './AdminLayout';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
+import { confirmAlert } from 'react-confirm-alert';
+import 'react-confirm-alert/src/react-confirm-alert.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
 
 const AdminCourierPage = () => {
     const [couriers, setCouriers] = useState([]);
@@ -31,20 +38,68 @@ const AdminCourierPage = () => {
             setLoading(false);
         }
     };
-
+    const CustomCloseButton = ({ closeToast }) => (
+        <button
+            onClick={closeToast}
+            style={{
+                background: 'transparent',
+                border: 'none',
+                fontSize: '16px',
+                color: 'white',
+                cursor: 'pointer',
+                padding: '4px',
+                margin: '0',
+                width: '35px',
+                height: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
+            ×
+        </button>
+    );
     useEffect(() => {
         fetchCouriers();
     }, []);
 
     const handleDelete = async (email) => {
-        if (window.confirm('Are you sure you want to delete this courier?')) {
-            try {
-                await api.delete(`/admin/delete-user/${email}`);
-                fetchCouriers(); // Refresh the list after deletion
-            } catch (err) {
-                console.error("Failed to delete courier", err);
+        confirmAlert({
+            customUI: ({ onClose }) => {
+                return (
+                    <div className="custom-ui">
+                        <div className="custom-ui-icon">
+                            <FontAwesomeIcon icon={faTrash} />
+                        </div>
+                        <h1>Delete Courier</h1>
+                        <p>Are you sure you want to delete this courier?</p>
+                        <div className="custom-ui-buttons">
+                            <button
+                                className="btn-cancel"
+                                onClick={onClose}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="btn-delete"
+                                onClick={async () => {
+                                    try {
+                                        await api.delete(`/admin/delete-user/${email}`);
+                                        fetchCouriers(); // Refresh the list after deletion
+                                        onClose();
+                                    } catch (err) {
+                                        console.error("Failed to delete courier", err);
+                                        onClose();
+                                    }
+                                }}
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                );
             }
-        }
+        });
     };
 
     const handleStatusChange = async (email, newStatus) => {
@@ -68,7 +123,13 @@ const AdminCourierPage = () => {
     const saveEdit = async () => {
         try {
             await api.put(`/admin/update-user/${selectedUser.email}`, editForm);
-            alert("Courier updated successfully.");
+            toast.success('Changes saved successfully!', {
+                style: {
+                    backgroundColor: '#eb6825',
+                    color: 'white',
+                    fontWeight: 'bold',
+                },
+            });
             setSelectedUser(null);
             fetchCouriers(); // Refresh the list after edit
         } catch (err) {
@@ -84,7 +145,13 @@ const AdminCourierPage = () => {
         e.preventDefault();
         try {
             await api.post('/register', addUserForm);
-            alert('Courier created successfully.');
+            toast.success('Courier created successfully!', {
+                style: {
+                    backgroundColor: '#eb6825',
+                    color: 'white',
+                    fontWeight: 'bold',
+                },
+            });
             setShowAddModal(false);
             setAddUserForm({
                 name: '',
@@ -130,17 +197,33 @@ const AdminCourierPage = () => {
 
     return (
         <div className="admin-app-container">
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="colored"
+                closeButton={<CustomCloseButton />}
+                toastClassName="custom-toast"
+                bodyClassName="custom-toast-body"
+                icon={true}
+            />
             <Header />
             <div className="admin-dashboard">
                 <AdminLayout active="couriers"></AdminLayout>
 
                 <div className="admin-content">
                     <div className="page-header">
-                        <h1>Courier Management</h1>
+
                         <div className="header-actions">
                             <button
                                 onClick={() => setShowAddModal(true)}
-                                className="btn-add-user"
+                                className="btn-orange btn-add-user"
                             >
                                 <i className="add-icon"></i>
                                 Add New Courier
@@ -268,8 +351,8 @@ const AdminCourierPage = () => {
                             </div>
                         </div>
                         <div className="modal-footer">
-                            <button onClick={() => setSelectedUser(null)} className="btn-cancel">Cancel</button>
-                            <button onClick={saveEdit} className="btn-save">Save Changes</button>
+
+                            <button onClick={saveEdit} className="btn-orange btn-save">Save Changes</button>
                         </div>
                     </div>
                 </div>
@@ -341,8 +424,8 @@ const AdminCourierPage = () => {
                                 {addUserError && <p className="error-message">{addUserError}</p>}
 
                                 <div className="modal-footer">
-                                    <button type="button" onClick={() => setShowAddModal(false)} className="btn-cancel">Cancel</button>
-                                    <button type="submit" className="btn-save">Save Courier</button>
+
+                                    <button type="submit" className="btn-orange btn-save">Save Courier</button>
                                 </div>
                             </form>
                         </div>

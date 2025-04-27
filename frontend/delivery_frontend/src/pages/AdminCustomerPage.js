@@ -4,6 +4,15 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import '../styles/admin.css';
 import AdminLayout from './AdminLayout';
+// Import confirmation dialog library
+import { confirmAlert } from 'react-confirm-alert';
+import 'react-confirm-alert/src/react-confirm-alert.css';
+// Import FontAwesome if you need icons
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
 
 const AdminCustomerPage = () => {
     const [customers, setCustomers] = useState([]);
@@ -23,7 +32,27 @@ const AdminCustomerPage = () => {
         district: '',
     });
     const [addUserError, setAddUserError] = useState('');
-
+    const CustomCloseButton = ({ closeToast }) => (
+        <button
+            onClick={closeToast}
+            style={{
+                background: 'transparent',
+                border: 'none',
+                fontSize: '16px',
+                color: 'white',
+                cursor: 'pointer',
+                padding: '4px',
+                margin: '0',
+                width: '35px',
+                height: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
+            ×
+        </button>
+    );
     const fetchCustomers = async () => {
         try {
             const res = await api.get('/admin/all-users');
@@ -39,15 +68,44 @@ const AdminCustomerPage = () => {
         fetchCustomers();
     }, []);
 
+    // Modified delete handler to use confirmAlert
     const handleDelete = async (email) => {
-        if (window.confirm('Are you sure you want to delete this customer?')) {
-            try {
-                await api.delete(`/admin/delete-user/${email}`);
-                fetchCustomers(); // Refresh the list after deletion
-            } catch (err) {
-                console.error("Failed to delete customer", err);
+        confirmAlert({
+            customUI: ({ onClose }) => {
+                return (
+                    <div className="custom-ui">
+                        <div className="custom-ui-icon">
+                            <FontAwesomeIcon icon={faTrash} />
+                        </div>
+                        <h1>Delete Customer</h1>
+                        <p>Are you sure you want to delete this customer?</p>
+                        <div className="custom-ui-buttons">
+                            <button
+                                className="btn-cancel"
+                                onClick={onClose}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="btn-delete"
+                                onClick={async () => {
+                                    try {
+                                        await api.delete(`/admin/delete-user/${email}`);
+                                        fetchCustomers(); // Refresh the list after deletion
+                                        onClose();
+                                    } catch (err) {
+                                        console.error("Failed to delete customer", err);
+                                        onClose();
+                                    }
+                                }}
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                );
             }
-        }
+        });
     };
 
     const handleStatusChange = async (email, newStatus) => {
@@ -71,7 +129,13 @@ const AdminCustomerPage = () => {
     const saveEdit = async () => {
         try {
             await api.put(`/admin/update-user/${selectedUser.email}`, editForm);
-            alert("Customer updated successfully.");
+            toast.success('Changes saved successfully!', {
+                style: {
+                    backgroundColor: '#eb6825',
+                    color: 'white',
+                    fontWeight: 'bold',
+                },
+            });
             setSelectedUser(null);
             fetchCustomers(); // Refresh the list after edit
         } catch (err) {
@@ -87,7 +151,13 @@ const AdminCustomerPage = () => {
         e.preventDefault();
         try {
             await api.post('/register', addUserForm);
-            alert('Customer created successfully.');
+            toast.success('Customer created successfully!', {
+                style: {
+                    backgroundColor: '#eb6825',
+                    color: 'white',
+                    fontWeight: 'bold',
+                },
+            });
             setShowAddModal(false);
             setAddUserForm({
                 name: '',
@@ -136,17 +206,33 @@ const AdminCustomerPage = () => {
 
     return (
         <div className="admin-app-container">
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="colored"
+                closeButton={<CustomCloseButton />}
+                toastClassName="custom-toast"
+                bodyClassName="custom-toast-body"
+                icon={true}
+            />
             <Header />
             <div className="admin-dashboard">
                 <AdminLayout active="customers"></AdminLayout>
 
                 <div className="admin-content">
                     <div className="page-header">
-                        <h1>Customer Management</h1>
+
                         <div className="header-actions">
                             <button
                                 onClick={() => setShowAddModal(true)}
-                                className="btn-add-user"
+                                className="btn-orange btn-add-user"
                             >
                                 <i className="add-icon"></i>
                                 Add New Customer
@@ -201,15 +287,26 @@ const AdminCustomerPage = () => {
                                                         </button>
                                                         <div className="status-dropdown">
                                                             <button className="btn-status btn-adminstatus">Status ▼</button>
-
                                                             <div className="status-dropdown-content">
-                                                                <button onClick={() => handleStatusChange(user.email, 'ACTIVE')} className="status-option status-active">
+                                                                <button
+                                                                    onClick={() => handleStatusChange(user.email, 'ACTIVE')}
+                                                                    className="status-option status-active"
+                                                                    style={{ color: 'green' }}
+                                                                >
                                                                     Activate
                                                                 </button>
-                                                                <button onClick={() => handleStatusChange(user.email, 'SUSPENDED')} className="status-option status-suspended">
+                                                                <button
+                                                                    onClick={() => handleStatusChange(user.email, 'SUSPENDED')}
+                                                                    className="status-option status-suspended"
+                                                                    style={{ color: 'orange' }}
+                                                                >
                                                                     Suspend
                                                                 </button>
-                                                                <button onClick={() => handleStatusChange(user.email, 'BANNED')} className="status-option status-banned">
+                                                                <button
+                                                                    onClick={() => handleStatusChange(user.email, 'BANNED')}
+                                                                    className="status-option status-banned"
+                                                                    style={{ color: 'red' }}
+                                                                >
                                                                     Ban
                                                                 </button>
                                                             </div>
@@ -306,8 +403,8 @@ const AdminCustomerPage = () => {
                             </div>
                         </div>
                         <div className="modal-footer">
-                            <button onClick={() => setSelectedUser(null)} className="btn-cancel">Cancel</button>
-                            <button onClick={saveEdit} className="btn-save">Save Changes</button>
+
+                            <button onClick={saveEdit} className="btn-orange btn-save">Save Changes</button>
                         </div>
                     </div>
                 </div>
@@ -414,8 +511,8 @@ const AdminCustomerPage = () => {
                                 {addUserError && <p className="error-message">{addUserError}</p>}
 
                                 <div className="modal-footer">
-                                    <button type="button" onClick={() => setShowAddModal(false)} className="btn-cancel">Cancel</button>
-                                    <button type="submit" className="btn-save">Save Customer</button>
+
+                                    <button type="submit" className="btn-orange btn-save">Save Customer</button>
                                 </div>
                             </form>
                         </div>

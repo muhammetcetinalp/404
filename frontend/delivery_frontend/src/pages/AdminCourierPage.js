@@ -432,6 +432,7 @@ const AdminCourierPage = () => {
                     </div>
                 </div>
             )}
+            <Footer />
         </div>
     );
 };

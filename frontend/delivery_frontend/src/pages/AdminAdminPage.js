@@ -380,6 +380,7 @@ const AdminAdminPage = () => {
                     </div>
                 </div>
             )}
+            <Footer />
         </div>
     );
 };

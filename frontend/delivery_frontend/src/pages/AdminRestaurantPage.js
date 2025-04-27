@@ -628,6 +628,7 @@ const AdminRestaurantPage = () => {
                     </div>
                 </div>
             )}
+            <Footer />
         </div>
     );
 };

@@ -519,6 +519,7 @@ const AdminCustomerPage = () => {
                     </div>
                 </div>
             )}
+            <Footer />
         </div>
     );
 };

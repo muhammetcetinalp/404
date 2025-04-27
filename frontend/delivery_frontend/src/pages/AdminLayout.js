@@ -1,14 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { 
+    faTachometerAlt, faUsers, faUtensils, faTruck, 
+    faUserShield, faSignOutAlt
+} from '@fortawesome/free-solid-svg-icons';
 import '../styles/admin.css';
 
 const AdminLayout = ({ children, active }) => {
     const navigate = useNavigate();
-
-    // Get admin name from localStorage and display first initial and name
-    // Şöyle değiştirmelisiniz:
-    const storedName = localStorage.getItem('name');
-    const adminName = (storedName && storedName !== "undefined") ? storedName : "Admin"; const adminInitial = adminName.charAt(0).toUpperCase();
 
     const handleNavigate = (path) => {
         navigate(path);
@@ -21,66 +21,41 @@ const AdminLayout = ({ children, active }) => {
 
     return (
         <div className="admin-sidebar">
-            <div className="admin-profile">
-                <div className="admin-avatar">
-                    <span>{adminInitial}</span>
-                </div>
-                <div className="admin-info">
-                    <h3>{adminName}</h3>
-                    <p>{localStorage.getItem('email') || 'admin@example.com'}</p>
-                </div>
-            </div>
-
             <nav className="admin-nav">
+                <div className="admin-nav-header">
+                    Dashboard
+                </div>
                 <button
                     className={`admin-nav-item ${active === 'dashboard' ? 'active' : ''}`}
                     onClick={() => handleNavigate('/admin')}
                 >
-                    <i className="nav-icon dashboard-icon"></i> Dashboard
+                    <FontAwesomeIcon icon={faTachometerAlt} className="nav-icon" /> Overview
                 </button>
                 <button
                     className={`admin-nav-item ${active === 'customers' ? 'active' : ''}`}
                     onClick={() => handleNavigate('/admin/customers')}
                 >
-                    <i className="nav-icon users-icon"></i> Customers
+                    <FontAwesomeIcon icon={faUsers} className="nav-icon" /> Customers
                 </button>
                 <button
                     className={`admin-nav-item ${active === 'restaurants' ? 'active' : ''}`}
                     onClick={() => handleNavigate('/admin/restaurants')}
                 >
-                    <i className="nav-icon restaurants-icon"></i> Restaurants
+                    <FontAwesomeIcon icon={faUtensils} className="nav-icon" /> Restaurants
                 </button>
                 <button
                     className={`admin-nav-item ${active === 'couriers' ? 'active' : ''}`}
                     onClick={() => handleNavigate('/admin/couriers')}
                 >
-                    <i className="nav-icon couriers-icon"></i> Couriers
+                    <FontAwesomeIcon icon={faTruck} className="nav-icon" /> Couriers
                 </button>
                 <button
                     className={`admin-nav-item ${active === 'admins' ? 'active' : ''}`}
                     onClick={() => handleNavigate('/admin/admin-users')}
                 >
-                    <i className="nav-icon admin-icon"></i> Admins
-                </button>
-                <button
-                    className={`admin-nav-item ${active === 'orders' ? 'active' : ''}`}
-                    onClick={() => handleNavigate('/admin/orders')}
-                >
-                    <i className="nav-icon orders-icon"></i> Orders
-                </button>
-                <button
-                    className={`admin-nav-item ${active === 'settings' ? 'active' : ''}`}
-                    onClick={() => handleNavigate('/admin/settings')}
-                >
-                    <i className="nav-icon settings-icon"></i> Settings
+                    <FontAwesomeIcon icon={faUserShield} className="nav-icon" /> Admins
                 </button>
             </nav>
-
-            <div className="admin-sidebar-footer">
-                <button className="logout-button" onClick={handleLogout}>
-                    <i className="logout-icon"></i> Logout
-                </button>
-            </div>
         </div>
     );
 };

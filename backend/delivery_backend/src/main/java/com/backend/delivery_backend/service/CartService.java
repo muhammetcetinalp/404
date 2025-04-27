@@ -46,6 +46,11 @@ public class CartService {
             throw new RuntimeException("Cannot add items from unapproved restaurants");
         }
 
+        // Check if restaurant is banned or suspended
+        if ("BANNED".equals(restaurant.getAccountStatus()) || "SUSPENDED".equals(restaurant.getAccountStatus())) {
+            throw new RuntimeException("This restaurant is currently unavailable");
+        }
+
         // ✅ Mevcut sepetteki restoran ile karşılaştır
         if (!cart.getItems().isEmpty()) {
             MenuItem existingItem = cart.getItems().keySet().iterator().next();

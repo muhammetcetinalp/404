@@ -19,6 +19,8 @@ const AdminUserListPage = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('customers');
     const [showAddModal, setShowAddModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [userToDelete, setUserToDelete] = useState(null);
     const [addUserForm, setAddUserForm] = useState({
         name: '',
         email: '',
@@ -50,19 +52,24 @@ const AdminUserListPage = () => {
         fetchUsers();
     }, []);
 
-    const handleDelete = async (email) => {
-        if (window.confirm('Are you sure you want to delete this user?')) {
-            try {
-                await api.delete(`/admin/delete-user/${email}`);
-                setData(prev => ({
-                    customers: prev.customers.filter(u => u.email !== email),
-                    couriers: prev.couriers.filter(u => u.email !== email),
-                    restaurantOwners: prev.restaurantOwners.filter(u => u.email !== email),
-                    admins: prev.admins.filter(u => u.email !== email)
-                }));
-            } catch (err) {
-                console.error("Failed to delete user", err);
-            }
+    const openDeleteConfirmation = (user) => {
+        setUserToDelete(user);
+        setShowDeleteModal(true);
+    };
+
+    const handleDelete = async () => {
+        try {
+            await api.delete(`/admin/delete-user/${userToDelete.email}`);
+            setData(prev => ({
+                customers: prev.customers.filter(u => u.email !== userToDelete.email),
+                couriers: prev.couriers.filter(u => u.email !== userToDelete.email),
+                restaurantOwners: prev.restaurantOwners.filter(u => u.email !== userToDelete.email),
+                admins: prev.admins.filter(u => u.email !== userToDelete.email)
+            }));
+            setShowDeleteModal(false);
+            setUserToDelete(null);
+        } catch (err) {
+            console.error("Failed to delete user", err);
         }
     };
 
@@ -175,7 +182,7 @@ const AdminUserListPage = () => {
                                         <i className="edit-icon"></i>
                                         Edit
                                     </button>
-                                    <button onClick={() => handleDelete(user.email)} className="btn-delete">
+                                    <button onClick={() => openDeleteConfirmation(user)} className="btn-delete">
                                         <i className="delete-icon"></i>
                                         Delete
                                     </button>
@@ -409,7 +416,6 @@ const AdminUserListPage = () => {
                             )}
                         </div>
                         <div className="modal-footer">
-                            <button onClick={() => setSelectedUser(null)} className="btn-cancel">Cancel</button>
                             <button onClick={saveEdit} className="btn-save">Save Changes</button>
                         </div>
                     </div>
@@ -594,6 +600,31 @@ const AdminUserListPage = () => {
                                     <button type="submit" className="btn-save">Save User</button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && (
+                <div className="modal-overlay">
+                    <div className="modal-content delete-confirmation-modal">
+                        <div className="modal-header">
+                            <h3>Delete Confirmation</h3>
+                            <button className="close-btn" onClick={() => setShowDeleteModal(false)}>×</button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="delete-icon-container">
+                                <i className="delete-warning-icon"></i>
+                            </div>
+                            <h4>Are you sure you want to delete this user?</h4>
+                            <p>User: <span className="highlighted-text">{userToDelete?.name}</span></p>
+                            <p>Email: <span className="highlighted-text">{userToDelete?.email}</span></p>
+                            <p className="delete-warning">This action cannot be undone.</p>
+                        </div>
+                        <div className="modal-footer">
+                            <button onClick={() => setShowDeleteModal(false)} className="btn-cancel">Cancel</button>
+                            <button onClick={handleDelete} className="btn-delete-confirm">Delete</button>
                         </div>
                     </div>
                 </div>

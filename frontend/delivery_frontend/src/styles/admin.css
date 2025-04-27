@@ -1566,3 +1566,236 @@
         width: 100%;
     }
 }
+
+/* Add these styles to your admin.css file */
+
+/* Restaurant approval section styling */
+.restaurant-approval-list {
+    margin-top: 15px;
+}
+
+.restaurant-approval-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 15px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.restaurant-approval-item:hover {
+    background-color: #f0f4f8;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.restaurant-info {
+    flex: 3;
+}
+
+.restaurant-name {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #344767;
+}
+
+.restaurant-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.restaurant-details p {
+    margin: 0;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    color: #666;
+}
+
+.restaurant-details i {
+    margin-right: 6px;
+    color: #777;
+}
+
+.restaurant-approval-actions {
+    flex: 1;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn-approve,
+.btn-reject {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.btn-approve {
+    background-color: #4caf50;
+    color: white;
+}
+
+.btn-approve:hover {
+    background-color: #43a047;
+}
+
+.btn-reject {
+    background-color: #f44336;
+    color: white;
+}
+
+.btn-reject:hover {
+    background-color: #e53935;
+}
+
+.btn-approve i,
+.btn-reject i {
+    margin-right: 5px;
+}
+
+/* Icons styling */
+.email-icon::before {
+    content: '✉️';
+}
+
+.address-icon::before {
+    content: '📍';
+}
+
+.cuisine-icon::before {
+    content: '🍽️';
+}
+
+.approve-icon::before {
+    content: '✓';
+}
+
+.reject-icon::before {
+    content: '✗';
+}
+
+/* No data styling */
+.no-data-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+}
+
+.no-data {
+    color: #777;
+    font-style: italic;
+}
+
+/* admin.css - Status Badge Styles */
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: white;
+}
+
+.status-active {
+    background-color: #28a745;
+}
+
+.status-suspended {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.status-banned {
+    background-color: #dc3545;
+}
+
+/* Status Dropdown Button Styles */
+.btn-status {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-status:hover {
+    background-color: #e9ecef;
+}
+
+.status-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.status-dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.1);
+    z-index: 1;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.status-dropdown:hover .status-dropdown-content {
+    display: block;
+}
+
+.status-option {
+    display: block;
+    padding: 8px 16px;
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.status-option:hover {
+    background-color: #f8f9fa;
+}
+
+/* Suspended Banner Style */
+.account-status-banner {
+    width: 100%;
+    padding: 10px 0;
+}
+
+.account-status-banner.suspended {
+    background-color: #fff3cd;
+    border-bottom: 1px solid #ffeeba;
+}
+
+.account-status-banner .alert {
+    margin-bottom: 0;
+    border-radius: 0;
+}
+
+.alert-warning {
+    color: #856404;
+    background-color: #fff3cd;
+    border-color: #ffeeba;
+    padding: 12px 20px;
+    border-radius: 4px;
+}

@@ -30,11 +30,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	@Autowired private CustomerRepository customerRepository;
 	@Autowired private CourierRepository courierRepository;
 	@Autowired private AdminRepository adminRepository;
-
 	@Autowired private RestaurantOwnerRepository restaurantOwnerRepository;
 	@Autowired private TokenRepository tokenRepository;
 	@Autowired private JavaMailSender javaMailSender;
-
 
 	private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -44,7 +42,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		if ((user = customerRepository.findByEmail(email)) != null) return wrapUser(user);
 		if ((user = courierRepository.findByEmail(email)) != null) return wrapUser(user);
 		if ((user = restaurantOwnerRepository.findByEmail(email)) != null) return wrapUser(user);
-		if ((user = adminRepository.findByEmail(email)) != null) return wrapUser(user); // ✅ yeni satır
+		if ((user = adminRepository.findByEmail(email)) != null) return wrapUser(user);
 		throw new UsernameNotFoundException("User not found");
 	}
 
@@ -98,6 +96,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 				r.setBusinessHoursEnd(dto.getBusinessHoursEnd());
 				r.setCuisineType(dto.getCuisineType());
 				r.setDeliveryType(DeliveryType.valueOf(dto.getDeliveryType().toUpperCase()));
+				// Set default approval status to false (pending approval)
+				r.setApproved(false);
 				return restaurantOwnerRepository.save(r);
 
 			case "admin":
@@ -109,12 +109,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 				admin.setRole("ADMIN");
 				return adminRepository.save(admin);
 
-
 			default:
 				throw new IllegalArgumentException("Invalid role: " + role);
 		}
 	}
-
 
 	public String sendEmail(User user) {
 		try {
@@ -158,6 +156,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		if (user == null) user = adminRepository.findByEmail(email);
 		return user;
 	}
+
 	public PasswordResetToken getToken(String token) {
 		return tokenRepository.findByToken(token);
 	}
@@ -176,7 +175,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		else if (user instanceof RestaurantOwner owner) restaurantOwnerRepository.save(owner);
 		else if (user instanceof Admin admin) adminRepository.save(admin);
 	}
-
 
 	public User getUserById(String userId) {
 		User user = customerRepository.findByCustomerId(userId);
@@ -197,7 +195,4 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 		return user;
 	}
-
-
-
 }

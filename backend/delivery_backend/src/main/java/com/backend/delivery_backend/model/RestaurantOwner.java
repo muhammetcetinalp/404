@@ -22,14 +22,32 @@ public class RestaurantOwner extends User {
 
     @Column(name = "district")
     private String district;
+
     @Id
     private String restaurantId;
 
     @Column(name = "is_open")
     private boolean isOpen;
 
+    // New field to track approval status - default is false (pending approval)
+    @Column(name = "approved")
+    private boolean approved = false;
+
     @Column(name = "cuisine_type")
     private String cuisineType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "delivery_type")
+    private DeliveryType deliveryType;
+
+    // Getters and Setters for all fields
+    public String getCuisineType() {
+        return cuisineType;
+    }
+
+    public void setCuisineType(String cuisineType) {
+        this.cuisineType = cuisineType;
+    }
 
     public DeliveryType getDeliveryType() {
         return deliveryType;
@@ -39,18 +57,6 @@ public class RestaurantOwner extends User {
         this.deliveryType = deliveryType;
     }
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "delivery_type")
-    private DeliveryType deliveryType;
-
-
-    public String getCuisineType() {
-        return cuisineType;
-    }
-
-    public void setCuisineType(String cuisineType) {
-        this.cuisineType = cuisineType;
-    }
     public String getRestaurantId() {
         return restaurantId;
     }
@@ -58,19 +64,17 @@ public class RestaurantOwner extends User {
     public void setRestaurantId(String restaurantId) {
         this.restaurantId = restaurantId;
     }
+
     @Override
     public String getId() {
         return this.restaurantId;
     }
 
-
-    // Getter - Setter
     public String getCity() { return city; }
     public void setCity(String city) { this.city = city; }
 
     public String getDistrict() { return district; }
     public void setDistrict(String district) { this.district = district; }
-
 
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
@@ -90,5 +94,14 @@ public class RestaurantOwner extends User {
 
     public void setOpen(boolean open) {
         isOpen = open;
+    }
+
+    // Getter and setter for the new approval field
+    public boolean isApproved() {
+        return approved;
+    }
+
+    public void setApproved(boolean approved) {
+        this.approved = approved;
     }
 }

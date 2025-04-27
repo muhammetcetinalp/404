@@ -9,6 +9,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
 import '../styles/dashboard.css';
+import { AccountStatusBanner, checkAccountStatus } from '../components/AccountStatusBanner';
 
 const CustomerDashboard = () => {
     const [restaurants, setRestaurants] = useState([]);
@@ -44,6 +45,11 @@ const CustomerDashboard = () => {
         if (!token) {
             navigate('/login');
             return;
+        }
+
+        // Kullanıcı durumunu kontrol et
+        if (!checkAccountStatus()) {
+            return; // Eğer BANNED ise, checkAccountStatus fonksiyonu yönlendirme yapacaktır
         }
 
         const fetchRestaurants = async () => {
@@ -186,6 +192,10 @@ const CustomerDashboard = () => {
         <div>
             <div className="container-fluid dashboard-header">
                 <Header />
+
+                {/* Account Status Banner - Suspended kullanıcılar için uyarı */}
+                <AccountStatusBanner />
+
                 <div className="container dashboard-welcome-text">
                     <div className="row justify-content-center">
                         <div className="col-lg-5 col-md-10 col-sm-12">

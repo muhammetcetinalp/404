@@ -5,56 +5,84 @@ import Footer from '../components/Footer';
 import api from '../api';
 import '../styles/admin.css';
 import AdminLayout from './AdminLayout';
-import AddUserModal from '../components/AddUserModal';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
     const [stats, setStats] = useState({
         customers: 0,
         restaurants: 0,
-        couriers: 0,
-        orders: 0,
-        newOrders: 0,
-        totalRevenue: 0
+        couriers: 0
     });
-    const [recentOrders, setRecentOrders] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [showAddModal, setShowAddModal] = useState(false);
+    const [pendingRestaurants, setPendingRestaurants] = useState([]);
+
+    // Get admin name from localStorage
+    const adminName = localStorage.getItem('name') || 'Admin';
+    const adminInitial = adminName.charAt(0).toUpperCase();
+
+    const fetchDashboardData = async () => {
+        try {
+            // Use the all-users endpoint that exists in the backend
+            const allUsersRes = await api.get('/admin/all-users');
+
+            if (allUsersRes.data) {
+                // Calculate stats from available data
+                const customers = allUsersRes.data.customers || [];
+                const restaurantOwners = allUsersRes.data.restaurantOwners || [];
+                const couriers = allUsersRes.data.couriers || [];
+
+                // Get only approved restaurants for the counter
+                const approvedRestaurants = restaurantOwners.filter(r => r.approved === true);
+
+                // Filter restaurant owners that are pending approval
+                const pending = restaurantOwners.filter(r => r.approved === false);
+
+                // Update stats with actual counts from the API response
+                setStats({
+                    customers: customers.length,
+                    restaurants: approvedRestaurants.length, // Only count approved restaurants
+                    couriers: couriers.length
+                });
+
+                setPendingRestaurants(pending);
+            }
+
+            setLoading(false);
+        } catch (err) {
+            console.error("Failed to fetch dashboard data", err);
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchDashboardData = async () => {
-            try {
-                // In a real app, these would be separate endpoints or a single dashboard endpoint
-                const statsData = await api.get('/admin/dashboard/stats');
-                const recentOrdersData = await api.get('/admin/dashboard/recent-orders');
-
-                setStats(statsData.data);
-                setRecentOrders(recentOrdersData.data);
-                setLoading(false);
-            } catch (err) {
-                console.error("Failed to fetch dashboard data", err);
-                setLoading(false);
-            }
-        };
-
         fetchDashboardData();
     }, []);
 
-    const handleNavigate = (path) => {
-        navigate(path);
-    };
-
-    const handleLogout = () => {
-        localStorage.clear();
-        navigate('/login');
-    };
-
-    const refreshDashboardData = async () => {
+    const handleApproveRestaurant = async (restaurantId) => {
         try {
-            const statsData = await api.get('/admin/dashboard/stats');
-            setStats(statsData.data);
-        } catch (err) {
-            console.error("Failed to refresh stats data", err);
+            // This endpoint would need to be implemented in your backend
+            await api.post(`/admin/approve-restaurant/${restaurantId}`);
+            alert('Restaurant approved successfully');
+            // Refresh data
+            fetchDashboardData();
+        } catch (error) {
+            console.error("Failed to approve restaurant", error);
+            alert('Failed to approve restaurant');
+        }
+    };
+
+    const handleRejectRestaurant = async (restaurantId) => {
+        if (window.confirm('Are you sure you want to reject this restaurant?')) {
+            try {
+                // This endpoint would need to be implemented in your backend
+                await api.post(`/admin/reject-restaurant/${restaurantId}`);
+                alert('Restaurant rejected successfully');
+                // Refresh data
+                fetchDashboardData();
+            } catch (error) {
+                console.error("Failed to reject restaurant", error);
+                alert('Failed to reject restaurant');
+            }
         }
     };
 
@@ -77,14 +105,13 @@ const AdminDashboard = () => {
             <div className="admin-dashboard">
                 <AdminLayout active="dashboard"></AdminLayout>
 
-                <div className="admin-content ">
-
+                <div className="admin-content">
                     <div className="admin-stats-grid">
                         <div className="admin-stat-card">
                             <div className="stat-icon customers-icon"></div>
                             <div className="stat-info">
                                 <h3>Customers</h3>
-                                <p className="stat-value">{stats.customers}</p>
+                                <p className="stat-value">{stats.customers || 0}</p>
                             </div>
                         </div>
 
@@ -92,7 +119,7 @@ const AdminDashboard = () => {
                             <div className="stat-icon restaurants-icon"></div>
                             <div className="stat-info">
                                 <h3>Restaurants</h3>
-                                <p className="stat-value">{stats.restaurants}</p>
+                                <p className="stat-value">{stats.restaurants || 0}</p>
                             </div>
                         </div>
 
@@ -100,62 +127,50 @@ const AdminDashboard = () => {
                             <div className="stat-icon couriers-icon"></div>
                             <div className="stat-info">
                                 <h3>Couriers</h3>
-                                <p className="stat-value">{stats.couriers}</p>
-                            </div>
-                        </div>
-
-                        <div className="admin-stat-card">
-                            <div className="stat-icon orders-icon"></div>
-                            <div className="stat-info">
-                                <h3>Total Orders</h3>
-                                <p className="stat-value">{stats.orders}</p>
-                            </div>
-                        </div>
-
-                        <div className="admin-stat-card highlight">
-                            <div className="stat-icon revenue-icon"></div>
-                            <div className="stat-info">
-                                <h3>Total Revenue</h3>
-                                <p className="stat-value">${stats.totalRevenue.toLocaleString()}</p>
+                                <p className="stat-value">{stats.couriers || 0}</p>
                             </div>
                         </div>
                     </div>
 
                     <div className="admin-content-grid">
-                        <div className="admin-card recent-orders">
-                            <div className="card-header d-flex justify-content-between align-items-center">
-                                <h2 className="mb-0">Recent Orders</h2>
-                                <button
-                                    onClick={() => handleNavigate('/admin/orders')}
-                                    className="btn btn-sm btn-outline-secondary"
-                                >
-                                    View All
-                                </button>
+                        <div className="admin-card pending-restaurants">
+                            <div className="card-header">
+                                <h2>Pending Restaurant Approvals</h2>
                             </div>
 
-                            {recentOrders.length > 0 ? (
-                                <div className="order-list">
-                                    {recentOrders.map(order => (
-                                        <div key={order.id} className="order-item">
-                                            <div className="order-info">
-                                                <h4>Order #{order.id}</h4>
-                                                <p className="order-time">{new Date(order.createdAt).toLocaleString()}</p>
+                            {pendingRestaurants && pendingRestaurants.length > 0 ? (
+                                <div className="restaurant-approval-list">
+                                    {pendingRestaurants.map(restaurant => (
+                                        <div key={restaurant.restaurantId} className="restaurant-approval-item">
+                                            <div className="restaurant-info">
+                                                <h4 className="restaurant-name">{restaurant.name}</h4>
+                                                <div className="restaurant-details">
+                                                    <p className="restaurant-email"><i className="email-icon"></i>{restaurant.email}</p>
+                                                    <p className="restaurant-address"><i className="address-icon"></i>{restaurant.address}, {restaurant.city}</p>
+                                                    <p className="restaurant-cuisine"><i className="cuisine-icon"></i>Cuisine: {restaurant.cuisineType || 'N/A'}</p>
+                                                </div>
                                             </div>
-                                            <div className="order-details">
-                                                <p className="order-restaurant">{order.restaurantName}</p>
-                                                <p className="order-customer">{order.customerName}</p>
-                                            </div>
-                                            <div className="order-status">
-                                                <span className={`status-badge ${order.status.toLowerCase()}`}>
-                                                    {order.status}
-                                                </span>
-                                                <p className="order-amount">${order.totalAmount.toFixed(2)}</p>
+                                            <div className="restaurant-approval-actions">
+                                                <button
+                                                    onClick={() => handleApproveRestaurant(restaurant.restaurantId)}
+                                                    className="btn-approve"
+                                                >
+                                                    <i className="approve-icon"></i> Approve
+                                                </button>
+                                                <button
+                                                    onClick={() => handleRejectRestaurant(restaurant.restaurantId)}
+                                                    className="btn-reject"
+                                                >
+                                                    <i className="reject-icon"></i> Reject
+                                                </button>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <p className="no-data">No recent orders found</p>
+                                <div className="no-data-container">
+                                    <p className="no-data">No pending restaurant approvals</p>
+                                </div>
                             )}
                         </div>
 
@@ -165,37 +180,27 @@ const AdminDashboard = () => {
                             </div>
 
                             <div className="action-grid">
-                                <button onClick={() => setShowAddModal(true)} className="action-button">
-                                    <i className="action-icon add-user-icon"></i>
-                                    <span>Add User</span>
+                                <button onClick={() => navigate('/admin/customers')} className="action-button">
+                                    <i className="action-icon add-customer-icon"></i>
+                                    <span>Add Customer</span>
                                 </button>
-
-                                <button onClick={() => handleNavigate('/admin/add-restaurant')} className="action-button">
+                                <button onClick={() => navigate('/admin/restaurants')} className="action-button">
                                     <i className="action-icon add-restaurant-icon"></i>
                                     <span>Add Restaurant</span>
                                 </button>
-
-                                <button onClick={() => handleNavigate('/admin/view-reports')} className="action-button">
-                                    <i className="action-icon view-reports-icon"></i>
-                                    <span>View Reports</span>
+                                <button onClick={() => navigate('/admin/couriers')} className="action-button">
+                                    <i className="action-icon add-courier-icon"></i>
+                                    <span>Add Courier</span>
                                 </button>
-
-                                <button onClick={() => handleNavigate('/admin/system-health')} className="action-button">
-                                    <i className="action-icon system-health-icon"></i>
-                                    <span>System Health</span>
+                                <button onClick={() => navigate('/admin/admin-users')} className="action-button">
+                                    <i className="action-icon add-admin-icon"></i>
+                                    <span>Add Admin</span>
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            {/* Use the AddUserModal component */}
-            <AddUserModal
-                show={showAddModal}
-                onClose={() => setShowAddModal(false)}
-                onUserAdded={refreshDashboardData}
-            />
         </div>
     );
 };

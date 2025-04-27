@@ -56,8 +56,8 @@ const AdminUserListPage = () => {
     const handleStatusChange = async (email, newStatus) => {
         try {
             await api.put(`/admin/update-user/${email}`, { status: newStatus });
-            const res = await api.get('/admin/all-users');
-            setData(res.data);
+            alert(`User status has been updated to ${newStatus}`);
+            fetchUsers(); // Kullanıcı listesini güncelle
         } catch (err) {
             console.error("Failed to update status", err);
         }
@@ -77,8 +77,7 @@ const AdminUserListPage = () => {
             await api.put(`/admin/update-user/${selectedUser.email}`, editForm);
             alert("User updated successfully.");
             setSelectedUser(null);
-            const res = await api.get('/admin/all-users');
-            setData(res.data);
+            fetchUsers();
         } catch (err) {
             console.error("Failed to update user", err);
         }
@@ -93,10 +92,10 @@ const AdminUserListPage = () => {
 
     const getStatusClass = (status) => {
         if (!status) return '';
-        switch (status.toLowerCase()) {
-            case 'active': return 'status-active';
-            case 'suspended': return 'status-suspended';
-            case 'banned': return 'status-banned';
+        switch (status) {
+            case 'ACTIVE': return 'status-active';
+            case 'SUSPENDED': return 'status-suspended';
+            case 'BANNED': return 'status-banned';
             default: return '';
         }
     };
@@ -119,8 +118,8 @@ const AdminUserListPage = () => {
                                 <td className="user-name">{user.name}</td>
                                 <td className="user-email">{user.email}</td>
                                 <td>
-                                    <span className={`status-badge ${getStatusClass(user.status)}`}>
-                                        {user.status || 'N/A'}
+                                    <span className={`status-badge ${getStatusClass(user.accountStatus)}`}>
+                                        {user.accountStatus || 'ACTIVE'}
                                     </span>
                                 </td>
                                 <td className="user-actions">
@@ -134,7 +133,8 @@ const AdminUserListPage = () => {
                                     </button>
                                     {allowStatusChange && (
                                         <div className="status-dropdown">
-                                            <button className="btn-status">Status ▼</button>
+                                            <button className="btn-status btn-adminstatus">Status ▼</button>
+
                                             <div className="status-dropdown-content">
                                                 <button onClick={() => handleStatusChange(user.email, 'ACTIVE')} className="status-option status-active">
                                                     Activate
@@ -196,10 +196,20 @@ const AdminUserListPage = () => {
                 <AdminLayout active="users"></AdminLayout>
 
                 <div className="admin-content">
-
+                    <div className="page-header">
+                        <div className="header-actions">
+                            <button
+                                onClick={() => setShowAddModal(true)}
+                                className="btn-add-user"
+                            >
+                                <i className="add-icon"></i>
+                                Add New User
+                            </button>
+                        </div>
+                    </div>
 
                     <div className="admin-card">
-                        <div className="card-header d-flex justify-content-between align-items-center">
+                        <div className="card-header">
                             <div className="search-container">
                                 <i className="search-icon"></i>
                                 <input
@@ -210,15 +220,6 @@ const AdminUserListPage = () => {
                                     className="search-input"
                                 />
                             </div>
-
-                            <button
-                                onClick={() => setShowAddModal(true)}
-                                className="btn-add-user"
-                            >
-                                <i className="add-icon"></i>
-                                Add New User
-                            </button>
-
                         </div>
 
                         <div className="user-tabs">
@@ -287,6 +288,19 @@ const AdminUserListPage = () => {
                                     placeholder="Name"
                                     className="form-control"
                                 />
+                            </div>
+                            <div className="form-group">
+                                <label>Account Status</label>
+                                <select
+                                    name="accountStatus"
+                                    value={editForm.accountStatus || 'ACTIVE'}
+                                    onChange={handleEditChange}
+                                    className="form-control"
+                                >
+                                    <option value="ACTIVE">Active</option>
+                                    <option value="SUSPENDED">Suspended</option>
+                                    <option value="BANNED">Banned</option>
+                                </select>
                             </div>
                             <div className="form-group">
                                 <label>Phone</label>
@@ -367,12 +381,14 @@ const AdminUserListPage = () => {
                 </div>
             )}
 
-            {/* Use the AddUserModal component */}
-            <AddUserModal
-                show={showAddModal}
-                onClose={() => setShowAddModal(false)}
-                onUserAdded={fetchUsers}
-            />
+            {/* Add User Modal */}
+            {showAddModal && (
+                <AddUserModal
+                    show={showAddModal}
+                    onClose={() => setShowAddModal(false)}
+                    onUserAdded={fetchUsers}
+                />
+            )}
         </div>
     );
 };

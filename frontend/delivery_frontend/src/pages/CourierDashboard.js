@@ -7,6 +7,7 @@ import Footer from '../components/Footer';
 import api from '../api';
 import '../styles/dashboard.css';
 import '../styles/restaurant-dashboard.css';
+import { AccountStatusBanner, checkAccountStatus } from '../components/AccountStatusBanner';
 
 const CourierDashboard = () => {
     const [orders, setOrders] = useState([]);
@@ -36,6 +37,11 @@ const CourierDashboard = () => {
         if (!token) {
             navigate('/login');
             return;
+        }
+
+        // Kullanıcı durumunu kontrol et
+        if (!checkAccountStatus()) {
+            return; // Eğer BANNED ise, checkAccountStatus fonksiyonu yönlendirme yapacaktır
         }
 
         // Example orders data - in a real app, this would come from your API
@@ -200,6 +206,10 @@ const CourierDashboard = () => {
         <div>
             <div className="container-fluid dashboard-header">
                 <Header />
+
+                {/* Account Status Banner - Suspended kullanıcılar için uyarı */}
+                <AccountStatusBanner />
+
                 <div className="container dashboard-welcome-text">
                     <div className="row">
                         <div className="col-12 text-center">

@@ -47,7 +47,27 @@ const CustomerDashboard = () => {
                 : [...prev, category]
         );
     };
-
+    const CustomCloseButton = ({ closeToast }) => (
+        <button
+            onClick={closeToast}
+            style={{
+                background: 'transparent',
+                border: 'none',
+                fontSize: '16px',
+                color: 'white',
+                cursor: 'pointer',
+                padding: '4px',
+                margin: '0',
+                width: '35px',
+                height: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
+            ×
+        </button>
+    );
     const fetchUserProfile = async () => {
         try {
             if (!token) return;
@@ -300,13 +320,17 @@ const CustomerDashboard = () => {
                 position="top-right"
                 autoClose={3000}
                 hideProgressBar={false}
-                newestOnTop
+                newestOnTop={false}
                 closeOnClick
                 rtl={false}
                 pauseOnFocusLoss
                 draggable
                 pauseOnHover
                 theme="colored"
+                closeButton={<CustomCloseButton />}
+                toastClassName="custom-toast"
+                bodyClassName="custom-toast-body"
+                icon={true}
             />
 
             <div className="flex-grow-1" style={{ background: "#EBEDF3" }}>

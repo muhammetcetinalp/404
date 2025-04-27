@@ -202,10 +202,12 @@ const Cart = () => {
                                                 <div className="card-body">
                                                     <div className="row align-items-center">
                                                         <div className="col-md-6">
-                                                            <h5 className="card-title">{item.name}</h5>
-                                                            <p className="card-text text-muted mb-1">
-                                                                <small>{item.description}</small>
-                                                            </p>
+                                                            <div>
+                                                                <strong>{item.name}</strong>
+                                                            </div>
+                                                            <div className="text-muted" style={{ fontSize: '0.9rem', marginTop: '2px' }}>
+                                                                {item.description}
+                                                            </div>
                                                         </div>
                                                         <div className="col-md-2">
                                                             <div className="quantity-control d-flex align-items-center">
@@ -226,11 +228,13 @@ const Cart = () => {
                                                                 </button>
                                                             </div>
                                                         </div>
-                                                        <div className="col-md-2 text-right">
-                                                            <p className="font-weight-bold">{(item.price * item.quantity).toFixed(2)} TL</p>
-                                                            <p className="text-muted">
-                                                                <small>{item.price.toFixed(2)} TL each</small>
-                                                            </p>
+                                                        <div className="col-md-2 d-flex flex-column align-items-end justify-content-center">
+                                                            <div className="font-weight-bold" style={{ fontSize: '1.1rem' }}>
+                                                                {(item.price * item.quantity).toFixed(2)} TL
+                                                            </div>
+                                                            <div className="text-muted" style={{ fontSize: '0.9rem' }}>
+                                                                {item.price.toFixed(2)} TL each
+                                                            </div>
                                                         </div>
                                                         <div className="col-md-2 text-right">
                                                             <button

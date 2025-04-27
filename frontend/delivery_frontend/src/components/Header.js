@@ -49,7 +49,7 @@ const Header = () => {
         <FaShoppingCart size={20} /> {/* Sepet ikonu */}
       </Nav.Link>
       <NavDropdown
-        title={name ? name.toUpperCase() : 'USER'}
+        title={email || 'User'}
         id="customer-dropdown"
         align="end"
         className="custom-link nav-dropdown"
@@ -69,7 +69,7 @@ const Header = () => {
       <Nav.Link as={Link} to="/menu-management" className="custom-link">
         Menus
       </Nav.Link>
-      <NavDropdown title={name || 'RESTAURANT'} id="restaurant-dropdown" align="end"
+      <NavDropdown title={email || 'RESTAURANT'} id="restaurant-dropdown" align="end"
         className="custom-link nav-dropdown">
         <NavDropdown.Item as={Link} to="/profile">Profile</NavDropdown.Item>
 
@@ -140,5 +140,6 @@ const Header = () => {
     </Navbar>
   );
 };
+
 
 export default Header;

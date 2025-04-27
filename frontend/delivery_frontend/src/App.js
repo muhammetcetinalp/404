@@ -25,6 +25,11 @@ import RestaurantMenuPage from './pages/RestaurantMenuPage.js';
 import CourierDeliveriesPage from './pages/CourierDeliveriesPage.js';
 import CourierRestaurantsPage from './pages/CourierRestaurantsPage.js';
 
+// Import new admin pages
+import AdminCustomerPage from './pages/AdminCustomerPage';
+import AdminRestaurantPage from './pages/AdminRestaurantPage';
+import AdminCourierPage from './pages/AdminCourierPage';
+import AdminAdminPage from './pages/AdminAdminPage';
 
 const App = () => {
   return (
@@ -49,9 +54,16 @@ const App = () => {
         <Route path="/cart" element={<PrivateRoute allowedRoles={['customer']}> <CustomerCartPage /> </PrivateRoute>} />
         <Route path="/checkout" element={<PrivateRoute allowedRoles={['customer']}> <CustomerCheckoutPage /> </PrivateRoute>} />
         <Route path="/orders" element={<PrivateRoute allowedRoles={['customer']}> <CustomerOrderPage /> </PrivateRoute>} />
+
+        {/* Admin routes */}
         <Route path="/admin" element={<PrivateRoute allowedRoles={['admin']}> <AdminDashboard /> </PrivateRoute>} />
-        <Route path="/profile" element={<PrivateRoute> <ProfilePage /> </PrivateRoute>} />
+        <Route path="/admin/customers" element={<PrivateRoute allowedRoles={['admin']}> <AdminCustomerPage /> </PrivateRoute>} />
+        <Route path="/admin/restaurants" element={<PrivateRoute allowedRoles={['admin']}> <AdminRestaurantPage /> </PrivateRoute>} />
+        <Route path="/admin/couriers" element={<PrivateRoute allowedRoles={['admin']}> <AdminCourierPage /> </PrivateRoute>} />
+        <Route path="/admin/admin-users" element={<PrivateRoute allowedRoles={['admin']}> <AdminAdminPage /> </PrivateRoute>} />
         <Route path="/admin/users" element={<PrivateRoute allowedRoles={['admin']}> <AdminUserListPage /> </PrivateRoute>} />
+
+        <Route path="/profile" element={<PrivateRoute> <ProfilePage /> </PrivateRoute>} />
 
         <Route path="/my-deliveries" element={<PrivateRoute allowedRoles={['courier']}> <CourierDeliveriesPage /> </PrivateRoute>} />
         <Route path="/courier-restaurant" element={<PrivateRoute allowedRoles={['courier']}> <CourierRestaurantsPage /> </PrivateRoute>} />

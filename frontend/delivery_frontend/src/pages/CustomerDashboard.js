@@ -3,13 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faSearch, faStar, faFilter, faSortAmountDown, faFont,
-    faThumbsUp, faChevronDown, faChevronUp, faHeart, faPlus, faShoppingCart
+    faThumbsUp, faChevronDown, faChevronUp, faHeart, faPlus, faShoppingCart, faTimes
 } from '@fortawesome/free-solid-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
 import '../styles/dashboard.css';
-import { AccountStatusBanner, checkAccountStatus } from '../components/AccountStatusBanner';
 
 const CustomerDashboard = () => {
     const [restaurants, setRestaurants] = useState([]);
@@ -20,11 +19,12 @@ const CustomerDashboard = () => {
     const [sortOption, setSortOption] = useState('bestMatch');
     const [favoriteRestaurants, setFavoriteRestaurants] = useState([]);
     const [selectedCategories, setSelectedCategories] = useState([]);
-    const [expandedRestaurantId, setExpandedRestaurantId] = useState(null);
+    const [selectedRestaurant, setSelectedRestaurant] = useState(null);
     const [menuItems, setMenuItems] = useState({});
     const [loadingMenu, setLoadingMenu] = useState(false);
     const [addingToCart, setAddingToCart] = useState(false);
     const [addedItemIds, setAddedItemIds] = useState({});
+    const [showModal, setShowModal] = useState(false);
     const navigate = useNavigate();
 
     const token = localStorage.getItem('token');
@@ -47,15 +47,10 @@ const CustomerDashboard = () => {
             return;
         }
 
-        // Kullanıcı durumunu kontrol et
-        if (!checkAccountStatus()) {
-            return; // Eğer BANNED ise, checkAccountStatus fonksiyonu yönlendirme yapacaktır
-        }
-
         const fetchRestaurants = async () => {
             try {
                 const response = await api.get('/public/search-restaurants');
-                console.log('API Response:', response.data); // API yanıtını logla
+                console.log('API Response:', response.data);
                 setRestaurants(response.data);
                 setFilteredRestaurants(response.data);
             } catch (err) {
@@ -126,21 +121,20 @@ const CustomerDashboard = () => {
         setFilteredRestaurants(results);
     }, [searchTerm, sortOption, selectedCategories, restaurants, favoriteRestaurants]);
 
-    const handleViewRestaurant = async (restaurantId) => {
-        if (expandedRestaurantId === restaurantId) {
-            setExpandedRestaurantId(null);
-            return;
-        }
-
-        setExpandedRestaurantId(restaurantId);
+    const handleViewRestaurant = async (restaurant) => {
+        setSelectedRestaurant(restaurant);
         setLoadingMenu(true);
+        setShowModal(true);
 
         try {
-            const response = await api.get(`/restaurants/${restaurantId}/menu`);
-            setMenuItems(prev => ({
-                ...prev,
-                [restaurantId]: response.data
-            }));
+            // Check if we already have the menu items for this restaurant
+            if (!menuItems[restaurant.restaurantId]) {
+                const response = await api.get(`/restaurants/${restaurant.restaurantId}/menu`);
+                setMenuItems(prev => ({
+                    ...prev,
+                    [restaurant.restaurantId]: response.data
+                }));
+            }
         } catch (err) {
             console.error('Error fetching menu items:', err);
         } finally {
@@ -148,11 +142,16 @@ const CustomerDashboard = () => {
         }
     };
 
+    const handleCloseModal = () => {
+        setShowModal(false);
+        setSelectedRestaurant(null);
+    };
+
     const handleAddToCart = async (item, restaurantId) => {
         if (addingToCart) return;
 
-        const selectedRestaurant = restaurants.find(r => r.restaurantId === restaurantId);
-        if (!selectedRestaurant?.open) {
+        const selectedRest = restaurants.find(r => r.restaurantId === restaurantId);
+        if (!selectedRest?.open) {
             alert('This restaurant is currently closed. You cannot add items to your cart.');
             return;
         }
@@ -186,16 +185,10 @@ const CustomerDashboard = () => {
         }
     };
 
-
-
     return (
         <div>
             <div className="container-fluid dashboard-header">
                 <Header />
-
-                {/* Account Status Banner - Suspended kullanıcılar için uyarı */}
-                <AccountStatusBanner />
-
                 <div className="container dashboard-welcome-text">
                     <div className="row justify-content-center">
                         <div className="col-lg-5 col-md-10 col-sm-12">
@@ -209,7 +202,7 @@ const CustomerDashboard = () => {
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         style={{ height: '50px' }}
                                     />
-                                    <button className="btn btn-warning border-0" style={{ height: '50px', width: '60px' }}>
+                                    <button className="btn btn-orange border-0" style={{ height: '50px', width: '60px' }}>
                                         <FontAwesomeIcon icon={faSearch} />
                                     </button>
                                 </div>
@@ -226,7 +219,7 @@ const CustomerDashboard = () => {
                     <div className="row">
                         <div className="col-lg-2 col-md-3 col-sm-12 mb-4">
                             <div className="bg-white p-4 dashboard-sidebar">
-                                <h5 className="mb-3"><FontAwesomeIcon icon={faFilter} className="mr-2" />Sort By</h5>
+                                <h5 className="mb-3"><FontAwesomeIcon icon={faFilter} className="mr-2 me-1" />Sort By</h5>
                                 <div className="ml-2 list-group">
                                     {[
                                         { key: 'bestMatch', icon: faThumbsUp, label: 'Best Match' },
@@ -244,8 +237,6 @@ const CustomerDashboard = () => {
                                         </button>
                                     ))}
                                 </div>
-
-
                             </div>
                         </div>
 
@@ -255,7 +246,7 @@ const CustomerDashboard = () => {
 
                                 {loading ? (
                                     <div className="text-center py-5">
-                                        <div className="spinner-border text-warning" role="status" />
+                                        <div className="spinner-border text-orange" role="status" />
                                         <p className="mt-2">Loading restaurants...</p>
                                     </div>
                                 ) : filteredRestaurants.length > 0 ? (
@@ -303,7 +294,7 @@ const CustomerDashboard = () => {
                                                                                         whiteSpace: 'nowrap'
                                                                                     }}
                                                                                 >
-                                                                                    <FontAwesomeIcon icon={faStar} className="text-warning" />
+                                                                                    <FontAwesomeIcon icon={faStar} className="text-orange" />
                                                                                 </div>
                                                                             </div>
                                                                         );
@@ -317,62 +308,16 @@ const CustomerDashboard = () => {
                                                             </div>
                                                             <div className="col-md-3 text-right">
                                                                 <button
-                                                                    onClick={() => handleViewRestaurant(restaurant.restaurantId)}
-                                                                    className="btn btn-warning btn-sm"
+                                                                    onClick={() => handleViewRestaurant(restaurant)}
+                                                                    className="btn btn-orange btn-sm d-flex justify-content-between align-items-center w-100"
+                                                                    style={{ padding: '0.5rem 1rem' }}
                                                                 >
-                                                                    {expandedRestaurantId === restaurant.restaurantId
-                                                                        ? <>Hide Menu <FontAwesomeIcon icon={faChevronUp} /></>
-                                                                        : <>View Menus <FontAwesomeIcon icon={faChevronDown} /></>}
+                                                                    <span>View Menus</span>
+                                                                    <FontAwesomeIcon icon={faChevronDown} />
                                                                 </button>
                                                             </div>
                                                         </div>
                                                     </div>
-
-                                                    {expandedRestaurantId === restaurant.restaurantId && (
-                                                        <div className="card-footer p-3">
-                                                            <h6>Menu Items</h6>
-                                                            {loadingMenu ? (
-                                                                <div className="text-center py-3">
-                                                                    <div className="spinner-border spinner-border-sm text-warning" role="status" />
-                                                                    <p className="mt-2 small">Loading menu items...</p>
-                                                                </div>
-                                                            ) : (menuItems[restaurant.restaurantId]?.length > 0 ? (
-                                                                <div className="row">
-                                                                    {menuItems[restaurant.restaurantId].map(item => (
-                                                                        <div className="col-md-6 mb-3" key={item.id}>
-                                                                            <div className="menu-item p-3 border rounded position-relative"
-                                                                                style={!restaurant.open ? { opacity: 0.5, pointerEvents: 'none' } : {}}
-                                                                            >
-                                                                                <div className="d-flex justify-content-between align-items-center">
-                                                                                    <div>
-                                                                                        <h6>{item.name}</h6>
-                                                                                        <p className="mb-1 small text-muted">{item.description}</p>
-                                                                                        <span className="text-warning font-weight-bold">{item.price.toFixed(2)} TL</span>
-                                                                                    </div>
-                                                                                    <button
-                                                                                        className="btn btn-outline-warning add-to-cart-btn"
-                                                                                        onClick={() => handleAddToCart(item, restaurant.restaurantId)}
-                                                                                        disabled={addingToCart || !restaurant.open}
-                                                                                    >
-                                                                                        <FontAwesomeIcon icon={faPlus} />
-                                                                                    </button>
-                                                                                </div>
-
-                                                                                {/* Item-specific success notification */}
-                                                                                {addedItemIds[item.id] && (
-                                                                                    <div className="item-added-notification">
-                                                                                        Added to Cart!
-                                                                                    </div>
-                                                                                )}
-                                                                            </div>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            ) : (
-                                                                <p className="text-center text-muted">No menu items available</p>
-                                                            ))}
-                                                        </div>
-                                                    )}
                                                 </div>
                                             </div>
                                         ))}
@@ -388,7 +333,7 @@ const CustomerDashboard = () => {
 
                         <div className="col-lg-3 col-md-3 col-sm-12 mb-4">
                             <div className="bg-white p-4 dashboard-sidebar">
-                                <h5 className="mb-3"><FontAwesomeIcon icon={faFilter} className="mr-2" />Categories</h5>
+                                <h5 className="mb-3"><FontAwesomeIcon icon={faFilter} className="mr-2 me-1" />Categories</h5>
                                 <div className="category-list">
                                     {categories.map(category => (
                                         <div
@@ -405,6 +350,65 @@ const CustomerDashboard = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Menu Modal */}
+            {showModal && selectedRestaurant && (
+                <div className="menu-modal-overlay">
+                    <div className="menu-modal">
+                        <div className="menu-modal-header">
+                            <h4>{selectedRestaurant.name} - Menu</h4>
+                            <button className="btn-close " onClick={handleCloseModal}>
+                                <FontAwesomeIcon icon={faTimes} />
+                            </button>
+                        </div>
+                        <div className="menu-modal-body">
+                            {loadingMenu ? (
+                                <div className="text-center py-3">
+                                    <div className="spinner-border spinner-border-sm text-orange" role="status" />
+                                    <p className="mt-2 small">Loading menu items...</p>
+                                </div>
+                            ) : (menuItems[selectedRestaurant.restaurantId]?.length > 0 ? (
+                                <div className="row">
+                                    {menuItems[selectedRestaurant.restaurantId].map(item => (
+                                        <div className="menu-item mb-3" key={item.id}
+                                            style={!selectedRestaurant.open ? { opacity: 0.5, pointerEvents: 'none' } : {}}
+                                        >
+                                            <div className="d-flex justify-content-between align-items-center w-100">
+                                                {/* Sol kısım: yemek bilgileri */}
+                                                <div>
+                                                    <h6 className="mb-1">{item.name}</h6>
+                                                    <p className="mb-1 small text-muted">{item.description}</p>
+                                                    <span className="text-orange font-weight-bold">{item.price.toFixed(2)} TL</span>
+                                                </div>
+
+                                                {/* Sağ kısım: buton */}
+                                                <div>
+                                                    <button
+                                                        className="btn btn-outline-orange add-to-cart-btn"
+                                                        onClick={() => handleAddToCart(item, selectedRestaurant.restaurantId)}
+                                                        disabled={addingToCart || !selectedRestaurant.open}
+                                                    >
+                                                        <FontAwesomeIcon icon={faPlus} />
+                                                    </button>
+                                                    {addedItemIds[item.id] && (
+                                                        <div className="item-added-notification">
+                                                            Added to Cart!
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    ))}
+                                </div>
+
+                            ) : (
+                                <p className="text-center text-muted">No menu items available</p>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <Footer />
         </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faFilter, faUtensils, faCheckCircle, faTimesCircle, faClock, faChevronDown, faChevronUp, faStore, faToggleOn, faToggleOff } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faFilter, faUtensils, faCheckCircle, faTimesCircle, faClock, faChevronDown, faChevronUp, faStore, faToggleOn, faToggleOff, faShippingFast, faSort, faArrowDown, faArrowUp, faArrowUpShortWide, faArrowDownShortWide } from '@fortawesome/free-solid-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import axios from 'axios';
@@ -305,7 +305,7 @@ const RestaurantDashboard = () => {
                                 {/* Restaurant Status Toggle */}
                                 <div className="mb-4">
                                     <h5 className="mb-3">
-                                        <FontAwesomeIcon icon={faStore} className="mr-2" />
+                                        <FontAwesomeIcon icon={faStore} className="mr-2 me-1" />
                                         Restaurant Status
                                     </h5>
                                     <div className="ml-2 d-flex align-items-center justify-content-between p-3" style={{ background: '#f8f9fa', borderRadius: '8px' }}>
@@ -334,7 +334,7 @@ const RestaurantDashboard = () => {
                                 </div>
 
                                 <h5 className="mb-3">
-                                    <FontAwesomeIcon icon={faFilter} className="mr-2" />
+                                    <FontAwesomeIcon icon={faSort} className="mr-2 me-2" />
                                     Sort By
                                 </h5>
 
@@ -345,7 +345,7 @@ const RestaurantDashboard = () => {
                                             onClick={() => setSortOption('newest')}
                                         >
                                             <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
-                                                <FontAwesomeIcon icon={faClock} />
+                                                <FontAwesomeIcon icon={faArrowDownShortWide} />
                                             </span>
                                             <span className="ml-2">Newest First</span>
                                         </button>
@@ -354,7 +354,7 @@ const RestaurantDashboard = () => {
                                             onClick={() => setSortOption('oldest')}
                                         >
                                             <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
-                                                <FontAwesomeIcon icon={faClock} />
+                                                <FontAwesomeIcon icon={faArrowUpShortWide} />
                                             </span>
                                             <span className="ml-2">Oldest First</span>
                                         </button>
@@ -363,24 +363,24 @@ const RestaurantDashboard = () => {
                                             onClick={() => setSortOption('highestAmount')}
                                         >
                                             <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
-                                                <FontAwesomeIcon icon={faFilter} />
+                                                <FontAwesomeIcon icon={faArrowUp} />
                                             </span>
-                                            <span className="ml-2">Highest Amount</span>
+                                            <span className="ml-2">Price (Low to High)</span>
                                         </button>
                                         <button
                                             className={`list-group-item list-group-item-action ${sortOption === 'lowestAmount' ? 'active' : ''}`}
                                             onClick={() => setSortOption('lowestAmount')}
                                         >
                                             <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
-                                                <FontAwesomeIcon icon={faFilter} />
+                                                <FontAwesomeIcon icon={faArrowDown} />
                                             </span>
-                                            <span className="ml-2">Lowest Amount</span>
+                                            <span className="ml-2">Price (High to Low)</span>
                                         </button>
                                     </div>
                                 </div>
 
                                 <h5 className="mb-3">
-                                    <FontAwesomeIcon icon={faFilter} className="mr-2" />
+                                    <FontAwesomeIcon icon={faFilter} className="mr-2 me-1" />
                                     Filter By Status
                                 </h5>
 
@@ -395,9 +395,10 @@ const RestaurantDashboard = () => {
                                                 <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
                                                     {option.value === 'all' && <FontAwesomeIcon icon={faUtensils} />}
                                                     {option.value === 'PENDING' && <FontAwesomeIcon icon={faClock} />}
+                                                    {option.value === 'IN PROGRESS' && <FontAwesomeIcon icon={faCheckCircle} />}
                                                     {option.value === 'ACCEPTED' && <FontAwesomeIcon icon={faCheckCircle} />}
                                                     {option.value === 'PREPARING' && <FontAwesomeIcon icon={faUtensils} />}
-                                                    {option.value === 'READY' && <FontAwesomeIcon icon={faCheckCircle} />}
+                                                    {option.value === 'READY' && <FontAwesomeIcon icon={faShippingFast} />}
                                                     {option.value === 'DELIVERED' && <FontAwesomeIcon icon={faCheckCircle} />}
                                                     {option.value === 'CANCELLED' && <FontAwesomeIcon icon={faTimesCircle} />}
                                                 </span>

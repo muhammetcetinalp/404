@@ -17,10 +17,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/cart")
@@ -36,12 +34,54 @@ public class CartController {
     public ResponseEntity<?> addToCart(Authentication auth,
                                        @RequestParam Long menuItemId,
                                        @RequestParam int quantity) {
+        // 1. Müşteriyi al
         String email = auth.getName();
         Customer customer = customerRepository.findByEmail(email);
         if (customer == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Customer not found");
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("Customer not found");
         }
 
+        // 2. Menü öğesini al
+        Optional<MenuItem> menuItemOpt = menuItemRepository.findById(menuItemId);
+        if (menuItemOpt.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("Menu item not found");
+        }
+        MenuItem item = menuItemOpt.get();
+
+        // 3. Ürün mevcut mu?
+        if (!item.isAvailable()) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("This item is currently unavailable");
+        }
+
+        // 4. Restoran onaylı mı?
+        RestaurantOwner restaurant = item.getRestaurant();
+        if (restaurant == null || !restaurant.isApproved()) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body("Cannot add items from unapproved restaurants");
+        }
+
+        // 5. Restoran ban veya suspend edilmiş mi?
+        if ("BANNED".equals(restaurant.getAccountStatus()) || "SUSPENDED".equals(restaurant.getAccountStatus())) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body("This restaurant is currently unavailable");
+        }
+
+        // 6. Restoran açık mı?
+        if (!restaurant.isOpen()) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("This restaurant is currently closed");
+        }
+
+        // 7. Sepeti al veya oluştur
         Cart cart = cartRepository.findByCustomerId(customer.getCustomerId());
         if (cart == null) {
             cart = new Cart();
@@ -49,32 +89,20 @@ public class CartController {
             cart.setCustomer(customer);
         }
 
-        Optional<MenuItem> menuItemOptional = menuItemRepository.findById(menuItemId);
-        if (menuItemOptional.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Menu item not found");
-        }
-
-        MenuItem newItem = menuItemOptional.get();
-
-        // Check if the restaurant is approved
-        RestaurantOwner restaurant = newItem.getRestaurant();
-        if (restaurant == null || !restaurant.isApproved()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("Cannot add items from unapproved restaurants");
-        }
-
-        if (cart.getItems() != null && !cart.getItems().isEmpty()) {
-            MenuItem existingItem = cart.getItems().keySet().iterator().next();
-            String existingRestaurantId = existingItem.getRestaurant().getRestaurantId();
-            String newItemRestaurantId = newItem.getRestaurant().getRestaurantId();
-
-            if (!existingRestaurantId.equals(newItemRestaurantId)) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Cannot add items from different restaurants to the same cart. Please empty your cart first.");
+        // 8. Aynı restorandan mı?
+        if (!cart.getItems().isEmpty()) {
+            MenuItem existing = cart.getItems().keySet().iterator().next();
+            String existingRestId = existing.getRestaurant().getRestaurantId();
+            String newRestId      = restaurant.getRestaurantId();
+            if (!existingRestId.equals(newRestId)) {
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body("You can only add items from the same restaurant");
             }
         }
 
-        cart.addItem(newItem, quantity);
+        // 9. Sepete ekle ve kaydet
+        cart.addItem(item, quantity);
         cartRepository.save(cart);
 
         return ResponseEntity.ok("Item added to cart");
@@ -85,27 +113,40 @@ public class CartController {
     public ResponseEntity<?> showBasket(Authentication auth) {
         String email = auth.getName();
         Customer customer = customerRepository.findByEmail(email);
-
         if (customer == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Customer not found");
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("Customer not found");
         }
 
         Cart cart = cartRepository.findByCustomerId(customer.getCustomerId());
-        if (cart == null || cart.getItems() == null) {
+        if (cart == null || cart.getItems() == null || cart.getItems().isEmpty()) {
             return ResponseEntity.ok(Collections.emptyList());
+        }
+
+        // Sepetteki restoranın durumunu kontrol et
+        MenuItem firstItem = cart.getItems().keySet().iterator().next();
+        RestaurantOwner restaurant = firstItem.getRestaurant();
+
+        // Restoran ban veya suspend edilmişse sepeti temizle
+        if ("BANNED".equals(restaurant.getAccountStatus()) || "SUSPENDED".equals(restaurant.getAccountStatus())) {
+            cart.getItems().clear();
+            cartRepository.save(cart);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("The restaurant in your cart is currently unavailable. Your cart has been cleared.");
         }
 
         List<BasketItemDTO> dtoList = cart.getItems().entrySet().stream()
                 .filter(entry -> entry.getKey() != null)
                 .map(entry -> {
-                    MenuItem item = entry.getKey();
-                    int quantity = entry.getValue();
+                    MenuItem menuItem = entry.getKey();
+                    int qty = entry.getValue();
                     return new BasketItemDTO(
-                            item.getId(),
-                            item.getName(),
-                            item.getPrice(),
-                            item.getDescription(),
-                            quantity
+                            menuItem.getId(),
+                            menuItem.getName(),
+                            menuItem.getPrice(),
+                            menuItem.getDescription(),
+                            qty
                     );
                 })
                 .toList();

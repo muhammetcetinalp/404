@@ -3,6 +3,7 @@ package com.backend.delivery_backend.service;
 import com.backend.delivery_backend.model.Cart;
 import com.backend.delivery_backend.model.Customer;
 import com.backend.delivery_backend.model.MenuItem;
+import com.backend.delivery_backend.model.RestaurantOwner;
 import com.backend.delivery_backend.repository.CartRepository;
 import com.backend.delivery_backend.repository.CustomerRepository;
 import com.backend.delivery_backend.repository.MenuItemRepository;
@@ -39,6 +40,12 @@ public class CartService {
         MenuItem newItem = menuItemRepository.findById(menuItemId)
                 .orElseThrow(() -> new RuntimeException("Menu item not found"));
 
+        // Check if the restaurant is approved
+        RestaurantOwner restaurant = newItem.getRestaurant();
+        if (restaurant == null || !restaurant.isApproved()) {
+            throw new RuntimeException("Cannot add items from unapproved restaurants");
+        }
+
         // ✅ Mevcut sepetteki restoran ile karşılaştır
         if (!cart.getItems().isEmpty()) {
             MenuItem existingItem = cart.getItems().keySet().iterator().next();
@@ -46,7 +53,7 @@ public class CartService {
             String newItemRestaurantId = newItem.getRestaurant().getRestaurantId();
 
             if (!existingRestaurantId.equals(newItemRestaurantId)) {
-                throw new RuntimeException("Sepete sadece aynı restorana ait ürünler eklenebilir.");
+                throw new RuntimeException("Cannot add items from different restaurants to the same cart. Please empty your cart first.");
             }
         }
 

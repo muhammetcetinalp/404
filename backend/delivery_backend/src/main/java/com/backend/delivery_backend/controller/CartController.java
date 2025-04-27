@@ -3,6 +3,7 @@ package com.backend.delivery_backend.controller;
 import com.backend.delivery_backend.model.Cart;
 import com.backend.delivery_backend.model.Customer;
 import com.backend.delivery_backend.model.MenuItem;
+import com.backend.delivery_backend.model.RestaurantOwner;
 import com.backend.delivery_backend.repository.CartRepository;
 import com.backend.delivery_backend.repository.CustomerRepository;
 import com.backend.delivery_backend.repository.MenuItemRepository;
@@ -55,6 +56,13 @@ public class CartController {
 
         MenuItem newItem = menuItemOptional.get();
 
+        // Check if the restaurant is approved
+        RestaurantOwner restaurant = newItem.getRestaurant();
+        if (restaurant == null || !restaurant.isApproved()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Cannot add items from unapproved restaurants");
+        }
+
         if (cart.getItems() != null && !cart.getItems().isEmpty()) {
             MenuItem existingItem = cart.getItems().keySet().iterator().next();
             String existingRestaurantId = existingItem.getRestaurant().getRestaurantId();
@@ -62,7 +70,7 @@ public class CartController {
 
             if (!existingRestaurantId.equals(newItemRestaurantId)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Sepete sadece aynı restorana ait ürünler eklenebilir.");
+                        .body("Cannot add items from different restaurants to the same cart. Please empty your cart first.");
             }
         }
 

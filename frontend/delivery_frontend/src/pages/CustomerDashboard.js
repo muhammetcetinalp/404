@@ -25,6 +25,7 @@ const CustomerDashboard = () => {
     const [addingToCart, setAddingToCart] = useState(false);
     const [addedItemIds, setAddedItemIds] = useState({});
     const [showModal, setShowModal] = useState(false);
+    const [cartError, setCartError] = useState('');
     const navigate = useNavigate();
 
     const token = localStorage.getItem('token');
@@ -145,6 +146,7 @@ const CustomerDashboard = () => {
     const handleCloseModal = () => {
         setShowModal(false);
         setSelectedRestaurant(null);
+        setCartError('');
     };
 
     const handleAddToCart = async (item, restaurantId) => {
@@ -157,6 +159,7 @@ const CustomerDashboard = () => {
         }
 
         setAddingToCart(true);
+        setCartError('');
 
         try {
             await api.post('/cart/add', null, {
@@ -180,6 +183,13 @@ const CustomerDashboard = () => {
 
         } catch (err) {
             console.error('Error adding item to cart:', err);
+
+            // Show error message if different restaurant items added
+            if (err.response && err.response.status === 400) {
+                setCartError(err.response.data || 'Cannot add items from different restaurants to the same cart.');
+            } else {
+                setCartError('Failed to add item to cart. Please try again.');
+            }
         } finally {
             setAddingToCart(false);
         }
@@ -361,6 +371,11 @@ const CustomerDashboard = () => {
                                 <FontAwesomeIcon icon={faTimes} />
                             </button>
                         </div>
+                        {cartError && (
+                            <div className="alert alert-danger mx-3 mt-3">
+                                {cartError}
+                            </div>
+                        )}
                         <div className="menu-modal-body">
                             {loadingMenu ? (
                                 <div className="text-center py-3">

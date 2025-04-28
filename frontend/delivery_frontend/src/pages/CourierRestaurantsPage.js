@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -72,9 +71,9 @@ const CourierRestaurantsPage = () => {
 
     // Array of sort options
     const sortOptions = [
-        { value: 'name', label: 'Restaurant Name', icon: faFont },
-        { value: 'rating', label: 'Highest Rating', icon: faStar },
-        { value: 'orders', label: 'Most Orders', icon: faSort }
+        { value: 'bestMatch', label: 'Best Match', icon: faThumbsUp },
+        { value: 'name', label: 'Alphabetical', icon: faFont },
+        { value: 'rating', label: 'Highest Rating', icon: faStar }
     ];
 
     useEffect(() => {
@@ -163,9 +162,7 @@ const CourierRestaurantsPage = () => {
             case 'rating':
                 results.sort((a, b) => b.rating - a.rating);
                 break;
-            case 'orders':
-                results.sort((a, b) => b.totalOrders - a.totalOrders);
-                break;
+            case 'bestMatch':
             default:
                 break;
         }
@@ -300,7 +297,7 @@ const CourierRestaurantsPage = () => {
                 <div className="container dashboard-welcome-text">
                     <div className="row justify-content-center">
                         <div className="col-lg-5 col-md-10 col-sm-12">
-                            <h1 className="display-4 text-white mb-4">Restaurant Network</h1>
+
                             <div className="search-container mb-4">
                                 <div className="input-group" style={{ borderRadius: '25px', overflow: 'hidden' }}>
                                     <input
@@ -312,7 +309,7 @@ const CourierRestaurantsPage = () => {
                                         style={{ height: '50px' }}
                                     />
                                     <button
-                                        className="btn btn-warning border-0"
+                                        className="btn btn-orange btn-warning border-0"
                                         type="button"
                                         style={{ height: '50px', width: '60px' }}
                                     >
@@ -325,7 +322,7 @@ const CourierRestaurantsPage = () => {
                 </div>
             </div>
 
-            <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
+            <div className="container-fluid py-4" style={{ background: "#EBEDF3", minHeight: "70vh" }}>
                 <div className="container">
                     {error && (
                         <div className="alert alert-danger" role="alert">
@@ -336,9 +333,9 @@ const CourierRestaurantsPage = () => {
                     <div className="row">
                         {/* Left Sidebar - Filters and Sorting */}
                         <div className="col-lg-3 col-md-4 col-sm-12 mb-4">
-                            <div className="bg-white p-4 dashboard-sidebar">
+                            <div className="bg-white p-4 dashboard-sidebar" style={{ minHeight: "450px" }}>
                                 <h5 className="mb-3">
-                                    <FontAwesomeIcon icon={faFilter} className="mr-2" />
+                                    <FontAwesomeIcon icon={faSort} className="mr-2 me-2" />
                                     Sort By
                                 </h5>
 
@@ -349,16 +346,16 @@ const CourierRestaurantsPage = () => {
                                             className={`list-group-item list-group-item-action ${sortOption === option.value ? 'active' : ''}`}
                                             onClick={() => setSortOption(option.value)}
                                         >
-                                            <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
+                                            <span className="icon-container d-inline-block text-center" style={{ width: '30px' }}>
                                                 <FontAwesomeIcon icon={option.icon} />
                                             </span>
-                                            <span className="ml-2">{option.label}</span>
+                                            <span className="ms-2">{option.label}</span>
                                         </button>
                                     ))}
                                 </div>
 
                                 <h5 className="mb-3">
-                                    <FontAwesomeIcon icon={faFilter} className="mr-2" />
+                                    <FontAwesomeIcon icon={faFilter} className="mr-2 me-1" />
                                     Filter by Status
                                 </h5>
 
@@ -369,10 +366,10 @@ const CourierRestaurantsPage = () => {
                                             className={`list-group-item list-group-item-action ${filterOption === option.value ? 'active' : ''}`}
                                             onClick={() => setFilterOption(option.value)}
                                         >
-                                            <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
+                                            <span className="icon-container d-inline-block text-center" style={{ width: '30px' }}>
                                                 <FontAwesomeIcon icon={option.icon} />
                                             </span>
-                                            <span className="ml-2">{option.label}</span>
+                                            <span className="ms-2">{option.label}</span>
                                         </button>
                                     ))}
                                 </div>
@@ -381,7 +378,7 @@ const CourierRestaurantsPage = () => {
 
                         {/* Main Content - Restaurants */}
                         <div className="col-lg-9 col-md-8 col-sm-12">
-                            <div className="bg-white p-4 mb-4">
+                            <div className="bg-white p-4 mb-4 d-flex justify-content-center align-items-center" style={{ minHeight: "450px" }}>
                                 {loading ? (
                                     <div className="text-center py-5">
                                         <div className="spinner-border text-warning" role="status">
@@ -436,9 +433,9 @@ const CourierRestaurantsPage = () => {
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="text-center py-5">
-                                        <FontAwesomeIcon icon={faUtensils} size="3x" className="text-muted mb-3" />
-                                        <h5>No restaurants found</h5>
+                                    <div className="text-center d-flex flex-column justify-content-center align-items-center" style={{ width: "100%" }}>
+                                        <FontAwesomeIcon icon={faUtensils} size="4x" className="text-muted mb-4" />
+                                        <h4>No restaurants found</h4>
                                         <p>Try adjusting your filters or search terms.</p>
                                     </div>
                                 )}

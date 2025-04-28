@@ -8,7 +8,12 @@ import {
     faFilter,
     faMapMarkerAlt,
     faUser,
-    faClipboardCheck
+    faClipboardCheck,
+    faSort,
+    faArrowDown,
+    faArrowUp,
+    faArrowUpShortWide,
+    faArrowDownShortWide
 } from '@fortawesome/free-solid-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -191,19 +196,16 @@ const CourierDashboard = () => {
                 <div className="container dashboard-welcome-text">
                     <div className="row">
                         <div className="col-12 text-center">
-                            <h1 className="display-4 text-white">
-                                <FontAwesomeIcon icon={faMotorcycle} className="mr-3" />
-                                New Order Requests
-                            </h1>
-                            <p className="lead text-white">
-                                Accept or decline new delivery requests from your restaurants
-                            </p>
+                            <h2 className="display-4 text-white">
+                                Order Requests
+                            </h2>
+
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="container-fluid py-4 flex-grow-1" style={{ background: "#EBEDF3" }}>
+            <div className="container-fluid py-4 flex-grow-1" style={{ background: "#EBEDF3", minHeight: "70vh" }}>
                 <div className="container">
                     {error && (
                         <div className="alert alert-danger" role="alert">
@@ -214,9 +216,9 @@ const CourierDashboard = () => {
                     <div className="row">
                         {/* Left Sidebar - Sort Options */}
                         <div className="col-lg-3 col-md-4 col-sm-12 mb-4">
-                            <div className="bg-white p-4 dashboard-sidebar rounded shadow-sm">
+                            <div className="bg-white p-4 dashboard-sidebar rounded shadow-sm" style={{ height: "300px" }}>
                                 <h5 className="mb-3">
-                                    <FontAwesomeIcon icon={faFilter} className="mr-2" /> Sort By
+                                    <FontAwesomeIcon icon={faSort} className="mr-2 me-1" /> Sort By
                                 </h5>
 
                                 <div className="list-group">
@@ -224,43 +226,47 @@ const CourierDashboard = () => {
                                         className={`list-group-item list-group-item-action ${sortOption === 'latest' ? 'active' : ''}`}
                                         onClick={() => setSortOption('latest')}
                                     >
-                                        Latest Orders
+                                        <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
+                                            <FontAwesomeIcon icon={faArrowDownShortWide} />
+                                        </span>
+                                        <span className="ml-2">Latest Orders</span>
                                     </button>
                                     <button
                                         className={`list-group-item list-group-item-action ${sortOption === 'oldest' ? 'active' : ''}`}
                                         onClick={() => setSortOption('oldest')}
                                     >
-                                        Oldest Orders
+                                        <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
+                                            <FontAwesomeIcon icon={faArrowUpShortWide} />
+                                        </span>
+                                        <span className="ml-2">Oldest Orders</span>
                                     </button>
                                     <button
                                         className={`list-group-item list-group-item-action ${sortOption === 'highestPrice' ? 'active' : ''}`}
                                         onClick={() => setSortOption('highestPrice')}
                                     >
-                                        Highest Price
+                                        <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
+                                            <FontAwesomeIcon icon={faArrowDown} />
+                                        </span>
+                                        <span className="ml-2">Highest Price</span>
                                     </button>
                                     <button
                                         className={`list-group-item list-group-item-action ${sortOption === 'lowestPrice' ? 'active' : ''}`}
                                         onClick={() => setSortOption('lowestPrice')}
                                     >
-                                        Lowest Price
+                                        <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
+                                            <FontAwesomeIcon icon={faArrowUp} />
+                                        </span>
+                                        <span className="ml-2">Lowest Price</span>
                                     </button>
                                 </div>
 
-                                <div className="mt-4">
-                                    <button
-                                        className="btn btn-outline-primary w-100"
-                                        onClick={() => navigate('/my-deliveries')}
-                                    >
-                                        <FontAwesomeIcon icon={faClipboardCheck} className="mr-2" />
-                                        View My Deliveries
-                                    </button>
-                                </div>
+
                             </div>
                         </div>
 
                         {/* Main Content - Orders */}
                         <div className="col-lg-9 col-md-8 col-sm-12">
-                            <div className="bg-white p-4 rounded shadow-sm">
+                            <div className="bg-white p-4 rounded shadow-sm" style={{ height: "300px" }}>
                                 <h4 className="mb-4 border-bottom pb-2">Incoming Order Requests</h4>
 
                                 {loading ? (
@@ -368,12 +374,7 @@ const CourierDashboard = () => {
                                         <FontAwesomeIcon icon={faMotorcycle} size="3x" className="text-muted mb-3" />
                                         <h5>No new order requests</h5>
                                         <p>There are currently no new orders available for delivery.</p>
-                                        <button
-                                            className="btn btn-primary mt-3"
-                                            onClick={() => window.location.reload()}
-                                        >
-                                            Refresh
-                                        </button>
+
                                     </div>
                                 )}
                             </div>

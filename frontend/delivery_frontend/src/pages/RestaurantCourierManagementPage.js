@@ -296,7 +296,7 @@ const RestaurantCourierManagementPage = () => {
                 icon={true}
             />
 
-            <div className="flex-grow-1" style={{ background: "#EBEDF3" }}>
+            <div className="flex-grow-1" style={{ background: "#EBEDF3", minHeight: "70vh" }}>
                 <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
                     <div className="container">
                         {error && (

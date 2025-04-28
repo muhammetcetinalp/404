@@ -375,14 +375,14 @@ const RestaurantDashboard = () => {
                                             </p>
                                         </div>
                                         <button
-                                            className={`btn ${restaurantOpen ? 'btn-status' : 'btn-secondary'}`}
+                                            className={`btn mr-2 ${restaurantOpen ? 'btn-status' : 'btn-secondary'}`}
                                             onClick={toggleRestaurantStatus}
                                             style={{ width: '80px' }}
                                             disabled={accountStatus === 'SUSPENDED'}
                                         >
                                             <FontAwesomeIcon
                                                 icon={restaurantOpen ? faToggleOn : faToggleOff}
-                                                className={restaurantOpen ? 'text-white' : ''}
+                                                className={restaurantOpen ? 'text-white me-1' : ''}
                                             />
                                             <span className={restaurantOpen ? 'text-white' : ''}>
                                                 {restaurantOpen ? 'On' : 'Off'}

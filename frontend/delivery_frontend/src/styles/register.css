@@ -120,9 +120,11 @@
 .business-section {
     padding: 10px;
     border-radius: 8px;
-    background-color: #2b3035;
+    background-color: #2b3035 !important;
     margin-bottom: 20px;
 }
+
+
 
 .register-button {
     width: 100%;
@@ -295,4 +297,92 @@
 
 .register-back1 {
     background: url('../assets/images/main_banner.jpg') no-repeat center / cover;
+}
+
+/* Phone input with prefix */
+.phone-input-container {
+    display: flex;
+    align-items: center;
+    border: 1px solid #6c757d;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.phone-prefix {
+    background-color: #f5f5f5;
+    color: #333;
+    padding: 10px 12px;
+    font-size: 14px;
+    border-right: 1px solid #ddd;
+    font-weight: 500;
+    margin-left: 2px;
+}
+
+.phone-input-with-prefix {
+    flex: 1;
+    border: none !important;
+    margin: 0 !important;
+    padding-left: 10px !important;
+}
+
+.phone-input-with-prefix:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.phone-input-container:focus-within {
+    border-color: #eb6825;
+    box-shadow: 0 0 0 1px rgba(235, 104, 37, 0.2);
+}
+
+/* Form validation error messages */
+.input-error {
+    color: #e74c3c;
+    font-size: 12px;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+/* Improved form styles for restaurant owner form */
+.business-section .form-group.half {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.business-section .form-group.half:last-child {
+    margin-right: 0;
+}
+
+.business-section .form-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #eb6825;
+    box-shadow: 0 0 0 1px rgba(235, 104, 37, 0.2);
+}
+
+/* Improve spacing between form sections */
+.address-section,
+.business-section {
+    margin-top: 25px;
+    padding-top: 15px;
+}
+
+.section-title {
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: #333;
 }

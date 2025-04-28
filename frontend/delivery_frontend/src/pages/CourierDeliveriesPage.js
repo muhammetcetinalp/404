@@ -24,6 +24,8 @@ import '../styles/restaurant-dashboard.css';
 import '../styles/order.css';
 import '../styles/courier.css';
 import { AccountStatusBanner, checkAccountStatus } from '../components/AccountStatusBanner';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const CourierDeliveriesPage = () => {
     const [deliveries, setDeliveries] = useState([]);
@@ -103,10 +105,10 @@ const CourierDeliveriesPage = () => {
             );
 
             // Show success notification
-            alert(`Order status updated to ${newStatus.replace('_', ' ')}`);
+            toast.success(`Order status updated to ${newStatus.replace('_', ' ')}`);
         } catch (err) {
             console.error('Error updating status:', err);
-            setError('Failed to update order status.');
+            toast.error('Failed to update order status.');
         }
     };
 
@@ -160,7 +162,7 @@ const CourierDeliveriesPage = () => {
                         className="btn btn-warning w-100"
                         onClick={() => handleUpdateStatus(order.orderId, 'PICKED_UP')}
                     >
-                        <FontAwesomeIcon icon={faBox} className="mr-2" /> Mark as Picked Up
+                        <FontAwesomeIcon icon={faBox} className="me-2" /> Mark as Picked Up
                     </button>
                 );
             case 'PICKED_UP':
@@ -169,13 +171,13 @@ const CourierDeliveriesPage = () => {
                         className="btn btn-success w-100"
                         onClick={() => handleUpdateStatus(order.orderId, 'DELIVERED')}
                     >
-                        <FontAwesomeIcon icon={faTruck} className="mr-2" /> Mark as Delivered
+                        <FontAwesomeIcon icon={faTruck} className="me-2" /> Mark as Delivered
                     </button>
                 );
             case 'DELIVERED':
                 return (
                     <button className="btn btn-outline-success w-100" disabled>
-                        <FontAwesomeIcon icon={faCheckCircle} className="mr-2" /> Delivered
+                        <FontAwesomeIcon icon={faCheckCircle} className="me-2" /> Delivered
                     </button>
                 );
             default:
@@ -191,59 +193,60 @@ const CourierDeliveriesPage = () => {
                 <div className="container dashboard-welcome-text">
                     <div className="row">
                         <div className="col-12 text-center">
-                            <h1 className="display-4 text-white">
-                                <FontAwesomeIcon icon={faMotorcycle} className="mr-3" />
+                            <h2 className="display-4 text-white">
                                 My Deliveries
-                            </h1>
-                            <p className="lead text-white">
-                                Track and manage your accepted orders
-                            </p>
+                            </h2>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="container-fluid bg-light py-4 flex-grow-1">
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="colored"
+            />
+
+            <div className="container-fluid py-5 flex-grow-1" style={{ background: "#EBEDF3", minHeight: "70vh" }}>
                 <div className="container">
-                    {/* Navigation and Actions */}
-                    <div className="d-flex justify-content-between align-items-center mb-4">
-                        <button
-                            className="btn btn-outline-primary"
-                            onClick={() => navigate('/')}
-                        >
-                            <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
-                            Back to Dashboard
-                        </button>
-
-                        <div className="btn-group">
-                            <button
-                                className={`btn ${activeTab === 'CURRENT' ? 'btn-primary' : 'btn-outline-primary'}`}
-                                onClick={() => setActiveTab('CURRENT')}
-                            >
-                                Current
-                            </button>
-                            <button
-                                className={`btn ${activeTab === 'COMPLETED' ? 'btn-success' : 'btn-outline-success'}`}
-                                onClick={() => setActiveTab('COMPLETED')}
-                            >
-                                Completed
-                            </button>
-                            <button
-                                className={`btn ${activeTab === 'ALL' ? 'btn-secondary' : 'btn-outline-secondary'}`}
-                                onClick={() => setActiveTab('ALL')}
-                            >
-                                All
-                            </button>
+                    {/* Status Filter Bar */}
+                    <div className="row mb-4">
+                        <div className="col-12">
+                            <div className="card shadow-sm">
+                                <div className="card-body p-0">
+                                    <div className="status-filter-bar d-flex">
+                                        <div
+                                            className={`status-item flex-fill text-center p-3 cursor-pointer ${activeTab === 'ALL' ? 'active bg-light border-bottom border-warning' : ''}`}
+                                            onClick={() => setActiveTab('ALL')}
+                                        >
+                                            <FontAwesomeIcon icon={faClipboardList} className="me-2 text-secondary" />
+                                            <span>All</span>
+                                        </div>
+                                        <div
+                                            className={`status-item flex-fill text-center p-3 cursor-pointer ${activeTab === 'CURRENT' ? 'active bg-light border-bottom border-warning' : ''}`}
+                                            onClick={() => setActiveTab('CURRENT')}
+                                        >
+                                            <FontAwesomeIcon icon={faMotorcycle} className="me-2 text-warning" />
+                                            <span>Current</span>
+                                        </div>
+                                        <div
+                                            className={`status-item flex-fill text-center p-3 cursor-pointer ${activeTab === 'COMPLETED' ? 'active bg-light border-bottom border-warning' : ''}`}
+                                            onClick={() => setActiveTab('COMPLETED')}
+                                        >
+                                            <FontAwesomeIcon icon={faCheckCircle} className="me-2 text-success" />
+                                            <span>Completed</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-
-                        <button
-                            className="btn btn-outline-warning"
-                            onClick={handleRefresh}
-                            disabled={refreshing}
-                        >
-                            <FontAwesomeIcon icon={faSync} className={`mr-2 ${refreshing ? 'fa-spin' : ''}`} />
-                            Refresh
-                        </button>
                     </div>
 
                     {/* Error message */}
@@ -252,8 +255,8 @@ const CourierDeliveriesPage = () => {
                     {/* Deliveries list */}
                     {loading && !refreshing ? (
                         <div className="text-center py-5">
-                            <div className="spinner-border text-primary" role="status">
-                                <span className="sr-only">Loading...</span>
+                            <div className="spinner-border text-warning" role="status">
+                                <span className="visually-hidden">Loading...</span>
                             </div>
                             <p className="mt-3">Loading your deliveries...</p>
                         </div>
@@ -261,7 +264,7 @@ const CourierDeliveriesPage = () => {
                         <div className="row">
                             {sortedDeliveries.map(order => (
                                 <div className="col-lg-6 mb-4" key={order.orderId}>
-                                    <div className={`card delivery-card border-${getStatusColor(order.orderStatus)} h-100`}>
+                                    <div className={`card delivery-card border-${getStatusColor(order.orderStatus)} h-100 shadow-sm`}>
                                         <div className="card-header bg-white d-flex justify-content-between align-items-center">
                                             <h5 className="m-0">
                                                 Order #{order.orderId.substring(order.orderId.length - 6)}
@@ -274,15 +277,15 @@ const CourierDeliveriesPage = () => {
                                         <div className="card-body">
                                             <div className="mb-3">
                                                 <p className="mb-2">
-                                                    <FontAwesomeIcon icon={faCalendar} className="text-muted mr-2" />
+                                                    <FontAwesomeIcon icon={faCalendar} className="text-muted me-2" />
                                                     {formatDateTime(order.orderDate)}
                                                 </p>
                                                 <p className="mb-2">
-                                                    <FontAwesomeIcon icon={faMapMarkerAlt} className="text-danger mr-2" />
+                                                    <FontAwesomeIcon icon={faMapMarkerAlt} className="text-danger me-2" />
                                                     <strong>Restaurant:</strong> {order.restaurant?.name || "Restaurant"}
                                                 </p>
                                                 <p className="mb-2">
-                                                    <FontAwesomeIcon icon={faUser} className="text-primary mr-2" />
+                                                    <FontAwesomeIcon icon={faUser} className="text-warning me-2" />
                                                     <strong>Customer:</strong> {order.customer?.name || "Customer"}
                                                 </p>
                                                 <p className="mb-0">
@@ -293,7 +296,7 @@ const CourierDeliveriesPage = () => {
                                             <div className="d-flex justify-content-between align-items-center">
                                                 <h5 className="text-warning mb-0">₺{order.totalAmount?.toFixed(2)}</h5>
                                                 <button
-                                                    className="btn btn-sm btn-outline-secondary"
+                                                    className="btn btn-sm btn-outline-warning"
                                                     onClick={() => handleExpandOrder(order.orderId)}
                                                 >
                                                     {expandedOrderId === order.orderId ? 'Hide Details' : 'View Items'}
@@ -306,11 +309,11 @@ const CourierDeliveriesPage = () => {
                                                     <h6 className="mb-3">Order Items</h6>
                                                     <div className="table-responsive">
                                                         <table className="table table-sm">
-                                                            <thead className="thead-light">
+                                                            <thead className="table-light">
                                                                 <tr>
                                                                     <th>Item</th>
                                                                     <th className="text-center">Qty</th>
-                                                                    <th className="text-right">Price</th>
+                                                                    <th className="text-end">Price</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -321,7 +324,7 @@ const CourierDeliveriesPage = () => {
                                                                             <tr key={idx}>
                                                                                 <td>{parsedItem.name}</td>
                                                                                 <td className="text-center">{qty}</td>
-                                                                                <td className="text-right">₺{(parsedItem.price * qty).toFixed(2)}</td>
+                                                                                <td className="text-end">₺{(parsedItem.price * qty).toFixed(2)}</td>
                                                                             </tr>
                                                                         );
                                                                     } catch (e) {
@@ -330,7 +333,7 @@ const CourierDeliveriesPage = () => {
                                                                 })}
                                                                 <tr className="table-active">
                                                                     <td colSpan="2"><strong>Total</strong></td>
-                                                                    <td className="text-right"><strong>₺{order.totalAmount?.toFixed(2)}</strong></td>
+                                                                    <td className="text-end"><strong>₺{order.totalAmount?.toFixed(2)}</strong></td>
                                                                 </tr>
                                                             </tbody>
                                                         </table>
@@ -357,13 +360,22 @@ const CourierDeliveriesPage = () => {
                                         ? "You haven't completed any deliveries yet."
                                         : "You don't have any deliveries in your history."}
                             </p>
-                            <button
-                                className="btn btn-primary mt-3"
-                                onClick={() => navigate('/')}
-                            >
-                                <FontAwesomeIcon icon={faMotorcycle} className="mr-2" />
-                                Find New Orders
-                            </button>
+                            <div className="d-flex justify-content-center">
+                                <button
+                                    className="btn btn-orange btn-warning mt-3 mx-auto px-4"
+                                    onClick={() => navigate('/')}
+                                    style={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        minWidth: '200px',
+                                        margin: '0 auto'
+                                    }}
+                                >
+                                    <FontAwesomeIcon icon={faMotorcycle} className="me-2" />
+                                    Find New Orders
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>

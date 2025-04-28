@@ -300,7 +300,7 @@ const RestaurantMenuPage = () => {
                     </div>
                 </div>
             </div>
-            <div className="flex-grow-1" style={{ background: "#EBEDF3" }}>
+            <div className="flex-grow-1" style={{ background: "#EBEDF3", minHeight: "70vh" }}>
                 <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
                     <div className="container">
                         {error && (
@@ -312,7 +312,7 @@ const RestaurantMenuPage = () => {
                         <div className="row">
                             {/* Left Sidebar */}
                             <div className="col-lg-3 col-md-4 col-sm-12 mb-4">
-                                <div className="bg-white p-4 dashboard-sidebar">
+                                <div className="bg-white p-4 dashboard-sidebar" style={{ minHeight: "300px" }}>
                                     <h5 className="mb-3">
                                         <FontAwesomeIcon icon={faSort} className="mr-2 me-2" />
                                         Sort By
@@ -355,7 +355,7 @@ const RestaurantMenuPage = () => {
 
                             {/* Main Content */}
                             <div className="col-lg-9 col-md-8 col-sm-12">
-                                <div className="bg-white p-4 mb-4">
+                                <div className="bg-white p-4 mb-4" style={{ minHeight: "300px" }}>
                                     <div className="menu-header">
                                         <h4>Menu Management</h4>
                                         <button

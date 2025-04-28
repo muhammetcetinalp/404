@@ -1,3 +1,5 @@
+package com.backend.delivery_backend.controller;
+
 import com.backend.delivery_backend.model.Courier;
 import com.backend.delivery_backend.model.Order;
 import com.backend.delivery_backend.repository.CourierRepository;
@@ -82,4 +84,66 @@ public class CourierOrderController {
 
         return ResponseEntity.ok("Order accepted successfully.");
     }
+
+    // CourierOrderController.java içine
+    @GetMapping("/available")
+    public ResponseEntity<?> getAvailableOrders(Authentication auth) {
+        String email = auth.getName();
+        Courier courier = courierRepository.findByEmail(email);
+
+        if (courier == null || courier.getRestaurantOwner() == null) {
+            return ResponseEntity.badRequest().body("Courier not assigned to any restaurant.");
+        }
+
+        String restaurantId = courier.getRestaurantOwner().getRestaurantId();
+
+        // Bu restorana ait ve henüz kurye atanmamış PENDING siparişleri getir
+        List<Order> activeOrders = orderRepository.findByRestaurantId(restaurantId).stream()
+                .filter(order -> "IN_PROGRESS".equals(order.getOrderStatus()))
+                .toList();
+
+        return ResponseEntity.ok(activeOrders);
+    }
+    @PatchMapping("/accept-available/{orderId}")
+    public ResponseEntity<?> acceptAvailableOrder(@PathVariable String orderId, Authentication auth) {
+        String email = auth.getName();
+        Courier courier = courierRepository.findByEmail(email);
+
+        if (courier == null || courier.getRestaurantOwner() == null) {
+            return ResponseEntity.badRequest().body("Courier not assigned to any restaurant.");
+        }
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found."));
+
+        // Sipariş zaten bir kuryeye atanmış mı?
+        if (order.getCourier() != null) {
+            return ResponseEntity.badRequest().body("Order has already been accepted by another courier.");
+        }
+
+        // Sipariş kuryenin restoranına mı ait?
+        if (!order.getRestaurant().getRestaurantId().equals(courier.getRestaurantOwner().getRestaurantId())) {
+            return ResponseEntity.status(403).body("You can only accept orders from your own restaurant.");
+        }
+
+        // Siparişi kendine ata
+        order.setCourier(courier);
+        order.setOrderStatus("IN_PROGRESS");
+        orderRepository.save(order);
+
+        return ResponseEntity.ok("Order accepted successfully.");
+    }
+
+    @PatchMapping("/update-status/{orderId}")
+    public ResponseEntity<?> updateOrderStatus(@PathVariable String orderId, @RequestBody String newStatus) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found."));
+
+        order.setOrderStatus(newStatus);
+        orderRepository.save(order);
+
+        return ResponseEntity.ok("Order status updated successfully.");
+    }
+
+
 }

@@ -21,6 +21,7 @@ const AdminCustomerPage = () => {
     const [editForm, setEditForm] = useState({});
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
+    const [addUserError, setAddUserError] = useState('');
     const [addUserForm, setAddUserForm] = useState({
         name: '',
         email: '',
@@ -31,7 +32,57 @@ const AdminCustomerPage = () => {
         city: '',
         district: '',
     });
-    const [addUserError, setAddUserError] = useState('');
+
+    // Validation errors state
+    const [formErrors, setFormErrors] = useState({});
+    const [editFormErrors, setEditFormErrors] = useState({});
+
+    // Validation functions
+    const validateEmail = (email) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
+
+    const validatePhone = (phone) => {
+        // Turkish phone number format validation (10 digits after the +90)
+        const phoneRegex = /^[0-9]{10}$/;
+        return phoneRegex.test(phone);
+    };
+
+    const validateForm = (form, isEdit = false) => {
+        const errors = {};
+
+        if (!validateEmail(form.email) && !isEdit) {
+            errors.email = 'Please enter a valid email address';
+        }
+
+        if (!validatePhone(form.phone)) {
+            errors.phone = 'Please enter a valid Turkish phone number (10 digits without +90)';
+        }
+
+        if (!form.name || form.name.trim() === '') {
+            errors.name = 'Name is required';
+        }
+
+        if (!isEdit && (!form.password)) {
+            errors.password = 'Password must be fill';
+        }
+
+        if (!form.city || form.city.trim() === '') {
+            errors.city = 'City is required';
+        }
+
+        if (!form.district || form.district.trim() === '') {
+            errors.district = 'District is required';
+        }
+
+        if (!form.address || form.address.trim() === '') {
+            errors.address = 'Address is required';
+        }
+
+        return errors;
+    };
+
     const CustomCloseButton = ({ closeToast }) => (
         <button
             onClick={closeToast}
@@ -120,15 +171,37 @@ const AdminCustomerPage = () => {
     const openEditModal = (user) => {
         setSelectedUser(user);
         setEditForm({ ...user });
+        setEditFormErrors({});
     };
 
     const handleEditChange = (e) => {
         setEditForm({ ...editForm, [e.target.name]: e.target.value });
+
+        // Clear error for this field when user starts typing
+        if (editFormErrors[e.target.name]) {
+            setEditFormErrors({
+                ...editFormErrors,
+                [e.target.name]: ''
+            });
+        }
     };
 
     const saveEdit = async () => {
+        const errors = validateForm(editForm, true);
+
+        if (Object.keys(errors).length > 0) {
+            setEditFormErrors(errors);
+            return;
+        }
+
         try {
-            await api.put(`/admin/update-user/${selectedUser.email}`, editForm);
+            // Format phone number with +90 prefix if it doesn't have it
+            const formattedData = {
+                ...editForm,
+                phone: editForm.phone
+            };
+
+            await api.put(`/admin/update-user/${selectedUser.email}`, formattedData);
             toast.success('Changes saved successfully!', {
                 style: {
                     backgroundColor: '#eb6825',
@@ -140,17 +213,46 @@ const AdminCustomerPage = () => {
             fetchCustomers(); // Refresh the list after edit
         } catch (err) {
             console.error("Failed to update customer", err);
+            toast.error('Failed to update customer', {
+                style: {
+                    backgroundColor: '#d32f2f',
+                    color: 'white',
+                    fontWeight: 'bold',
+                },
+            });
         }
     };
 
     const handleAddUserChange = (e) => {
         setAddUserForm({ ...addUserForm, [e.target.name]: e.target.value });
+
+        // Clear error for this field when user starts typing
+        if (formErrors[e.target.name]) {
+            setFormErrors({
+                ...formErrors,
+                [e.target.name]: ''
+            });
+        }
     };
 
     const submitAddUser = async (e) => {
         e.preventDefault();
+
+        const errors = validateForm(addUserForm);
+
+        if (Object.keys(errors).length > 0) {
+            setFormErrors(errors);
+            return;
+        }
+
         try {
-            await api.post('/register', addUserForm);
+            // Format phone number with +90 prefix
+            const formattedData = {
+                ...addUserForm,
+                phone: addUserForm.phone
+            };
+
+            await api.post('/register', formattedData);
             toast.success('Customer created successfully!', {
                 style: {
                     backgroundColor: '#eb6825',
@@ -169,6 +271,7 @@ const AdminCustomerPage = () => {
                 city: '',
                 district: '',
             });
+            setFormErrors({});
             fetchCustomers(); // Refresh the list after adding
         } catch (err) {
             setAddUserError('Failed to create customer.');
@@ -343,8 +446,9 @@ const AdminCustomerPage = () => {
                                     value={editForm.name || ''}
                                     onChange={handleEditChange}
                                     placeholder="Name"
-                                    className="form-control"
+                                    className={`form-control ${editFormErrors.name ? 'error-input' : ''}`}
                                 />
+                                {editFormErrors.name && <div className="error-message">{editFormErrors.name}</div>}
                             </div>
                             <div className="form-group">
                                 <label>Account Status</label>
@@ -360,14 +464,15 @@ const AdminCustomerPage = () => {
                                 </select>
                             </div>
                             <div className="form-group">
-                                <label>Phone</label>
+                                <label>Phone (10 digits without +90)</label>
                                 <input
                                     name="phone"
                                     value={editForm.phone || ''}
                                     onChange={handleEditChange}
-                                    placeholder="Phone"
-                                    className="form-control"
+                                    placeholder="5XX XXX XXXX"
+                                    className={`form-control ${editFormErrors.phone ? 'error-input' : ''}`}
                                 />
+                                {editFormErrors.phone && <div className="error-message">{editFormErrors.phone}</div>}
                             </div>
                             <div className="form-row">
                                 <div className="form-group half">
@@ -377,8 +482,9 @@ const AdminCustomerPage = () => {
                                         value={editForm.city || ''}
                                         onChange={handleEditChange}
                                         placeholder="City"
-                                        className="form-control"
+                                        className={`form-control ${editFormErrors.city ? 'error-input' : ''}`}
                                     />
+                                    {editFormErrors.city && <div className="error-message">{editFormErrors.city}</div>}
                                 </div>
                                 <div className="form-group half">
                                     <label>District</label>
@@ -387,8 +493,9 @@ const AdminCustomerPage = () => {
                                         value={editForm.district || ''}
                                         onChange={handleEditChange}
                                         placeholder="District"
-                                        className="form-control"
+                                        className={`form-control ${editFormErrors.district ? 'error-input' : ''}`}
                                     />
+                                    {editFormErrors.district && <div className="error-message">{editFormErrors.district}</div>}
                                 </div>
                             </div>
                             <div className="form-group">
@@ -398,12 +505,12 @@ const AdminCustomerPage = () => {
                                     value={editForm.address || ''}
                                     onChange={handleEditChange}
                                     placeholder="Address"
-                                    className="form-control textarea"
+                                    className={`form-control textarea ${editFormErrors.address ? 'error-input' : ''}`}
                                 />
+                                {editFormErrors.address && <div className="error-message">{editFormErrors.address}</div>}
                             </div>
                         </div>
                         <div className="modal-footer">
-
                             <button onClick={saveEdit} className="btn-orange btn-save">Save Changes</button>
                         </div>
                     </div>
@@ -433,9 +540,9 @@ const AdminCustomerPage = () => {
                                         value={addUserForm.name}
                                         onChange={handleAddUserChange}
                                         placeholder="Name"
-                                        className="form-control"
-                                        required
+                                        className={`form-control ${formErrors.name ? 'error-input' : ''}`}
                                     />
+                                    {formErrors.name && <div className="error-message">{formErrors.name}</div>}
                                 </div>
                                 <div className="form-group">
                                     <label>Email</label>
@@ -445,9 +552,9 @@ const AdminCustomerPage = () => {
                                         value={addUserForm.email}
                                         onChange={handleAddUserChange}
                                         placeholder="Email"
-                                        className="form-control"
-                                        required
+                                        className={`form-control ${formErrors.email ? 'error-input' : ''}`}
                                     />
+                                    {formErrors.email && <div className="error-message">{formErrors.email}</div>}
                                 </div>
                                 <div className="form-group">
                                     <label>Password</label>
@@ -457,20 +564,20 @@ const AdminCustomerPage = () => {
                                         value={addUserForm.password}
                                         onChange={handleAddUserChange}
                                         placeholder="Password"
-                                        className="form-control"
-                                        required
+                                        className={`form-control ${formErrors.password ? 'error-input' : ''}`}
                                     />
+                                    {formErrors.password && <div className="error-message">{formErrors.password}</div>}
                                 </div>
                                 <div className="form-group">
-                                    <label>Phone</label>
+                                    <label>Phone (10 digits without +90)</label>
                                     <input
                                         name="phone"
                                         value={addUserForm.phone}
                                         onChange={handleAddUserChange}
-                                        placeholder="Phone"
-                                        className="form-control"
-                                        required
+                                        placeholder="5XX XXX XXXX"
+                                        className={`form-control ${formErrors.phone ? 'error-input' : ''}`}
                                     />
+                                    {formErrors.phone && <div className="error-message">{formErrors.phone}</div>}
                                 </div>
                                 <div className="form-row">
                                     <div className="form-group half">
@@ -480,9 +587,9 @@ const AdminCustomerPage = () => {
                                             value={addUserForm.city}
                                             onChange={handleAddUserChange}
                                             placeholder="City"
-                                            className="form-control"
-                                            required
+                                            className={`form-control ${formErrors.city ? 'error-input' : ''}`}
                                         />
+                                        {formErrors.city && <div className="error-message">{formErrors.city}</div>}
                                     </div>
                                     <div className="form-group half">
                                         <label>District</label>
@@ -491,9 +598,9 @@ const AdminCustomerPage = () => {
                                             value={addUserForm.district}
                                             onChange={handleAddUserChange}
                                             placeholder="District"
-                                            className="form-control"
-                                            required
+                                            className={`form-control ${formErrors.district ? 'error-input' : ''}`}
                                         />
+                                        {formErrors.district && <div className="error-message">{formErrors.district}</div>}
                                     </div>
                                 </div>
                                 <div className="form-group">
@@ -503,15 +610,14 @@ const AdminCustomerPage = () => {
                                         value={addUserForm.address}
                                         onChange={handleAddUserChange}
                                         placeholder="Address"
-                                        className="form-control textarea"
-                                        required
+                                        className={`form-control textarea ${formErrors.address ? 'error-input' : ''}`}
                                     />
+                                    {formErrors.address && <div className="error-message">{formErrors.address}</div>}
                                 </div>
 
                                 {addUserError && <p className="error-message">{addUserError}</p>}
 
                                 <div className="modal-footer">
-
                                     <button type="submit" className="btn-orange btn-save">Save Customer</button>
                                 </div>
                             </form>

@@ -9,7 +9,11 @@ import {
     faBox,
     faTruck,
     faFilter,
-    faPhone
+    faPhone,
+    faClipboardList,
+    faArrowLeft,
+    faSync,
+    faCalendar
 } from '@fortawesome/free-solid-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -23,156 +27,95 @@ import { AccountStatusBanner, checkAccountStatus } from '../components/AccountSt
 
 const CourierDeliveriesPage = () => {
     const [deliveries, setDeliveries] = useState([]);
-    const [filteredDeliveries, setFilteredDeliveries] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [sortOption, setSortOption] = useState('latest');
     const [expandedOrderId, setExpandedOrderId] = useState(null);
-    const [activeTab, setActiveTab] = useState('IN_PROGRESS');
+    const [activeTab, setActiveTab] = useState('CURRENT'); // CURRENT, COMPLETED, ALL
+    const [refreshing, setRefreshing] = useState(false);
     const navigate = useNavigate();
 
     const token = localStorage.getItem('token');
 
-    // Get courier ID from token
+    // Get courier ID from JWT token
     let courierId;
     try {
         const decoded = jwtDecode(token);
         courierId = decoded.id;
     } catch (error) {
-        console.error("Error decoding token:", error);
+        console.error("JWT decode error:", error);
     }
 
-    // Map status to colors
-    const statusColors = {
-        "PENDING": "secondary",
-        "IN_PROGRESS": "warning",
-        "PICKED_UP": "primary",
-        "DELIVERED": "success",
-        "CANCELLED": "danger"
-    };
-
-    // Map status to display names
-    const statusDisplayNames = {
-        "PENDING": "Pending",
-        "IN_PROGRESS": "Ready for Pickup",
-        "PICKED_UP": "Out for Delivery",
-        "DELIVERED": "Delivered",
-        "CANCELLED": "Cancelled"
-    };
-
-    useEffect(() => {
+    const fetchDeliveries = async () => {
         if (!token) {
             navigate('/login');
             return;
         }
 
-        // Check account status (banned/suspended)
         if (!checkAccountStatus()) {
             return;
         }
 
-        const fetchDeliveries = async () => {
-            try {
-                setLoading(true);
+        try {
+            setLoading(true);
+            if (refreshing) setRefreshing(true);
 
-                // API'den verileri çek
-                const response = await api.get('/courier/orders/assigned');
+            // Fetch all assigned deliveries
+            const response = await api.get('/courier/orders/assigned');
 
-                if (response.data && Array.isArray(response.data)) {
-                    setDeliveries(response.data);
-                    applyFilters(response.data, sortOption, activeTab);
-                } else {
-                    throw new Error('Invalid data format');
-                }
-
-                setLoading(false);
-            } catch (err) {
-                console.error('Error fetching deliveries:', err);
-                setError('Failed to load deliveries. Please try again later.');
-                setLoading(false);
-
-
-
-
+            if (response.data && Array.isArray(response.data)) {
+                setDeliveries(response.data);
+            } else {
+                setDeliveries([]);
             }
-        };
+        } catch (err) {
+            console.error('Error fetching deliveries:', err);
+            setError('Failed to load your deliveries. Please try again.');
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    };
 
+    useEffect(() => {
         fetchDeliveries();
     }, [token, navigate]);
 
-    // Filter and sort deliveries
-    const applyFilters = (allDeliveries, sort, status) => {
-        let results = [...allDeliveries];
-
-        // Filter by status if not "all"
-        if (status !== 'all') {
-            results = results.filter(delivery => delivery.orderStatus === status);
-        }
-
-        // Apply sorting
-        switch (sort) {
-            case 'latest':
-                results.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
-                break;
-            case 'oldest':
-                results.sort((a, b) => new Date(a.orderDate) - new Date(b.orderDate));
-                break;
-            case 'highest':
-                results.sort((a, b) => b.totalAmount - a.totalAmount);
-                break;
-            case 'lowest':
-                results.sort((a, b) => a.totalAmount - b.totalAmount);
-                break;
-            default:
-                break;
-        }
-
-        setFilteredDeliveries(results);
+    const handleRefresh = () => {
+        setRefreshing(true);
+        fetchDeliveries();
     };
 
-    // Apply filters when options change
-    useEffect(() => {
-        applyFilters(deliveries, sortOption, activeTab);
-    }, [sortOption, activeTab, deliveries]);
-
-    // Toggle order details expansion
-    const handleExpandOrder = (orderId) => {
-        if (expandedOrderId === orderId) {
-            setExpandedOrderId(null);
-        } else {
-            setExpandedOrderId(orderId);
-        }
-    };
-
-    // Update order status
     const handleUpdateStatus = async (orderId, newStatus) => {
         try {
-            const response = await api.patch(`/orders/status/${orderId}`, {
-                status: newStatus
+            await api.patch(`/courier/orders/update-status/${orderId}`, newStatus, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             });
-
-            console.log("Status update response:", response.data);
 
             // Update local state
-            const updatedDeliveries = deliveries.map(delivery => {
-                if (delivery.orderId === orderId) {
-                    return { ...delivery, orderStatus: newStatus };
-                }
-                return delivery;
-            });
+            setDeliveries(prevDeliveries =>
+                prevDeliveries.map(delivery =>
+                    delivery.orderId === orderId
+                        ? { ...delivery, orderStatus: newStatus }
+                        : delivery
+                )
+            );
 
-            setDeliveries(updatedDeliveries);
-            applyFilters(updatedDeliveries, sortOption, activeTab);
-
+            // Show success notification
+            alert(`Order status updated to ${newStatus.replace('_', ' ')}`);
         } catch (err) {
-            console.error('Error updating order status:', err);
-            setError('Failed to update order status. Please try again.');
+            console.error('Error updating status:', err);
+            setError('Failed to update order status.');
         }
     };
 
-    // Format date for display
-    const formatDateTime = (dateTimeStr) => {
-        const date = new Date(dateTimeStr);
+    const handleExpandOrder = (orderId) => {
+        setExpandedOrderId(expandedOrderId === orderId ? null : orderId);
+    };
+
+    const formatDateTime = (dateStr) => {
+        const date = new Date(dateStr);
         return date.toLocaleString('tr-TR', {
             year: 'numeric',
             month: 'short',
@@ -182,37 +125,57 @@ const CourierDeliveriesPage = () => {
         });
     };
 
-    // Render action buttons based on status
-    const renderStatusButtons = (order) => {
+    // Filter deliveries based on active tab
+    const filteredDeliveries = deliveries.filter(delivery => {
+        if (activeTab === 'CURRENT') {
+            return ['IN_PROGRESS', 'PICKED_UP'].includes(delivery.orderStatus);
+        } else if (activeTab === 'COMPLETED') {
+            return delivery.orderStatus === 'DELIVERED';
+        }
+        return true; // ALL tab
+    });
+
+    // Sort deliveries - most recent first
+    const sortedDeliveries = [...filteredDeliveries].sort(
+        (a, b) => new Date(b.orderDate) - new Date(a.orderDate)
+    );
+
+    // Get status badge color
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'IN_PROGRESS': return 'warning';
+            case 'PICKED_UP': return 'primary';
+            case 'DELIVERED': return 'success';
+            case 'CANCELLED': return 'danger';
+            default: return 'secondary';
+        }
+    };
+
+    // Render action button based on status
+    const renderActionButton = (order) => {
         switch (order.orderStatus) {
             case 'IN_PROGRESS':
                 return (
                     <button
-                        className="btn btn-primary btn-sm mb-2 w-100"
+                        className="btn btn-warning w-100"
                         onClick={() => handleUpdateStatus(order.orderId, 'PICKED_UP')}
                     >
-                        <FontAwesomeIcon icon={faBox} className="mr-1" />
-                        Mark as Picked Up
+                        <FontAwesomeIcon icon={faBox} className="mr-2" /> Mark as Picked Up
                     </button>
                 );
             case 'PICKED_UP':
                 return (
                     <button
-                        className="btn btn-success btn-sm mb-2 w-100"
+                        className="btn btn-success w-100"
                         onClick={() => handleUpdateStatus(order.orderId, 'DELIVERED')}
                     >
-                        <FontAwesomeIcon icon={faTruck} className="mr-1" />
-                        Mark as Delivered
+                        <FontAwesomeIcon icon={faTruck} className="mr-2" /> Mark as Delivered
                     </button>
                 );
             case 'DELIVERED':
                 return (
-                    <button
-                        className="btn btn-secondary btn-sm mb-2 w-100"
-                        disabled
-                    >
-                        <FontAwesomeIcon icon={faCheckCircle} className="mr-1" />
-                        Completed
+                    <button className="btn btn-outline-success w-100" disabled>
+                        <FontAwesomeIcon icon={faCheckCircle} className="mr-2" /> Delivered
                     </button>
                 );
             default:
@@ -221,243 +184,188 @@ const CourierDeliveriesPage = () => {
     };
 
     return (
-        <div className="d-flex flex-column min-vh-100">
+        <div className="courier-delivery-page d-flex flex-column min-vh-100">
             <div className="container-fluid dashboard-header">
                 <Header />
                 <AccountStatusBanner />
                 <div className="container dashboard-welcome-text">
                     <div className="row">
                         <div className="col-12 text-center">
-                            <h1 className="display-4 text-white">My Deliveries</h1>
+                            <h1 className="display-4 text-white">
+                                <FontAwesomeIcon icon={faMotorcycle} className="mr-3" />
+                                My Deliveries
+                            </h1>
                             <p className="lead text-white">
-                                Manage your active deliveries and update their status
+                                Track and manage your accepted orders
                             </p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="container-fluid py-4" style={{ background: "#EBEDF3", flex: 1 }}>
+            <div className="container-fluid bg-light py-4 flex-grow-1">
                 <div className="container">
-                    {error && (
-                        <div className="alert alert-danger" role="alert">
-                            {error}
+                    {/* Navigation and Actions */}
+                    <div className="d-flex justify-content-between align-items-center mb-4">
+                        <button
+                            className="btn btn-outline-primary"
+                            onClick={() => navigate('/')}
+                        >
+                            <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
+                            Back to Dashboard
+                        </button>
+
+                        <div className="btn-group">
+                            <button
+                                className={`btn ${activeTab === 'CURRENT' ? 'btn-primary' : 'btn-outline-primary'}`}
+                                onClick={() => setActiveTab('CURRENT')}
+                            >
+                                Current
+                            </button>
+                            <button
+                                className={`btn ${activeTab === 'COMPLETED' ? 'btn-success' : 'btn-outline-success'}`}
+                                onClick={() => setActiveTab('COMPLETED')}
+                            >
+                                Completed
+                            </button>
+                            <button
+                                className={`btn ${activeTab === 'ALL' ? 'btn-secondary' : 'btn-outline-secondary'}`}
+                                onClick={() => setActiveTab('ALL')}
+                            >
+                                All
+                            </button>
+                        </div>
+
+                        <button
+                            className="btn btn-outline-warning"
+                            onClick={handleRefresh}
+                            disabled={refreshing}
+                        >
+                            <FontAwesomeIcon icon={faSync} className={`mr-2 ${refreshing ? 'fa-spin' : ''}`} />
+                            Refresh
+                        </button>
+                    </div>
+
+                    {/* Error message */}
+                    {error && <div className="alert alert-danger mb-4">{error}</div>}
+
+                    {/* Deliveries list */}
+                    {loading && !refreshing ? (
+                        <div className="text-center py-5">
+                            <div className="spinner-border text-primary" role="status">
+                                <span className="sr-only">Loading...</span>
+                            </div>
+                            <p className="mt-3">Loading your deliveries...</p>
+                        </div>
+                    ) : sortedDeliveries.length > 0 ? (
+                        <div className="row">
+                            {sortedDeliveries.map(order => (
+                                <div className="col-lg-6 mb-4" key={order.orderId}>
+                                    <div className={`card delivery-card border-${getStatusColor(order.orderStatus)} h-100`}>
+                                        <div className="card-header bg-white d-flex justify-content-between align-items-center">
+                                            <h5 className="m-0">
+                                                Order #{order.orderId.substring(order.orderId.length - 6)}
+                                            </h5>
+                                            <span className={`badge bg-${getStatusColor(order.orderStatus)}`}>
+                                                {order.orderStatus.replace('_', ' ')}
+                                            </span>
+                                        </div>
+
+                                        <div className="card-body">
+                                            <div className="mb-3">
+                                                <p className="mb-2">
+                                                    <FontAwesomeIcon icon={faCalendar} className="text-muted mr-2" />
+                                                    {formatDateTime(order.orderDate)}
+                                                </p>
+                                                <p className="mb-2">
+                                                    <FontAwesomeIcon icon={faMapMarkerAlt} className="text-danger mr-2" />
+                                                    <strong>Restaurant:</strong> {order.restaurant?.name || "Restaurant"}
+                                                </p>
+                                                <p className="mb-2">
+                                                    <FontAwesomeIcon icon={faUser} className="text-primary mr-2" />
+                                                    <strong>Customer:</strong> {order.customer?.name || "Customer"}
+                                                </p>
+                                                <p className="mb-0">
+                                                    <strong>Delivery to:</strong> {order.deliveryAddress}
+                                                </p>
+                                            </div>
+
+                                            <div className="d-flex justify-content-between align-items-center">
+                                                <h5 className="text-warning mb-0">₺{order.totalAmount?.toFixed(2)}</h5>
+                                                <button
+                                                    className="btn btn-sm btn-outline-secondary"
+                                                    onClick={() => handleExpandOrder(order.orderId)}
+                                                >
+                                                    {expandedOrderId === order.orderId ? 'Hide Details' : 'View Items'}
+                                                </button>
+                                            </div>
+
+                                            {expandedOrderId === order.orderId && (
+                                                <div className="mt-3">
+                                                    <hr />
+                                                    <h6 className="mb-3">Order Items</h6>
+                                                    <div className="table-responsive">
+                                                        <table className="table table-sm">
+                                                            <thead className="thead-light">
+                                                                <tr>
+                                                                    <th>Item</th>
+                                                                    <th className="text-center">Qty</th>
+                                                                    <th className="text-right">Price</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {order.items && Object.entries(order.items).map(([item, qty], idx) => {
+                                                                    try {
+                                                                        const parsedItem = JSON.parse(item);
+                                                                        return (
+                                                                            <tr key={idx}>
+                                                                                <td>{parsedItem.name}</td>
+                                                                                <td className="text-center">{qty}</td>
+                                                                                <td className="text-right">₺{(parsedItem.price * qty).toFixed(2)}</td>
+                                                                            </tr>
+                                                                        );
+                                                                    } catch (e) {
+                                                                        return null;
+                                                                    }
+                                                                })}
+                                                                <tr className="table-active">
+                                                                    <td colSpan="2"><strong>Total</strong></td>
+                                                                    <td className="text-right"><strong>₺{order.totalAmount?.toFixed(2)}</strong></td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="card-footer bg-white">
+                                            {renderActionButton(order)}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-5 bg-white rounded shadow-sm">
+                            <FontAwesomeIcon icon={faClipboardList} size="3x" className="text-muted mb-3" />
+                            <h5>No deliveries found</h5>
+                            <p className="text-muted">
+                                {activeTab === 'CURRENT'
+                                    ? "You don't have any active deliveries right now."
+                                    : activeTab === 'COMPLETED'
+                                        ? "You haven't completed any deliveries yet."
+                                        : "You don't have any deliveries in your history."}
+                            </p>
+                            <button
+                                className="btn btn-primary mt-3"
+                                onClick={() => navigate('/')}
+                            >
+                                <FontAwesomeIcon icon={faMotorcycle} className="mr-2" />
+                                Find New Orders
+                            </button>
                         </div>
                     )}
-
-                    <div className="row">
-                        {/* Left Sidebar - Sort Options */}
-                        <div className="col-lg-3 col-md-4 col-sm-12 mb-4">
-                            <div className="bg-white p-4 dashboard-sidebar rounded shadow-sm">
-                                <h5 className="mb-3">
-                                    <FontAwesomeIcon icon={faFilter} className="mr-2" />
-                                    Sort By
-                                </h5>
-
-                                <div className="list-group">
-                                    <button
-                                        className={`list-group-item list-group-item-action ${sortOption === 'latest' ? 'active' : ''}`}
-                                        onClick={() => setSortOption('latest')}
-                                    >
-                                        Latest First
-                                    </button>
-                                    <button
-                                        className={`list-group-item list-group-item-action ${sortOption === 'oldest' ? 'active' : ''}`}
-                                        onClick={() => setSortOption('oldest')}
-                                    >
-                                        Oldest First
-                                    </button>
-                                    <button
-                                        className={`list-group-item list-group-item-action ${sortOption === 'highest' ? 'active' : ''}`}
-                                        onClick={() => setSortOption('highest')}
-                                    >
-                                        Highest Price
-                                    </button>
-                                    <button
-                                        className={`list-group-item list-group-item-action ${sortOption === 'lowest' ? 'active' : ''}`}
-                                        onClick={() => setSortOption('lowest')}
-                                    >
-                                        Lowest Price
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Main Content - Orders */}
-                        <div className="col-lg-9 col-md-8 col-sm-12">
-                            <div className="bg-white p-4 rounded shadow-sm">
-                                {/* Status Tabs */}
-                                <div className="card-header bg-white p-0 mb-4">
-                                    <div className="order-tabs-container">
-                                        <div
-                                            className={`order-tab ${activeTab === 'IN_PROGRESS' ? 'active' : ''}`}
-                                            onClick={() => setActiveTab('IN_PROGRESS')}
-                                        >
-                                            <div className="order-tab-content">
-                                                <FontAwesomeIcon icon={faBox} />
-                                                <span className="order-tab-text">Ready for Pickup</span>
-                                            </div>
-                                        </div>
-                                        <div
-                                            className={`order-tab ${activeTab === 'PICKED_UP' ? 'active' : ''}`}
-                                            onClick={() => setActiveTab('PICKED_UP')}
-                                        >
-                                            <div className="order-tab-content">
-                                                <FontAwesomeIcon icon={faMotorcycle} />
-                                                <span className="order-tab-text">Out for Delivery</span>
-                                            </div>
-                                        </div>
-                                        <div
-                                            className={`order-tab ${activeTab === 'DELIVERED' ? 'active' : ''}`}
-                                            onClick={() => setActiveTab('DELIVERED')}
-                                        >
-                                            <div className="order-tab-content">
-                                                <FontAwesomeIcon icon={faCheckCircle} />
-                                                <span className="order-tab-text">Delivered</span>
-                                            </div>
-                                        </div>
-                                        <div
-                                            className={`order-tab ${activeTab === 'all' ? 'active' : ''}`}
-                                            onClick={() => setActiveTab('all')}
-                                        >
-                                            <div className="order-tab-content">
-                                                <FontAwesomeIcon icon={faFilter} />
-                                                <span className="order-tab-text">All Orders</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {loading ? (
-                                    <div className="text-center py-5">
-                                        <div className="spinner-border text-warning" role="status">
-                                            <span className="sr-only">Loading...</span>
-                                        </div>
-                                        <p className="mt-2">Loading your deliveries...</p>
-                                    </div>
-                                ) : filteredDeliveries.length > 0 ? (
-                                    <div className="order-list">
-                                        {filteredDeliveries.map(order => (
-                                            <div className="order-item mb-3" key={order.orderId}>
-                                                <div className="card">
-                                                    <div className="card-body">
-                                                        <div className="row">
-                                                            <div className="col-md-8">
-                                                                <h5 className="card-title location-line">
-                                                                    {order.restaurant?.name || "Restaurant"}
-                                                                    <span className={`badge bg-${statusColors[order.orderStatus] || 'secondary'} text-white ml-2 p-2`}>
-                                                                        {statusDisplayNames[order.orderStatus] || order.orderStatus}
-                                                                    </span>
-                                                                </h5>
-                                                                <div className="mb-3">
-                                                                    <div className="d-flex align-items-center mb-1">
-                                                                        <div style={{ width: "20px" }}>
-                                                                            <FontAwesomeIcon icon={faMapMarkerAlt} className="text-danger" />
-                                                                        </div>
-                                                                        <div className="ml-2">
-                                                                            <strong>Pickup:</strong> {order.restaurant?.address || "Restaurant Address"}
-                                                                            {order.restaurant?.phone && (
-                                                                                <span className="ml-2">
-                                                                                    <FontAwesomeIcon icon={faPhone} className="mr-1" />
-                                                                                    {order.restaurant.phone}
-                                                                                </span>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="d-flex align-items-center mb-1">
-                                                                        <div style={{ width: "20px" }}>
-                                                                            <FontAwesomeIcon icon={faMapMarkerAlt} className="text-primary" />
-                                                                        </div>
-                                                                        <div className="ml-2">
-                                                                            <strong>Delivery:</strong> {order.deliveryAddress}
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="d-flex align-items-center">
-                                                                        <div style={{ width: "20px" }}>
-                                                                            <FontAwesomeIcon icon={faUser} />
-                                                                        </div>
-                                                                        <div className="ml-2">
-                                                                            <strong>Customer:</strong> {order.customer?.name || "Customer"}
-                                                                            {order.customer?.phone && (
-                                                                                <span className="ml-2">
-                                                                                    <FontAwesomeIcon icon={faPhone} className="mr-1" />
-                                                                                    {order.customer.phone}
-                                                                                </span>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <p className="card-text">
-                                                                    <strong>Order Time:</strong> {formatDateTime(order.orderDate)}
-                                                                </p>
-                                                            </div>
-                                                            <div className="col-md-4 text-right">
-                                                                <h5 className="text-warning mb-3">₺{order.totalAmount.toFixed(2)}</h5>
-                                                                {renderStatusButtons(order)}
-                                                                <button
-                                                                    className="btn btn-outline-secondary btn-sm w-100"
-                                                                    onClick={() => handleExpandOrder(order.orderId)}
-                                                                >
-                                                                    {expandedOrderId === order.orderId ? 'Hide Details' : 'View Details'}
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {expandedOrderId === order.orderId && (
-                                                        <div className="card-footer order-details-section">
-                                                            <h6 className="mb-3">Order Items</h6>
-                                                            <div>
-                                                                <table className="table table-sm">
-                                                                    <thead>
-                                                                        <tr>
-                                                                            <th>Item</th>
-                                                                            <th style={{ width: "80px" }}>Quantity</th>
-                                                                            <th style={{ width: "120px" }} className="text-right">Price</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        {Object.entries(order.items || {}).map(([itemKey, quantity], index) => {
-                                                                            try {
-                                                                                const item = JSON.parse(itemKey);
-                                                                                return (
-                                                                                    <tr key={index}>
-                                                                                        <td>{item.name}</td>
-                                                                                        <td className="text-center">{quantity}</td>
-                                                                                        <td className="text-right">₺{(item.price * quantity).toFixed(2)}</td>
-                                                                                    </tr>
-                                                                                );
-                                                                            } catch (e) {
-                                                                                console.error("Error parsing item:", e);
-                                                                                return null;
-                                                                            }
-                                                                        })}
-                                                                        <tr className="table-active font-weight-bold">
-                                                                            <td colSpan="2">Total</td>
-                                                                            <td className="text-right">₺{order.totalAmount.toFixed(2)}</td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-5">
-                                        <FontAwesomeIcon icon={faMotorcycle} size="3x" className="text-muted mb-3" />
-                                        <h5>No {statusDisplayNames[activeTab] || activeTab} deliveries</h5>
-                                        <p>You don't have any {statusDisplayNames[activeTab]?.toLowerCase() || activeTab} deliveries at the moment.</p>
-                                        <button className="btn btn-warning" onClick={() => navigate('/courier-dashboard')}>
-                                            Find Available Orders
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 

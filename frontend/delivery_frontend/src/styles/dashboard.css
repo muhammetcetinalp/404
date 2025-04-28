@@ -293,16 +293,11 @@ body {
 
 /* Ana içerik bölümü ile footer arasında boşluk */
 .flex-grow-1 {
-    margin-bottom: 80px;
+
     background-color: #EBEDF3;
 }
 
-/* Responsive tasarım için */
-@media (max-width: 768px) {
-    .flex-grow-1 {
-        margin-bottom: 50px;
-    }
-}
+
 
 .dashboard-sidebar {
     border-radius: 8px;

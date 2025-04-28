@@ -3,21 +3,49 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
 import '../styles/dashboard.css';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
+
 
 const ProfilePage = () => {
     const [form, setForm] = useState({});
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState('');
+    const [errors, setErrors] = useState({});
     const role = localStorage.getItem('role');
+    const navigate = useNavigate();
 
+    const CustomCloseButton = ({ closeToast }) => (
+        <button
+            onClick={closeToast}
+            style={{
+                background: 'transparent',
+                border: 'none',
+                fontSize: '16px',
+                color: 'white',
+                cursor: 'pointer',
+                padding: '4px',
+                margin: '0',
+                width: '35px',
+                height: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
+            ×
+        </button>
+    );
     useEffect(() => {
         const fetchUser = async () => {
             try {
                 const res = await api.get('/profile');
-                setForm(res.data.profile || res.data); // 👈 DÜZENLENEN KISIM
+                setForm(res.data.profile || res.data);
             } catch (err) {
                 console.error("Failed to fetch user info", err);
-                setMessage("An error occurred while loading data.");
+                toast.error("An error occurred while loading data.");
             } finally {
                 setLoading(false);
             }
@@ -25,16 +53,89 @@ const ProfilePage = () => {
         fetchUser();
     }, []);
 
+    const validateForm = () => {
+        const newErrors = {};
+
+        // Email validation
+        if (form.email && !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(form.email)) {
+            newErrors.email = "Please enter a valid email address";
+        }
+
+        // Phone validation for Turkish format
+        if (form.phone) {
+            const phoneRegex = /^[0-9]{10}$/;
+            if (!phoneRegex.test(form.phone)) {
+                newErrors.phone = "Phone number must be 10 digits (5XXXXXXXXX)";
+            }
+        }
+
+        // Business hours validation for restaurant owners
+        if (role === 'restaurant_owner') {
+            if (form.businessHoursStart) {
+                const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+                if (!timeRegex.test(form.businessHoursStart)) {
+                    newErrors.businessHoursStart = "Please enter time in format HH:MM (e.g., 08:00)";
+                }
+            }
+
+            if (form.businessHoursEnd) {
+                const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+                if (!timeRegex.test(form.businessHoursEnd)) {
+                    newErrors.businessHoursEnd = "Please enter time in format HH:MM (e.g., 22:00)";
+                }
+            }
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+
+        // For phone field, handle the formatting
+        if (name === 'phone') {
+            // Remove any non-numeric characters
+            const numericValue = value.replace(/\D/g, '');
+            // Limit to 10 digits
+            const formattedValue = numericValue.slice(0, 10);
+            setForm({ ...form, [name]: formattedValue });
+
+            // Clear error when user types
+            if (errors.phone) {
+                setErrors({ ...errors, phone: null });
+            }
+        } else {
+            setForm({ ...form, [name]: value });
+
+            // Clear the specific error when user makes changes
+            if (errors[name]) {
+                setErrors({ ...errors, [name]: null });
+            }
+        }
     };
 
     const handleSave = async () => {
-        try {
-            await api.put('/profile/update', form);
-            setMessage("Information updated successfully.");
-        } catch (err) {
-            setMessage("Update failed.");
+        if (validateForm()) {
+            try {
+                await api.put('/profile/update', form);
+                toast.success("Information updated successfully.");
+
+                setTimeout(() => {
+                    if (role === 'customer') {
+                        navigate('/customer-dashboard');
+                    } else if (role === 'restaurant_owner') {
+                        navigate('/restaurant-dashboard');
+                    } else if (role === 'courier') {
+                        navigate('/courier-dashboard');
+                    }
+                }, 2000);
+
+            } catch (err) {
+                toast.error("Update failed.");
+            }
+        } else {
+            toast.error("Please correct the errors before saving.");
         }
     };
 
@@ -50,14 +151,36 @@ const ProfilePage = () => {
                 />
             </div>
 
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="colored"
+                closeButton={<CustomCloseButton />}
+                toastClassName="custom-toast"
+                bodyClassName="custom-toast-body"
+                icon={true}
+            />
+
             <div className="form-group mb-3">
                 <label className="text-white">Phone</label>
-                <input
-                    name="phone"
-                    value={form.phone || ''}
-                    onChange={handleChange}
-                    className="form-control bg-dark text-white"
-                />
+                <div className="input-group">
+                    <span className="input-group-text bg-dark text-white">+90</span>
+                    <input
+                        name="phone"
+                        value={form.phone || ''}
+                        onChange={handleChange}
+                        className={`form-control bg-dark text-white ${errors.phone ? 'is-invalid' : ''}`}
+                        placeholder="5XXXXXXXXX"
+                    />
+                </div>
+                {errors.phone && <div className="invalid-feedback d-block">{errors.phone}</div>}
             </div>
 
             <div className="form-group mb-3">
@@ -66,9 +189,10 @@ const ProfilePage = () => {
                     name="email"
                     value={form.email || ''}
                     onChange={handleChange}
-                    className="form-control bg-dark text-white"
+                    className={`form-control bg-dark text-white ${errors.email ? 'is-invalid' : ''}`}
                     disabled
                 />
+                {errors.email && <div className="invalid-feedback d-block">{errors.email}</div>}
             </div>
 
             <h5 className="mt-4 mb-3 border-bottom pb-2 text-white">Delivery Address</h5>
@@ -123,12 +247,17 @@ const ProfilePage = () => {
 
             <div className="form-group mb-3">
                 <label className="text-white">Phone</label>
-                <input
-                    name="phone"
-                    value={form.phone || ''}
-                    onChange={handleChange}
-                    className="form-control bg-dark text-light"
-                />
+                <div className="input-group">
+                    <span className="input-group-text bg-dark text-white">+90</span>
+                    <input
+                        name="phone"
+                        value={form.phone || ''}
+                        onChange={handleChange}
+                        className={`form-control bg-dark text-light ${errors.phone ? 'is-invalid' : ''}`}
+                        placeholder="5XXXXXXXXX"
+                    />
+                </div>
+                {errors.phone && <div className="invalid-feedback d-block">{errors.phone}</div>}
             </div>
 
             <div className="form-group mb-3">
@@ -136,10 +265,10 @@ const ProfilePage = () => {
                 <input
                     name="email"
                     value={form.email || ''}
-                    className="form-control bg-dark text-light"
+                    className={`form-control bg-dark text-light ${errors.email ? 'is-invalid' : ''}`}
                     disabled
                 />
-                <small className="text-muted">Email cannot be changed</small>
+                {errors.email && <div className="invalid-feedback d-block">{errors.email}</div>}
             </div>
         </>
     );
@@ -158,12 +287,17 @@ const ProfilePage = () => {
 
             <div className="form-group mb-3">
                 <label className="text-white">Phone</label>
-                <input
-                    name="phone"
-                    value={form.phone || ''}
-                    onChange={handleChange}
-                    className="form-control bg-dark text-white"
-                />
+                <div className="input-group">
+                    <span className="input-group-text bg-dark text-white">+90</span>
+                    <input
+                        name="phone"
+                        value={form.phone || ''}
+                        onChange={handleChange}
+                        className={`form-control bg-dark text-white ${errors.phone ? 'is-invalid' : ''}`}
+                        placeholder="5XXXXXXXXX"
+                    />
+                </div>
+                {errors.phone && <div className="invalid-feedback d-block">{errors.phone}</div>}
             </div>
 
             <div className="form-group mb-3">
@@ -171,9 +305,10 @@ const ProfilePage = () => {
                 <input
                     name="email"
                     value={form.email || ''}
-                    className="form-control bg-dark text-white"
+                    className={`form-control bg-dark text-white ${errors.email ? 'is-invalid' : ''}`}
                     disabled
                 />
+                {errors.email && <div className="invalid-feedback d-block">{errors.email}</div>}
             </div>
 
             <h5 className="mt-4 mb-3 border-bottom pb-2 text-white">Restaurant Address</h5>
@@ -240,9 +375,10 @@ const ProfilePage = () => {
                             name="businessHoursStart"
                             value={form.businessHoursStart || ''}
                             onChange={handleChange}
-                            className="form-control bg-dark text-white"
-                            placeholder="e.g. 08:00"
+                            className={`form-control bg-dark text-white ${errors.businessHoursStart ? 'is-invalid' : ''}`}
+                            placeholder="08:00"
                         />
+                        {errors.businessHoursStart && <div className="invalid-feedback d-block">{errors.businessHoursStart}</div>}
                     </div>
                 </div>
                 <div className="col-md-6">
@@ -252,9 +388,10 @@ const ProfilePage = () => {
                             name="businessHoursEnd"
                             value={form.businessHoursEnd || ''}
                             onChange={handleChange}
-                            className="form-control bg-dark text-white"
-                            placeholder="e.g. 22:00"
+                            className={`form-control bg-dark text-white ${errors.businessHoursEnd ? 'is-invalid' : ''}`}
+                            placeholder="22:00"
                         />
+                        {errors.businessHoursEnd && <div className="invalid-feedback d-block">{errors.businessHoursEnd}</div>}
                     </div>
                 </div>
             </div>

@@ -28,6 +28,44 @@ const AdminCourierPage = () => {
     });
     const [addUserError, setAddUserError] = useState('');
 
+    // Validation errors state
+    const [formErrors, setFormErrors] = useState({});
+    const [editFormErrors, setEditFormErrors] = useState({});
+
+    // Validation functions
+    const validateEmail = (email) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
+
+    const validatePhone = (phone) => {
+        // Turkish phone number format validation (10 digits after the +90)
+        const phoneRegex = /^[0-9]{10}$/;
+        return phoneRegex.test(phone);
+    };
+
+    const validateForm = (form, isEdit = false) => {
+        const errors = {};
+
+        if (!isEdit && !validateEmail(form.email)) {
+            errors.email = 'Please enter a valid email address';
+        }
+
+        if (!validatePhone(form.phone)) {
+            errors.phone = 'Please enter a valid Turkish phone number (10 digits without +90)';
+        }
+
+        if (!form.name || form.name.trim() === '') {
+            errors.name = 'Name is required';
+        }
+
+        if (!isEdit && !form.password) {
+            errors.password = 'Password must be filled';
+        }
+
+        return errors;
+    };
+
     const fetchCouriers = async () => {
         try {
             const res = await api.get('/admin/all-users');
@@ -114,15 +152,37 @@ const AdminCourierPage = () => {
     const openEditModal = (user) => {
         setSelectedUser(user);
         setEditForm({ ...user });
+        setEditFormErrors({});
     };
 
     const handleEditChange = (e) => {
         setEditForm({ ...editForm, [e.target.name]: e.target.value });
+
+        // Clear error for this field when user starts typing
+        if (editFormErrors[e.target.name]) {
+            setEditFormErrors({
+                ...editFormErrors,
+                [e.target.name]: ''
+            });
+        }
     };
 
     const saveEdit = async () => {
+        const errors = validateForm(editForm, true);
+
+        if (Object.keys(errors).length > 0) {
+            setEditFormErrors(errors);
+            return;
+        }
+
         try {
-            await api.put(`/admin/update-user/${selectedUser.email}`, editForm);
+            // Format phone number with +90 prefix if it doesn't have it
+            const formattedData = {
+                ...editForm,
+                phone: editForm.phone
+            };
+
+            await api.put(`/admin/update-user/${selectedUser.email}`, formattedData);
             toast.success('Changes saved successfully!', {
                 style: {
                     backgroundColor: '#eb6825',
@@ -134,17 +194,46 @@ const AdminCourierPage = () => {
             fetchCouriers(); // Refresh the list after edit
         } catch (err) {
             console.error("Failed to update courier", err);
+            toast.error('Failed to update courier', {
+                style: {
+                    backgroundColor: '#d32f2f',
+                    color: 'white',
+                    fontWeight: 'bold',
+                },
+            });
         }
     };
 
     const handleAddUserChange = (e) => {
         setAddUserForm({ ...addUserForm, [e.target.name]: e.target.value });
+
+        // Clear error for this field when user starts typing
+        if (formErrors[e.target.name]) {
+            setFormErrors({
+                ...formErrors,
+                [e.target.name]: ''
+            });
+        }
     };
 
     const submitAddUser = async (e) => {
         e.preventDefault();
+
+        const errors = validateForm(addUserForm);
+
+        if (Object.keys(errors).length > 0) {
+            setFormErrors(errors);
+            return;
+        }
+
         try {
-            await api.post('/register', addUserForm);
+            // Format phone number with +90 prefix
+            const formattedData = {
+                ...addUserForm,
+                phone: addUserForm.phone
+            };
+
+            await api.post('/register', formattedData);
             toast.success('Courier created successfully!', {
                 style: {
                     backgroundColor: '#eb6825',
@@ -160,6 +249,7 @@ const AdminCourierPage = () => {
                 phone: '',
                 role: 'courier'
             });
+            setFormErrors({});
             fetchCouriers(); // Refresh the list after adding
         } catch (err) {
             setAddUserError('Failed to create courier.');
@@ -283,7 +373,7 @@ const AdminCourierPage = () => {
                                                                 <button onClick={() => handleStatusChange(user.email, 'ACTIVE')} className="status-option status-active">
                                                                     Activate
                                                                 </button>
-                                                                <button onClick={() => handleStatusChange(user.email, 'SUSPENDED')} className="status-option status-suspended">
+                                                                <button onClick={() => handleStatusChange(user.email, 'SUSPENDED')} className="status-option status-suspended" style={{ color: 'orange' }}>
                                                                     Suspend
                                                                 </button>
                                                                 <button onClick={() => handleStatusChange(user.email, 'BANNED')} className="status-option status-banned">
@@ -323,8 +413,9 @@ const AdminCourierPage = () => {
                                     value={editForm.name || ''}
                                     onChange={handleEditChange}
                                     placeholder="Name"
-                                    className="form-control"
+                                    className={`form-control ${editFormErrors.name ? 'error-input' : ''}`}
                                 />
+                                {editFormErrors.name && <div className="error-message">{editFormErrors.name}</div>}
                             </div>
                             <div className="form-group">
                                 <label>Account Status</label>
@@ -340,18 +431,18 @@ const AdminCourierPage = () => {
                                 </select>
                             </div>
                             <div className="form-group">
-                                <label>Phone</label>
+                                <label>Phone (10 digits without +90)</label>
                                 <input
                                     name="phone"
                                     value={editForm.phone || ''}
                                     onChange={handleEditChange}
-                                    placeholder="Phone"
-                                    className="form-control"
+                                    placeholder="5XX XXX XXXX"
+                                    className={`form-control ${editFormErrors.phone ? 'error-input' : ''}`}
                                 />
+                                {editFormErrors.phone && <div className="error-message">{editFormErrors.phone}</div>}
                             </div>
                         </div>
                         <div className="modal-footer">
-
                             <button onClick={saveEdit} className="btn-orange btn-save">Save Changes</button>
                         </div>
                     </div>
@@ -381,9 +472,9 @@ const AdminCourierPage = () => {
                                         value={addUserForm.name}
                                         onChange={handleAddUserChange}
                                         placeholder="Name"
-                                        className="form-control"
-                                        required
+                                        className={`form-control ${formErrors.name ? 'error-input' : ''}`}
                                     />
+                                    {formErrors.name && <div className="error-message">{formErrors.name}</div>}
                                 </div>
                                 <div className="form-group">
                                     <label>Email</label>
@@ -393,9 +484,9 @@ const AdminCourierPage = () => {
                                         value={addUserForm.email}
                                         onChange={handleAddUserChange}
                                         placeholder="Email"
-                                        className="form-control"
-                                        required
+                                        className={`form-control ${formErrors.email ? 'error-input' : ''}`}
                                     />
+                                    {formErrors.email && <div className="error-message">{formErrors.email}</div>}
                                 </div>
                                 <div className="form-group">
                                     <label>Password</label>
@@ -405,26 +496,25 @@ const AdminCourierPage = () => {
                                         value={addUserForm.password}
                                         onChange={handleAddUserChange}
                                         placeholder="Password"
-                                        className="form-control"
-                                        required
+                                        className={`form-control ${formErrors.password ? 'error-input' : ''}`}
                                     />
+                                    {formErrors.password && <div className="error-message">{formErrors.password}</div>}
                                 </div>
                                 <div className="form-group">
-                                    <label>Phone</label>
+                                    <label>Phone (10 digits without +90)</label>
                                     <input
                                         name="phone"
                                         value={addUserForm.phone}
                                         onChange={handleAddUserChange}
-                                        placeholder="Phone"
-                                        className="form-control"
-                                        required
+                                        placeholder="5XX XXX XXXX"
+                                        className={`form-control ${formErrors.phone ? 'error-input' : ''}`}
                                     />
+                                    {formErrors.phone && <div className="error-message">{formErrors.phone}</div>}
                                 </div>
 
                                 {addUserError && <p className="error-message">{addUserError}</p>}
 
                                 <div className="modal-footer">
-
                                     <button type="submit" className="btn-orange btn-save">Save Courier</button>
                                 </div>
                             </form>

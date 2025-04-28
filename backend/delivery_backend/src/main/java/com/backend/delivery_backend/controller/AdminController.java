@@ -2,9 +2,12 @@ package com.backend.delivery_backend.controller;
 
 import com.backend.delivery_backend.DTO.UserDTO;
 import com.backend.delivery_backend.model.*;
+import java.util.List;
 import com.backend.delivery_backend.repository.AdminRepository;
 import com.backend.delivery_backend.repository.CustomerRepository;
 import com.backend.delivery_backend.repository.CourierRepository;
+import com.backend.delivery_backend.repository.OrderRepository;
+
 import com.backend.delivery_backend.repository.RestaurantOwnerRepository;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +33,8 @@ public class AdminController {
     private AdminRepository adminRepository;
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
+    @Autowired
+    private OrderRepository orderRepository;
 
     @GetMapping("/all-users")
     public ResponseEntity<?> getAllUsers() {
@@ -101,14 +106,32 @@ public class AdminController {
 
         RestaurantOwner ro = restaurantOwnerRepository.findByEmail(email);
         if (ro != null) {
+            // Önceki durumu kaydet
+            String previousStatus = ro.getAccountStatus();
+
             applyCommonUpdates(ro, updates);
             if (updates.containsKey("businessHoursStart")) ro.setBusinessHoursStart((String) updates.get("businessHoursStart"));
             if (updates.containsKey("businessHoursEnd")) ro.setBusinessHoursEnd((String) updates.get("businessHoursEnd"));
             restaurantOwnerRepository.save(ro);
+
+            // Eğer restoran askıya alındıysa bekleyen siparişleri iptal et
+            if ("SUSPENDED".equals(ro.getAccountStatus()) && !ro.getAccountStatus().equals(previousStatus)) {
+                cancelPendingOrders(ro.getRestaurantId());
+            }
+
             return ResponseEntity.ok("Restaurant owner updated");
         }
 
         return ResponseEntity.status(404).body("User not found");
+    }
+
+    // Bekleyen siparişleri iptal etmek için yeni metod
+    private void cancelPendingOrders(String restaurantId) {
+        List<Order> pendingOrders = orderRepository.findByRestaurantIdAndOrderStatus(restaurantId, "PENDING");
+        for (Order order : pendingOrders) {
+            order.setOrderStatus("CANCELLED");
+            orderRepository.save(order);
+        }
     }
 
     private void applyCommonUpdates(Object user, Map<String, Object> updates) {

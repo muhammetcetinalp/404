@@ -4,6 +4,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faMotorcycle, faUserPlus, faCheckCircle, faTimesCircle, faSort, faUser, faPhone, faEnvelope, faIdCard, faCheck, faTimes, faTasks } from '@fortawesome/free-solid-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import api from '../api';
+
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import { toast } from 'react-toastify';
@@ -11,6 +13,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
 import '../styles/restaurant-dashboard.css';
 import '../styles/dashboard.css';
+import { AccountStatusBanner, checkAccountStatus } from '../components/AccountStatusBanner';
+import CourierIntegration from './CourierIntegration';
 
 const RestaurantCourierManagementPage = () => {
     const [registeredCouriers, setRegisteredCouriers] = useState([]);
@@ -85,49 +89,41 @@ const RestaurantCourierManagementPage = () => {
         }
     };
 
-    // Fetch registered couriers
-    const fetchRegisteredCouriers = async () => {
+    // Fetch courier requests
+    const fetchCourierRequests = async () => {
         try {
             setLoading(true);
-            console.log("Fetching registered couriers for restaurant:", restaurantId);
+            // Check account status first
+            if (!checkAccountStatus()) {
+                return; // If BANNED or issues, the function will handle redirection
+            }
 
-            const response = await axios.get(
-                `http://localhost:8080/api/restaurants/${restaurantId}/couriers/registered`,
-                { headers }
-            );
+            // Fetch pending requests
+            const response = await api.get(`/courier-requests/restaurant/${restaurantId}`);
 
-            console.log("Registered couriers fetched:", response.data);
-            setRegisteredCouriers(response.data);
-            setFilteredRegisteredCouriers(response.data);
-        } catch (err) {
-            console.error('Error fetching registered couriers:', err);
-            setError('Failed to load registered couriers. Please try again later.');
-        }
-    };
+            if (response.data && Array.isArray(response.data)) {
+                // Filter requests by status
+                const pending = response.data.filter(req => req.status === 'PENDING');
+                const registered = response.data.filter(req => req.status === 'ACCEPTED');
 
-    // Fetch pending couriers
-    const fetchPendingCouriers = async () => {
-        try {
-            console.log("Fetching pending couriers for restaurant:", restaurantId);
+                setPendingCouriers(pending);
+                setRegisteredCouriers(registered);
+                setFilteredPendingCouriers(pending);
+                setFilteredRegisteredCouriers(registered);
+            } else {
+                throw new Error('Invalid data format');
+            }
 
-            const response = await axios.get(
-                `http://localhost:8080/api/restaurants/${restaurantId}/couriers/pending`,
-                { headers }
-            );
-
-            console.log("Pending couriers fetched:", response.data);
-            setPendingCouriers(response.data);
-            setFilteredPendingCouriers(response.data);
             setLoading(false);
         } catch (err) {
-            console.error('Error fetching pending couriers:', err);
-            setError('Failed to load pending couriers. Please try again later.');
+            console.error('Error fetching courier requests:', err);
+            setError('Failed to load courier data. Please try again later.');
             setLoading(false);
         }
     };
 
     // Accept a pending courier
-    const handleAcceptCourier = async (courierId) => {
+    const handleAcceptCourier = async (requestId) => {
         try {
             // Check if restaurant is suspended
             if (accountStatus === 'SUSPENDED') {
@@ -135,19 +131,13 @@ const RestaurantCourierManagementPage = () => {
                 return;
             }
 
-            console.log(`Accepting courier ${courierId}`);
+            console.log(`Accepting courier request ${requestId}`);
 
-            const response = await axios.post(
-                `http://localhost:8080/api/restaurants/${restaurantId}/couriers/${courierId}/accept`,
-                {},
-                { headers }
-            );
-
-            console.log("Accept courier response:", response.data);
+            // Call the integration service to accept the request
+            await CourierIntegration.respondToRequest(requestId, 'ACCEPT');
 
             // Refresh courier lists
-            await fetchRegisteredCouriers();
-            await fetchPendingCouriers();
+            await fetchCourierRequests();
 
             toast.success('Courier accepted successfully!');
         } catch (err) {
@@ -158,22 +148,17 @@ const RestaurantCourierManagementPage = () => {
     };
 
     // Decline a pending courier
-    const handleDeclineCourier = async (courierId) => {
+    const handleDeclineCourier = async (requestId) => {
         try {
-            console.log(`Declining courier ${courierId}`);
+            console.log(`Declining courier request ${requestId}`);
 
-            const response = await axios.post(
-                `http://localhost:8080/api/restaurants/${restaurantId}/couriers/${courierId}/decline`,
-                {},
-                { headers }
-            );
-
-            console.log("Decline courier response:", response.data);
+            // Call the integration service to reject the request
+            await CourierIntegration.respondToRequest(requestId, 'REJECT');
 
             // Refresh courier lists
-            await fetchPendingCouriers();
+            await fetchCourierRequests();
 
-            toast.success('Courier declined successfully!');
+            toast.success('Courier request declined successfully!');
         } catch (err) {
             console.error('Error declining courier:', err);
             const errorMessage = err.response?.data || 'Failed to decline courier. Please try again.';
@@ -182,7 +167,7 @@ const RestaurantCourierManagementPage = () => {
     };
 
     // Remove a registered courier
-    const handleRemoveCourier = async (courierId) => {
+    const handleRemoveCourier = async (requestId) => {
         try {
             // Check if restaurant is suspended
             if (accountStatus === 'SUSPENDED') {
@@ -190,17 +175,14 @@ const RestaurantCourierManagementPage = () => {
                 return;
             }
 
-            console.log(`Removing courier ${courierId}`);
+            console.log(`Removing courier request ${requestId}`);
 
-            const response = await axios.delete(
-                `http://localhost:8080/api/restaurants/${restaurantId}/couriers/${courierId}`,
-                { headers }
-            );
-
-            console.log("Remove courier response:", response.data);
+            // In a real application, you would have an API endpoint for removing couriers
+            // For now, we'll reject the request (which effectively removes the relationship)
+            await CourierIntegration.respondToRequest(requestId, 'REJECT');
 
             // Refresh courier lists
-            await fetchRegisteredCouriers();
+            await fetchCourierRequests();
 
             toast.success('Courier removed successfully!');
         } catch (err) {
@@ -217,23 +199,22 @@ const RestaurantCourierManagementPage = () => {
         }
 
         fetchRestaurantProfile();
-        fetchRegisteredCouriers();
-        fetchPendingCouriers();
+        fetchCourierRequests();
     }, [token, navigate, restaurantId]);
 
     // Filter couriers based on search term
     useEffect(() => {
         if (searchTerm) {
             const filteredRegistered = registeredCouriers.filter(courier =>
-                courier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                courier.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (courier.phone && courier.phone.includes(searchTerm))
+                courier.courierName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                courier.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                courier.phone?.includes(searchTerm)
             );
 
             const filteredPending = pendingCouriers.filter(courier =>
-                courier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                courier.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (courier.phone && courier.phone.includes(searchTerm))
+                courier.courierName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                courier.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                courier.phone?.includes(searchTerm)
             );
 
             setFilteredRegisteredCouriers(filteredRegistered);
@@ -270,6 +251,7 @@ const RestaurantCourierManagementPage = () => {
         <div className="d-flex flex-column min-vh-100">
             <div className="container-fluid dashboard-header">
                 <Header />
+                <AccountStatusBanner />
                 <div className="container dashboard-welcome-text">
                     <div className="row justify-content-center">
                         <div className="col-lg-5 col-md-10 col-sm-12">
@@ -396,32 +378,30 @@ const RestaurantCourierManagementPage = () => {
                                                                             <th scope="col">Name</th>
                                                                             <th scope="col">Email</th>
                                                                             <th scope="col">Phone</th>
-                                                                            <th scope="col">ID Number</th>
                                                                             <th scope="col">Status</th>
                                                                             <th scope="col">Actions</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
                                                                         {filteredRegisteredCouriers.map(courier => (
-                                                                            <tr key={courier.id}>
+                                                                            <tr key={courier.requestId}>
                                                                                 <td className="align-middle">
                                                                                     <div className="d-flex align-items-center">
                                                                                         <div className="avatar-circle me-2 bg-warning">
-                                                                                            <span className="avatar-text">{courier.name.charAt(0).toUpperCase()}</span>
+                                                                                            <span className="avatar-text">{courier.courierName.charAt(0).toUpperCase()}</span>
                                                                                         </div>
-                                                                                        {courier.name}
+                                                                                        {courier.courierName}
                                                                                     </div>
                                                                                 </td>
-                                                                                <td className="align-middle">{courier.email}</td>
+                                                                                <td className="align-middle">{courier.email || 'N/A'}</td>
                                                                                 <td className="align-middle">{courier.phone || 'N/A'}</td>
-                                                                                <td className="align-middle">{courier.idNumber || 'N/A'}</td>
                                                                                 <td className="align-middle">
                                                                                     <span className="badge bg-success">Active</span>
                                                                                 </td>
                                                                                 <td className="align-middle">
                                                                                     <button
                                                                                         className="btn btn-outline-danger btn-sm"
-                                                                                        onClick={() => handleRemoveCourier(courier.id)}
+                                                                                        onClick={() => handleRemoveCourier(courier.requestId)}
                                                                                         disabled={accountStatus === 'SUSPENDED'}
                                                                                     >
                                                                                         <FontAwesomeIcon icon={faTimes} className="me-1" />
@@ -454,25 +434,23 @@ const RestaurantCourierManagementPage = () => {
                                                                             <th scope="col">Name</th>
                                                                             <th scope="col">Email</th>
                                                                             <th scope="col">Phone</th>
-                                                                            <th scope="col">ID Number</th>
                                                                             <th scope="col">Status</th>
                                                                             <th scope="col">Actions</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
                                                                         {filteredPendingCouriers.map(courier => (
-                                                                            <tr key={courier.id}>
+                                                                            <tr key={courier.requestId}>
                                                                                 <td className="align-middle">
                                                                                     <div className="d-flex align-items-center">
                                                                                         <div className="avatar-circle me-2 bg-secondary">
-                                                                                            <span className="avatar-text">{courier.name.charAt(0).toUpperCase()}</span>
+                                                                                            <span className="avatar-text">{courier.courierName.charAt(0).toUpperCase()}</span>
                                                                                         </div>
-                                                                                        {courier.name}
+                                                                                        {courier.courierName}
                                                                                     </div>
                                                                                 </td>
-                                                                                <td className="align-middle">{courier.email}</td>
+                                                                                <td className="align-middle">{courier.email || 'N/A'}</td>
                                                                                 <td className="align-middle">{courier.phone || 'N/A'}</td>
-                                                                                <td className="align-middle">{courier.idNumber || 'N/A'}</td>
                                                                                 <td className="align-middle">
                                                                                     <span className="badge bg-warning">Pending</span>
                                                                                 </td>
@@ -480,7 +458,7 @@ const RestaurantCourierManagementPage = () => {
                                                                                     <div className="btn-group" role="group">
                                                                                         <button
                                                                                             className="btn btn-success btn-sm"
-                                                                                            onClick={() => handleAcceptCourier(courier.id)}
+                                                                                            onClick={() => handleAcceptCourier(courier.requestId)}
                                                                                             disabled={accountStatus === 'SUSPENDED'}
                                                                                         >
                                                                                             <FontAwesomeIcon icon={faCheck} className="me-1" />
@@ -488,7 +466,7 @@ const RestaurantCourierManagementPage = () => {
                                                                                         </button>
                                                                                         <button
                                                                                             className="btn btn-danger btn-sm"
-                                                                                            onClick={() => handleDeclineCourier(courier.id)}
+                                                                                            onClick={() => handleDeclineCourier(courier.requestId)}
                                                                                         >
                                                                                             <FontAwesomeIcon icon={faTimes} className="me-1" />
                                                                                             Decline
@@ -521,32 +499,30 @@ const RestaurantCourierManagementPage = () => {
                                                                             <th scope="col">Name</th>
                                                                             <th scope="col">Email</th>
                                                                             <th scope="col">Phone</th>
-                                                                            <th scope="col">ID Number</th>
                                                                             <th scope="col">Status</th>
                                                                             <th scope="col">Actions</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
                                                                         {filteredRegisteredCouriers.map(courier => (
-                                                                            <tr key={`registered-${courier.id}`}>
+                                                                            <tr key={`registered-${courier.requestId}`}>
                                                                                 <td className="align-middle">
                                                                                     <div className="d-flex align-items-center">
                                                                                         <div className="avatar-circle me-2 bg-warning">
-                                                                                            <span className="avatar-text">{courier.name.charAt(0).toUpperCase()}</span>
+                                                                                            <span className="avatar-text">{courier.courierName.charAt(0).toUpperCase()}</span>
                                                                                         </div>
-                                                                                        {courier.name}
+                                                                                        {courier.courierName}
                                                                                     </div>
                                                                                 </td>
-                                                                                <td className="align-middle">{courier.email}</td>
+                                                                                <td className="align-middle">{courier.email || 'N/A'}</td>
                                                                                 <td className="align-middle">{courier.phone || 'N/A'}</td>
-                                                                                <td className="align-middle">{courier.idNumber || 'N/A'}</td>
                                                                                 <td className="align-middle">
                                                                                     <span className="badge bg-success">Active</span>
                                                                                 </td>
                                                                                 <td className="align-middle">
                                                                                     <button
                                                                                         className="btn btn-outline-danger btn-sm"
-                                                                                        onClick={() => handleRemoveCourier(courier.id)}
+                                                                                        onClick={() => handleRemoveCourier(courier.requestId)}
                                                                                         disabled={accountStatus === 'SUSPENDED'}
                                                                                     >
                                                                                         <FontAwesomeIcon icon={faTimes} className="me-1" />
@@ -555,20 +531,19 @@ const RestaurantCourierManagementPage = () => {
                                                                                 </td>
                                                                             </tr>
                                                                         ))}
-                                                                        
+
                                                                         {filteredPendingCouriers.map(courier => (
-                                                                            <tr key={`pending-${courier.id}`}>
+                                                                            <tr key={`pending-${courier.requestId}`}>
                                                                                 <td className="align-middle">
                                                                                     <div className="d-flex align-items-center">
                                                                                         <div className="avatar-circle me-2 bg-secondary">
-                                                                                            <span className="avatar-text">{courier.name.charAt(0).toUpperCase()}</span>
+                                                                                            <span className="avatar-text">{courier.courierName.charAt(0).toUpperCase()}</span>
                                                                                         </div>
-                                                                                        {courier.name}
+                                                                                        {courier.courierName}
                                                                                     </div>
                                                                                 </td>
-                                                                                <td className="align-middle">{courier.email}</td>
+                                                                                <td className="align-middle">{courier.email || 'N/A'}</td>
                                                                                 <td className="align-middle">{courier.phone || 'N/A'}</td>
-                                                                                <td className="align-middle">{courier.idNumber || 'N/A'}</td>
                                                                                 <td className="align-middle">
                                                                                     <span className="badge bg-warning">Pending</span>
                                                                                 </td>
@@ -576,7 +551,7 @@ const RestaurantCourierManagementPage = () => {
                                                                                     <div className="btn-group" role="group">
                                                                                         <button
                                                                                             className="btn btn-success btn-sm"
-                                                                                            onClick={() => handleAcceptCourier(courier.id)}
+                                                                                            onClick={() => handleAcceptCourier(courier.requestId)}
                                                                                             disabled={accountStatus === 'SUSPENDED'}
                                                                                         >
                                                                                             <FontAwesomeIcon icon={faCheck} className="me-1" />
@@ -584,7 +559,7 @@ const RestaurantCourierManagementPage = () => {
                                                                                         </button>
                                                                                         <button
                                                                                             className="btn btn-danger btn-sm"
-                                                                                            onClick={() => handleDeclineCourier(courier.id)}
+                                                                                            onClick={() => handleDeclineCourier(courier.requestId)}
                                                                                         >
                                                                                             <FontAwesomeIcon icon={faTimes} className="me-1" />
                                                                                             Decline

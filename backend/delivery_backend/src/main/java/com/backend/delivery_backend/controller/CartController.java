@@ -43,6 +43,20 @@ public class CartController {
                     .body("Customer not found");
         }
 
+        // Müşteri ban edilmişse sepete ürün ekleyemez
+        if ("BANNED".equals(customer.getAccountStatus())) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body("Your account has been banned. You cannot add items to your cart.");
+        }
+
+        // Askıya alınan müşteri sepete ürün ekleyemez
+        if ("SUSPENDED".equals(customer.getAccountStatus())) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body("Your account has been suspended. You cannot add items to your cart.");
+        }
+
         // 2. Menü öğesini al
         Optional<MenuItem> menuItemOpt = menuItemRepository.findById(menuItemId);
         if (menuItemOpt.isEmpty()) {
@@ -67,21 +81,28 @@ public class CartController {
                     .body("Cannot add items from unapproved restaurants");
         }
 
-        // 5. Restoran ban veya suspend edilmiş mi?
-        if ("BANNED".equals(restaurant.getAccountStatus()) || "SUSPENDED".equals(restaurant.getAccountStatus())) {
+        // 5. Restoran ban edilmiş mi?
+        if ("BANNED".equals(restaurant.getAccountStatus())) {
             return ResponseEntity
                     .status(HttpStatus.FORBIDDEN)
                     .body("This restaurant is currently unavailable");
         }
 
-        // 6. Restoran açık mı?
+        // 6. Restoran askıya alınmış mı?
+        if ("SUSPENDED".equals(restaurant.getAccountStatus())) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body("This restaurant is currently unavailable");
+        }
+
+        // 7. Restoran açık mı?
         if (!restaurant.isOpen()) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body("This restaurant is currently closed");
         }
 
-        // 7. Sepeti al veya oluştur
+        // 8. Sepeti al veya oluştur
         Cart cart = cartRepository.findByCustomerId(customer.getCustomerId());
         if (cart == null) {
             cart = new Cart();
@@ -89,7 +110,7 @@ public class CartController {
             cart.setCustomer(customer);
         }
 
-        // 8. Aynı restorandan mı?
+        // 9. Aynı restorandan mı?
         if (!cart.getItems().isEmpty()) {
             MenuItem existing = cart.getItems().keySet().iterator().next();
             String existingRestId = existing.getRestaurant().getRestaurantId();
@@ -101,7 +122,7 @@ public class CartController {
             }
         }
 
-        // 9. Sepete ekle ve kaydet
+        // 10. Sepete ekle ve kaydet
         cart.addItem(item, quantity);
         cartRepository.save(cart);
 
@@ -119,16 +140,30 @@ public class CartController {
                     .body("Customer not found");
         }
 
+        // Müşteri ban edilmişse sepeti görüntüleyemez
+        if ("BANNED".equals(customer.getAccountStatus())) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body("Your account has been banned. You cannot view your cart.");
+        }
+
+        // Askıya alınan müşteri sepeti görüntüleyebilir, ama uyarı verebiliriz
+        if ("SUSPENDED".equals(customer.getAccountStatus())) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body("Your account has been suspended. You cannot place orders at this time.");
+        }
+
         Cart cart = cartRepository.findByCustomerId(customer.getCustomerId());
         if (cart == null || cart.getItems() == null || cart.getItems().isEmpty()) {
             return ResponseEntity.ok(Collections.emptyList());
         }
 
-        // Sepetteki restoranın durumunu kontrol et
+        // Sepetteki restoranı kontrol et
         MenuItem firstItem = cart.getItems().keySet().iterator().next();
         RestaurantOwner restaurant = firstItem.getRestaurant();
 
-        // Restoran ban veya suspend edilmişse sepeti temizle
+        // Eğer restoran ban edilmiş veya askıya alınmışsa sepeti temizle
         if ("BANNED".equals(restaurant.getAccountStatus()) || "SUSPENDED".equals(restaurant.getAccountStatus())) {
             cart.getItems().clear();
             cartRepository.save(cart);

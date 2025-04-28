@@ -40,19 +40,31 @@ public class OrderController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Customer not found");
         }
 
-        // Her item'ın restoranı aynı mı ve tipi destekliyor mu?
-        /*for (MenuItem item : cart.getItems().keySet()) {
-            RestaurantOwner restaurant = item.getRestaurant();
-            DeliveryType supported = restaurant.getDeliveryType();
-            if (!(supported == DeliveryType.BOTH || supported == deliveryType)) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Restaurant " + restaurant.getName() + " does not support " + deliveryType + ".");
-            }
-        }*/
+        // Müşteri ban edilmişse sipariş veremez
+        if ("BANNED".equals(customer.getAccountStatus())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Your account has been banned. You cannot place orders.");
+        }
+
+        // Askıya alınan müşteri sipariş veremez
+        if ("SUSPENDED".equals(customer.getAccountStatus())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Your account has been suspended. You cannot place orders at this time.");
+        }
 
         Cart cart = cartRepository.findByCustomerId(customer.getCustomerId());
         if (cart == null || cart.getItems().isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Cart is empty");
+        }
+
+        // Sepetteki ilk ürünün restoranını kontrol et
+        MenuItem firstItem = cart.getItems().keySet().iterator().next();
+        RestaurantOwner restaurant = firstItem.getRestaurant();
+
+        // Restoran ban edilmiş veya askıya alınmışsa sipariş verilemez
+        if ("BANNED".equals(restaurant.getAccountStatus()) || "SUSPENDED".equals(restaurant.getAccountStatus())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("The restaurant is currently unavailable. Your order cannot be processed.");
         }
 
         // Eğer ödeme yöntemi kredi kartıysa, kart bilgisi kontrolü yap

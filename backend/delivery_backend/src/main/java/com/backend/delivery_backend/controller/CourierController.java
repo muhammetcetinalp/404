@@ -7,12 +7,25 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.Authentication;
+import com.backend.delivery_backend.model.Courier;
+import com.backend.delivery_backend.repository.CourierRepository;
+import com.backend.delivery_backend.model.Order;
+import com.backend.delivery_backend.repository.OrderRepository;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 @RequestMapping("/api/couriers")
 public class CourierController {
 
     private final CourierService courierService;
+    @Autowired
+    private CourierRepository courierRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
 
     public CourierController(CourierService courierService) {
         this.courierService = courierService;
@@ -72,6 +85,22 @@ public class CourierController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<?> getActiveOrdersForCourier(Authentication auth) {
+        String email = auth.getName();
+        Courier courier = courierRepository.findByEmail(email);
+
+        if (courier == null || courier.getRestaurantOwner() == null) {
+            return ResponseEntity.badRequest().body("Courier not assigned to any restaurant.");
+        }
+
+        String restaurantId = courier.getRestaurantOwner().getRestaurantId();
+
+        List<Order> activeOrders = orderRepository.findByRestaurantIdAndOrderStatus(restaurantId, "PENDING");
+
+        return ResponseEntity.ok(activeOrders);
     }
 
 

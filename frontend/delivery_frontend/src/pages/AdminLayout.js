@@ -1,8 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-    faTachometerAlt, faUsers, faUtensils, faTruck, 
+import {
+    faTachometerAlt, faUsers, faUtensils, faTruck,
     faUserShield, faSignOutAlt
 } from '@fortawesome/free-solid-svg-icons';
 import '../styles/admin.css';

@@ -11,9 +11,6 @@ import Footer from '../components/Footer';
 import api from '../api';
 import '../styles/admin.css';
 import AdminLayout from './AdminLayout';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import '../styles/dashboard.css';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -67,47 +64,16 @@ const AdminDashboard = () => {
         fetchDashboardData();
     }, []);
 
-    const CustomCloseButton = ({ closeToast }) => (
-        <button
-            onClick={closeToast}
-            style={{
-                background: 'transparent',
-                border: 'none',
-                fontSize: '16px',
-                color: 'white',
-                cursor: 'pointer',
-                padding: '4px',
-                margin: '0',
-                width: '35px',
-                height: '28px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-            }}
-        >
-            ×
-        </button>
-    );
-
     const handleApproveRestaurant = async (restaurantId) => {
         try {
             // This endpoint would need to be implemented in your backend
             await api.post(`/admin/approve-restaurant/${restaurantId}`);
-
-            toast.success('Restaurant approved successfully');
+            alert('Restaurant approved successfully');
             // Refresh data
             fetchDashboardData();
         } catch (error) {
             console.error("Failed to approve restaurant", error);
-
-            toast.success('Failed to approve restaurant', {
-                style: {
-                    backgroundColor: '#eb6825',
-                    color: 'white',
-                    fontWeight: 'bold',
-                },
-            });
-
+            alert('Failed to approve restaurant');
         }
     };
 
@@ -116,20 +82,12 @@ const AdminDashboard = () => {
             try {
                 // This endpoint would need to be implemented in your backend
                 await api.post(`/admin/reject-restaurant/${restaurantId}`);
-
-                toast.success('Restaurant rejected successfully');
+                alert('Restaurant rejected successfully');
                 // Refresh data
                 fetchDashboardData();
             } catch (error) {
                 console.error("Failed to reject restaurant", error);
-
-                toast.success('Failed to reject restaurant', {
-                    style: {
-                        backgroundColor: '#eb6825',
-                        color: 'white',
-                        fontWeight: 'bold',
-                    },
-                });
+                alert('Failed to reject restaurant');
             }
         }
     };
@@ -149,22 +107,6 @@ const AdminDashboard = () => {
 
     return (
         <div className="admin-app-container">
-            <ToastContainer
-                position="top-right"
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="colored"
-                closeButton={<CustomCloseButton />}
-                toastClassName="custom-toast"
-                bodyClassName="custom-toast-body"
-                icon={true}
-            />
             <Header />
             <div className="admin-dashboard">
                 <AdminLayout active="dashboard"></AdminLayout>

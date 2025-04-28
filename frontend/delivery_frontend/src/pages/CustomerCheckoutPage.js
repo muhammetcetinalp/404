@@ -238,7 +238,14 @@ const CheckoutPage = () => {
 
             await api.post(`/orders/create?${queryParams.toString()}`, body);
 
-            toast.success('Order placed successfully!');
+            toast.success('Order placed successfully!', {
+                style: {
+                    backgroundColor: '#eb6825',
+                    color: 'white',
+                    fontWeight: 'bold',
+                },
+                closeButton: <CustomCloseButton />
+            });
 
             setTimeout(() => {
                 navigate('/customer-dashboard');
@@ -283,7 +290,7 @@ const CheckoutPage = () => {
                 icon={true}
             />
 
-            <div className="container-fluid py-4" style={{ background: "#EBEDF3", minHeight: "60vh" }}>
+            <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
                 <div className="container">
                     {loading ? (
                         <div className="text-center py-5">
@@ -482,7 +489,7 @@ const CheckoutPage = () => {
                                         <span>{subtotal} TL</span>
                                     </div>
                                     <div className="d-flex justify-content-between mb-2">
-                                        <span>Delivery Fee</span>
+                                        <span>Shipping</span>
                                         <span>{shippingFee} TL</span>
                                     </div>
                                     <div className="d-flex justify-content-between mb-2">

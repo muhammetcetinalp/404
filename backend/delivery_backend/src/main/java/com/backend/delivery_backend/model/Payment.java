@@ -2,7 +2,7 @@ package com.backend.delivery_backend.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "payments")
 public class Payment {
@@ -12,7 +12,6 @@ public class Payment {
 
     @OneToOne
     @JoinColumn(name = "order_id")
-    @JsonIgnore
     private Order order;
 
     private String paymentMethod;

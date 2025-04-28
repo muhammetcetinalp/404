@@ -35,103 +35,6 @@ const AdminRestaurantPage = () => {
     });
     const [addUserError, setAddUserError] = useState('');
 
-    // Validation errors state
-    const [formErrors, setFormErrors] = useState({});
-    const [editFormErrors, setEditFormErrors] = useState({});
-
-    // Validation functions
-    const validateEmail = (email) => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    };
-
-    const validatePhone = (phone) => {
-        // Turkish phone number format validation (10 digits after the +90)
-        const phoneRegex = /^[0-9]{10}$/;
-        return phoneRegex.test(phone);
-    };
-
-    const validateTimeFormat = (time) => {
-        // Time format validation (HH:MM)
-        const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
-        return timeRegex.test(time);
-    };
-
-    // Function to format time input with automatic colon
-    const formatTimeInput = (value) => {
-        // Remove any non-digit characters
-        const digits = value.replace(/\D/g, '');
-
-        // Limit to 4 digits
-        const limitedDigits = digits.substring(0, 4);
-
-        // Format with colon
-        if (limitedDigits.length > 2) {
-            const hours = limitedDigits.substring(0, 2);
-            const minutes = limitedDigits.substring(2);
-
-            // Validate hours (00-23)
-            const hoursNum = parseInt(hours, 10);
-            const validHours = hoursNum >= 0 && hoursNum <= 23 ? hours : '00';
-
-            // Validate minutes (00-59)
-            const minutesNum = parseInt(minutes, 10);
-            const validMinutes = minutesNum >= 0 && minutesNum <= 59 ? minutes : '00';
-
-            return `${validHours}:${validMinutes}`;
-        } else if (limitedDigits.length > 0) {
-            return limitedDigits;
-        }
-
-        return '';
-    };
-
-    const validateForm = (form, isEdit = false) => {
-        const errors = {};
-
-        if (!isEdit && !validateEmail(form.email)) {
-            errors.email = 'Please enter a valid email address';
-        }
-
-        if (!validatePhone(form.phone)) {
-            errors.phone = 'Please enter a valid Turkish phone number (10 digits without +90)';
-        }
-
-        if (!form.name || form.name.trim() === '') {
-            errors.name = 'Name is required';
-        }
-
-        if (!isEdit && !form.password) {
-            errors.password = 'Password must be filled';
-        }
-
-        if (!form.city || form.city.trim() === '') {
-            errors.city = 'City is required';
-        }
-
-        if (!form.district || form.district.trim() === '') {
-            errors.district = 'District is required';
-        }
-
-        if (!form.address || form.address.trim() === '') {
-            errors.address = 'Address is required';
-        }
-
-        if (!validateTimeFormat(form.businessHoursStart)) {
-            errors.businessHoursStart = 'Please enter a valid time format (HH:MM)';
-        }
-
-        if (!validateTimeFormat(form.businessHoursEnd)) {
-            errors.businessHoursEnd = 'Please enter a valid time format (HH:MM)';
-        }
-
-        if (!form.cuisineType || form.cuisineType.trim() === '') {
-            errors.cuisineType = 'Cuisine type is required';
-        }
-
-        return errors;
-    };
-
     const fetchRestaurants = async () => {
         try {
             const res = await api.get('/admin/all-users');
@@ -220,7 +123,13 @@ const AdminRestaurantPage = () => {
         try {
             await api.post(`/admin/approve-restaurant/${restaurantId}`);
 
-            toast.success('Restaurant approved successfully');
+            toast.success('Restaurant approved successfully', {
+                style: {
+                    backgroundColor: '#eb6825',
+                    color: 'white',
+                    fontWeight: 'bold',
+                },
+            });
             fetchRestaurants(); // Refresh the list after approval
         } catch (err) {
             console.error("Failed to approve restaurant", err);
@@ -230,97 +139,44 @@ const AdminRestaurantPage = () => {
     const openEditModal = (user) => {
         setSelectedUser(user);
         setEditForm({ ...user });
-        setEditFormErrors({});
     };
 
     const handleEditChange = (e) => {
-        const { name, value } = e.target;
-
-        // Apply time formatting for business hours fields
-        if (name === 'businessHoursStart' || name === 'businessHoursEnd') {
-            setEditForm({ ...editForm, [name]: formatTimeInput(value) });
-        } else {
-            setEditForm({ ...editForm, [name]: value });
-        }
-
-        // Clear error for this field when user starts typing
-        if (editFormErrors[name]) {
-            setEditFormErrors({
-                ...editFormErrors,
-                [name]: ''
-            });
-        }
+        setEditForm({ ...editForm, [e.target.name]: e.target.value });
     };
 
     const saveEdit = async () => {
-        const errors = validateForm(editForm, true);
-
-        if (Object.keys(errors).length > 0) {
-            setEditFormErrors(errors);
-            return;
-        }
-
         try {
-            // Format phone number with +90 prefix if it doesn't have it
-            const formattedData = {
-                ...editForm,
-                phone: editForm.phone
-            };
-
-            await api.put(`/admin/update-user/${selectedUser.email}`, formattedData);
-            toast.success('Changes saved successfully!');
-            setSelectedUser(null);
-            fetchRestaurants(); // Refresh the list after edit
-        } catch (err) {
-            console.error("Failed to update restaurant", err);
-            toast.error('Failed to update restaurant', {
+            await api.put(`/admin/update-user/${selectedUser.email}`, editForm);
+            toast.success('Changes saved successfully!', {
                 style: {
-                    backgroundColor: '#d32f2f',
+                    backgroundColor: '#eb6825',
                     color: 'white',
                     fontWeight: 'bold',
                 },
             });
+            setSelectedUser(null);
+            fetchRestaurants(); // Refresh the list after edit
+        } catch (err) {
+            console.error("Failed to update restaurant", err);
         }
     };
 
     const handleAddUserChange = (e) => {
-        const { name, value } = e.target;
-
-        // Apply time formatting for business hours fields
-        if (name === 'businessHoursStart' || name === 'businessHoursEnd') {
-            setAddUserForm({ ...addUserForm, [name]: formatTimeInput(value) });
-        } else {
-            setAddUserForm({ ...addUserForm, [name]: value });
-        }
-
-        // Clear error for this field when user starts typing
-        if (formErrors[name]) {
-            setFormErrors({
-                ...formErrors,
-                [name]: ''
-            });
-        }
+        setAddUserForm({ ...addUserForm, [e.target.name]: e.target.value });
     };
 
     const submitAddUser = async (e) => {
         e.preventDefault();
-
-        const errors = validateForm(addUserForm);
-
-        if (Object.keys(errors).length > 0) {
-            setFormErrors(errors);
-            return;
-        }
-
         try {
-            // Format phone number with +90 prefix
-            const formattedData = {
-                ...addUserForm,
-                phone: addUserForm.phone
-            };
-
-            await api.post('/register', formattedData);
-            toast.success('Restaurant created successfully!');
+            await api.post('/register', addUserForm);
+            toast.success('Restaurant created successfully!', {
+                style: {
+                    backgroundColor: '#eb6825',
+                    color: 'white',
+                    fontWeight: 'bold',
+                },
+            });
             setShowAddModal(false);
             setAddUserForm({
                 name: '',
@@ -336,7 +192,6 @@ const AdminRestaurantPage = () => {
                 cuisineType: '',
                 deliveryType: 'DELIVERY',
             });
-            setFormErrors({});
             fetchRestaurants(); // Refresh the list after adding
         } catch (err) {
             setAddUserError('Failed to create restaurant.');
@@ -454,7 +309,7 @@ const AdminRestaurantPage = () => {
                                                         ) : (
                                                             <button
                                                                 onClick={() => handleApproveRestaurant(user.restaurantId)}
-                                                                className="btn-approve2"
+                                                                className="btn-approve"
                                                             >
                                                                 Approve
                                                             </button>
@@ -476,7 +331,7 @@ const AdminRestaurantPage = () => {
                                                                 <button onClick={() => handleStatusChange(user.email, 'ACTIVE')} className="status-option status-active">
                                                                     Activate
                                                                 </button>
-                                                                <button onClick={() => handleStatusChange(user.email, 'SUSPENDED')} className="status-option status-suspended" style={{ color: 'orange' }}>
+                                                                <button onClick={() => handleStatusChange(user.email, 'SUSPENDED')} className="status-option status-suspended">
                                                                     Suspend
                                                                 </button>
                                                                 <button onClick={() => handleStatusChange(user.email, 'BANNED')} className="status-option status-banned">
@@ -516,9 +371,8 @@ const AdminRestaurantPage = () => {
                                     value={editForm.name || ''}
                                     onChange={handleEditChange}
                                     placeholder="Name"
-                                    className={`form-control ${editFormErrors.name ? 'error-input' : ''}`}
+                                    className="form-control"
                                 />
-                                {editFormErrors.name && <div className="error-message">{editFormErrors.name}</div>}
                             </div>
                             <div className="form-group">
                                 <label>Account Status</label>
@@ -534,15 +388,14 @@ const AdminRestaurantPage = () => {
                                 </select>
                             </div>
                             <div className="form-group">
-                                <label>Phone (10 digits without +90)</label>
+                                <label>Phone</label>
                                 <input
                                     name="phone"
                                     value={editForm.phone || ''}
                                     onChange={handleEditChange}
-                                    placeholder="5XX XXX XXXX"
-                                    className={`form-control ${editFormErrors.phone ? 'error-input' : ''}`}
+                                    placeholder="Phone"
+                                    className="form-control"
                                 />
-                                {editFormErrors.phone && <div className="error-message">{editFormErrors.phone}</div>}
                             </div>
                             <div className="form-row">
                                 <div className="form-group half">
@@ -552,9 +405,8 @@ const AdminRestaurantPage = () => {
                                         value={editForm.city || ''}
                                         onChange={handleEditChange}
                                         placeholder="City"
-                                        className={`form-control ${editFormErrors.city ? 'error-input' : ''}`}
+                                        className="form-control"
                                     />
-                                    {editFormErrors.city && <div className="error-message">{editFormErrors.city}</div>}
                                 </div>
                                 <div className="form-group half">
                                     <label>District</label>
@@ -563,9 +415,8 @@ const AdminRestaurantPage = () => {
                                         value={editForm.district || ''}
                                         onChange={handleEditChange}
                                         placeholder="District"
-                                        className={`form-control ${editFormErrors.district ? 'error-input' : ''}`}
+                                        className="form-control"
                                     />
-                                    {editFormErrors.district && <div className="error-message">{editFormErrors.district}</div>}
                                 </div>
                             </div>
                             <div className="form-group">
@@ -575,9 +426,8 @@ const AdminRestaurantPage = () => {
                                     value={editForm.address || ''}
                                     onChange={handleEditChange}
                                     placeholder="Address"
-                                    className={`form-control textarea ${editFormErrors.address ? 'error-input' : ''}`}
+                                    className="form-control textarea"
                                 />
-                                {editFormErrors.address && <div className="error-message">{editFormErrors.address}</div>}
                             </div>
                             <div className="form-row">
                                 <div className="form-group half">
@@ -586,11 +436,9 @@ const AdminRestaurantPage = () => {
                                         name="businessHoursStart"
                                         value={editForm.businessHoursStart || ''}
                                         onChange={handleEditChange}
-                                        placeholder="HH:MM"
-                                        className={`form-control ${editFormErrors.businessHoursStart ? 'error-input' : ''}`}
-                                        maxLength={5}
+                                        placeholder="Opening Hour (e.g. 09:00)"
+                                        className="form-control"
                                     />
-                                    {editFormErrors.businessHoursStart && <div className="error-message">{editFormErrors.businessHoursStart}</div>}
                                 </div>
                                 <div className="form-group half">
                                     <label>Closing Hour</label>
@@ -598,11 +446,9 @@ const AdminRestaurantPage = () => {
                                         name="businessHoursEnd"
                                         value={editForm.businessHoursEnd || ''}
                                         onChange={handleEditChange}
-                                        placeholder="HH:MM"
-                                        className={`form-control ${editFormErrors.businessHoursEnd ? 'error-input' : ''}`}
-                                        maxLength={5}
+                                        placeholder="Closing Hour (e.g. 22:00)"
+                                        className="form-control"
                                     />
-                                    {editFormErrors.businessHoursEnd && <div className="error-message">{editFormErrors.businessHoursEnd}</div>}
                                 </div>
                             </div>
                             <div className="form-group">
@@ -612,12 +458,12 @@ const AdminRestaurantPage = () => {
                                     value={editForm.cuisineType || ''}
                                     onChange={handleEditChange}
                                     placeholder="e.g. Italian, Turkish"
-                                    className={`form-control ${editFormErrors.cuisineType ? 'error-input' : ''}`}
+                                    className="form-control"
                                 />
-                                {editFormErrors.cuisineType && <div className="error-message">{editFormErrors.cuisineType}</div>}
                             </div>
                         </div>
                         <div className="modal-footer">
+
                             <button onClick={saveEdit} className="btn-orange btn-save">Save Changes</button>
                         </div>
                     </div>
@@ -647,9 +493,9 @@ const AdminRestaurantPage = () => {
                                         value={addUserForm.name}
                                         onChange={handleAddUserChange}
                                         placeholder="Name"
-                                        className={`form-control ${formErrors.name ? 'error-input' : ''}`}
+                                        className="form-control"
+                                        required
                                     />
-                                    {formErrors.name && <div className="error-message">{formErrors.name}</div>}
                                 </div>
                                 <div className="form-group">
                                     <label>Email</label>
@@ -659,9 +505,9 @@ const AdminRestaurantPage = () => {
                                         value={addUserForm.email}
                                         onChange={handleAddUserChange}
                                         placeholder="Email"
-                                        className={`form-control ${formErrors.email ? 'error-input' : ''}`}
+                                        className="form-control"
+                                        required
                                     />
-                                    {formErrors.email && <div className="error-message">{formErrors.email}</div>}
                                 </div>
                                 <div className="form-group">
                                     <label>Password</label>
@@ -671,20 +517,20 @@ const AdminRestaurantPage = () => {
                                         value={addUserForm.password}
                                         onChange={handleAddUserChange}
                                         placeholder="Password"
-                                        className={`form-control ${formErrors.password ? 'error-input' : ''}`}
+                                        className="form-control"
+                                        required
                                     />
-                                    {formErrors.password && <div className="error-message">{formErrors.password}</div>}
                                 </div>
                                 <div className="form-group">
-                                    <label>Phone (10 digits without +90)</label>
+                                    <label>Phone</label>
                                     <input
                                         name="phone"
                                         value={addUserForm.phone}
                                         onChange={handleAddUserChange}
-                                        placeholder="5XX XXX XXXX"
-                                        className={`form-control ${formErrors.phone ? 'error-input' : ''}`}
+                                        placeholder="Phone"
+                                        className="form-control"
+                                        required
                                     />
-                                    {formErrors.phone && <div className="error-message">{formErrors.phone}</div>}
                                 </div>
                                 <div className="form-row">
                                     <div className="form-group half">
@@ -694,9 +540,9 @@ const AdminRestaurantPage = () => {
                                             value={addUserForm.city}
                                             onChange={handleAddUserChange}
                                             placeholder="City"
-                                            className={`form-control ${formErrors.city ? 'error-input' : ''}`}
+                                            className="form-control"
+                                            required
                                         />
-                                        {formErrors.city && <div className="error-message">{formErrors.city}</div>}
                                     </div>
                                     <div className="form-group half">
                                         <label>District</label>
@@ -705,9 +551,9 @@ const AdminRestaurantPage = () => {
                                             value={addUserForm.district}
                                             onChange={handleAddUserChange}
                                             placeholder="District"
-                                            className={`form-control ${formErrors.district ? 'error-input' : ''}`}
+                                            className="form-control"
+                                            required
                                         />
-                                        {formErrors.district && <div className="error-message">{formErrors.district}</div>}
                                     </div>
                                 </div>
                                 <div className="form-group">
@@ -717,34 +563,32 @@ const AdminRestaurantPage = () => {
                                         value={addUserForm.address}
                                         onChange={handleAddUserChange}
                                         placeholder="Address"
-                                        className={`form-control textarea ${formErrors.address ? 'error-input' : ''}`}
+                                        className="form-control textarea"
+                                        required
                                     />
-                                    {formErrors.address && <div className="error-message">{formErrors.address}</div>}
                                 </div>
                                 <div className="form-row">
                                     <div className="form-group half">
-                                        <label>Opening Hour (Enter 4 digits)</label>
+                                        <label>Opening Hour</label>
                                         <input
                                             name="businessHoursStart"
                                             value={addUserForm.businessHoursStart}
                                             onChange={handleAddUserChange}
-                                            placeholder="0900 for 09:00"
-                                            className={`form-control ${formErrors.businessHoursStart ? 'error-input' : ''}`}
-                                            maxLength={5}
+                                            placeholder="Opening Hour (e.g. 09:00)"
+                                            className="form-control"
+                                            required
                                         />
-                                        {formErrors.businessHoursStart && <div className="error-message">{formErrors.businessHoursStart}</div>}
                                     </div>
                                     <div className="form-group half">
-                                        <label>Closing Hour (Enter 4 digits)</label>
+                                        <label>Closing Hour</label>
                                         <input
                                             name="businessHoursEnd"
                                             value={addUserForm.businessHoursEnd}
                                             onChange={handleAddUserChange}
-                                            placeholder="2200 for 22:00"
-                                            className={`form-control ${formErrors.businessHoursEnd ? 'error-input' : ''}`}
-                                            maxLength={5}
+                                            placeholder="Closing Hour (e.g. 22:00)"
+                                            className="form-control"
+                                            required
                                         />
-                                        {formErrors.businessHoursEnd && <div className="error-message">{formErrors.businessHoursEnd}</div>}
                                     </div>
                                 </div>
                                 <div className="form-group">
@@ -754,9 +598,9 @@ const AdminRestaurantPage = () => {
                                         value={addUserForm.cuisineType}
                                         onChange={handleAddUserChange}
                                         placeholder="e.g. Italian, Turkish"
-                                        className={`form-control ${formErrors.cuisineType ? 'error-input' : ''}`}
+                                        className="form-control"
+                                        required
                                     />
-                                    {formErrors.cuisineType && <div className="error-message">{formErrors.cuisineType}</div>}
                                 </div>
                                 <div className="form-group">
                                     <label>Delivery Type</label>
@@ -765,6 +609,7 @@ const AdminRestaurantPage = () => {
                                         value={addUserForm.deliveryType}
                                         onChange={handleAddUserChange}
                                         className="form-control"
+                                        required
                                     >
                                         <option value="DELIVERY">Delivery</option>
                                         <option value="PICKUP">Pickup</option>
@@ -775,6 +620,7 @@ const AdminRestaurantPage = () => {
                                 {addUserError && <p className="error-message">{addUserError}</p>}
 
                                 <div className="modal-footer">
+
                                     <button type="submit" className="btn-orange btn-save">Save Restaurant</button>
                                 </div>
                             </form>

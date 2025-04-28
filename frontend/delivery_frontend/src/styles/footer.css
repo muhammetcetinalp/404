@@ -22,7 +22,7 @@ footer a:hover {
 
 /* Footer ile içerik arasındaki boşluğu artır */
 footer {
-
+    margin-top: 80px;
     padding-top: 40px;
 }
 

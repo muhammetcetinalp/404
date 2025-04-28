@@ -77,7 +77,8 @@ const Cart = () => {
     }, [navigate]);
 
     const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const deliveryFee = 60.0;
+    // Set delivery fee to 0 if cart is empty, otherwise 60.0
+    const deliveryFee = cartItems.length > 0 ? 60.0 : 0;
     const total = subtotal + deliveryFee;
 
     const handleQuantityChange = async (menuItemId, change) => {
@@ -167,7 +168,7 @@ const Cart = () => {
                 theme="colored"
             />
 
-            <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
+            <div className="container-fluid py-4" style={{ background: "#EBEDF3", minHeight: "60vh" }}>
                 <div className="cart-section-wrapper">
 
                     <div className="container">
@@ -278,10 +279,12 @@ const Cart = () => {
                                         <span>Subtotal</span>
                                         <span>{subtotal.toFixed(2)} TL</span>
                                     </div>
+                                    {cartItems.length > 0 && (
                                     <div className="d-flex justify-content-between mb-2">
                                         <span>Delivery Fee</span>
                                         <span>{deliveryFee.toFixed(2)} TL</span>
                                     </div>
+                                    )}
                                     <hr />
                                     <div className="d-flex justify-content-between mb-4">
                                         <span className="font-weight-bold">Total</span>

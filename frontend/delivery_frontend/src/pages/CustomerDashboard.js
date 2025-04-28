@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faSearch, faStar, faFilter, faSortAmountDown, faFont,
     faThumbsUp, faChevronDown, faChevronUp, faHeart as faHeartSolid,
-    faPlus, faShoppingCart, faTimes, faExclamationTriangle
+    faPlus, faShoppingCart, faTimes, faSort, faExclamationTriangle
 } from '@fortawesome/free-solid-svg-icons';
 import { faHeart as faHeartRegular } from '@fortawesome/free-regular-svg-icons';
 import Header from '../components/Header';
@@ -229,7 +229,7 @@ const CustomerDashboard = () => {
                 [item.id]: true
             }));
 
-            toast.success('Item added to cart!');
+
 
             setTimeout(() => {
                 setAddedItemIds(prev => ({
@@ -333,8 +333,8 @@ const CustomerDashboard = () => {
                 icon={true}
             />
 
-            <div className="flex-grow-1" style={{ background: "#EBEDF3" }}>
-                <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
+            <div className="flex-grow-1 d-flex flex-column" style={{ background: "#EBEDF3", minHeight: "70vh" }}>
+                <div className="container-fluid py-4 flex-grow-1">
                     <div className="container">
                         {error && <div className="alert alert-danger">{error}</div>}
 
@@ -349,7 +349,7 @@ const CustomerDashboard = () => {
                         <div className="row">
                             <div className="col-lg-2 col-md-3 col-sm-12 mb-4">
                                 <div className="bg-white p-4 dashboard-sidebar">
-                                    <h5 className="mb-3"><FontAwesomeIcon icon={faFilter} className="mr-2 me-1" />Sort By</h5>
+                                    <h5 className="mb-3"><FontAwesomeIcon icon={faSort} className="mr-2 me-2" />Sort By</h5>
                                     <div className="ml-2 list-group">
                                         {[
                                             { key: 'bestMatch', icon: faThumbsUp, label: 'Best Match' },
@@ -494,76 +494,76 @@ const CustomerDashboard = () => {
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {/* Menu Modal */}
-                {showModal && selectedRestaurant && (
-                    <div className="menu-modal-overlay">
-                        <div className="menu-modal">
-                            <div className="menu-modal-header d-flex align-items-center justify-content-between">
-                                <div className="d-flex align-items-center w-100">
-                                    <h4 className="mb-0 text-truncate" style={{ maxWidth: '85%' }}>
-                                        {selectedRestaurant.name}
-                                    </h4>
+            {/* Menu Modal */}
+            {showModal && selectedRestaurant && (
+                <div className="menu-modal-overlay">
+                    <div className="menu-modal">
+                        <div className="menu-modal-header d-flex align-items-center justify-content-between">
+                            <div className="d-flex align-items-center w-100">
+                                <h4 className="mb-0 text-truncate" style={{ maxWidth: '85%' }}>
+                                    {selectedRestaurant.name}
+                                </h4>
 
-                                </div>
-                                <button className="btn-close ms-3" onClick={handleCloseModal}>
-                                    <FontAwesomeIcon icon={faTimes} />
-                                </button>
                             </div>
-                            {cartError && (
-                                <div className="alert alert-danger mx-3 mt-3">
-                                    {cartError}
+                            <button className="btn-close ms-3" onClick={handleCloseModal}>
+                                <FontAwesomeIcon icon={faTimes} />
+                            </button>
+                        </div>
+                        {cartError && (
+                            <div className="alert alert-danger mx-3 mt-3">
+                                {cartError}
+                            </div>
+                        )}
+                        <div className="menu-modal-body">
+                            {loadingMenu ? (
+                                <div className="text-center py-3">
+                                    <div className="spinner-border spinner-border-sm text-orange" role="status" />
+                                    <p className="mt-2 small">Loading menu items...</p>
                                 </div>
-                            )}
-                            <div className="menu-modal-body">
-                                {loadingMenu ? (
-                                    <div className="text-center py-3">
-                                        <div className="spinner-border spinner-border-sm text-orange" role="status" />
-                                        <p className="mt-2 small">Loading menu items...</p>
-                                    </div>
-                                ) : (menuItems[selectedRestaurant.restaurantId]?.length > 0 ? (
-                                    <div className="row">
-                                        {menuItems[selectedRestaurant.restaurantId].map(item => (
-                                            <div className="menu-item mb-3" key={item.id}
-                                                style={!selectedRestaurant.open ? { opacity: 0.5, pointerEvents: 'none' } : {}}
-                                            >
-                                                <div className="d-flex justify-content-between align-items-center w-100">
-                                                    {/* Sol kısım: yemek bilgileri */}
-                                                    <div>
-                                                        <h6 className="mb-1">{item.name}</h6>
-                                                        <p className="mb-1 small text-muted">{item.description}</p>
-                                                        <span className="text-orange font-weight-bold">{item.price.toFixed(2)} TL</span>
-                                                    </div>
+                            ) : (menuItems[selectedRestaurant.restaurantId]?.length > 0 ? (
+                                <div className="row">
+                                    {menuItems[selectedRestaurant.restaurantId].map(item => (
+                                        <div className="menu-item mb-3" key={item.id}
+                                            style={!selectedRestaurant.open ? { opacity: 0.5, pointerEvents: 'none' } : {}}
+                                        >
+                                            <div className="d-flex justify-content-between align-items-center w-100">
+                                                {/* Sol kısım: yemek bilgileri */}
+                                                <div>
+                                                    <h6 className="mb-1">{item.name}</h6>
+                                                    <p className="mb-1 small text-muted">{item.description}</p>
+                                                    <span className="text-orange font-weight-bold">{item.price.toFixed(2)} TL</span>
+                                                </div>
 
-                                                    {/* Sağ kısım: buton */}
-                                                    <div>
-                                                        <button
-                                                            className="btn btn-outline-orange add-to-cart-btn"
-                                                            onClick={() => handleAddToCart(item, selectedRestaurant.restaurantId)}
-                                                            disabled={addingToCart || !selectedRestaurant.open}
-                                                        >
-                                                            <FontAwesomeIcon icon={faPlus} />
-                                                        </button>
-                                                        {addedItemIds[item.id] && (
-                                                            <div className="item-added-notification">
-                                                                Added to Cart!
-                                                            </div>
-                                                        )}
-                                                    </div>
+                                                {/* Sağ kısım: buton */}
+                                                <div>
+                                                    <button
+                                                        className="btn btn-outline-orange add-to-cart-btn"
+                                                        onClick={() => handleAddToCart(item, selectedRestaurant.restaurantId)}
+                                                        disabled={addingToCart || !selectedRestaurant.open}
+                                                    >
+                                                        <FontAwesomeIcon icon={faPlus} />
+                                                    </button>
+                                                    {addedItemIds[item.id] && (
+                                                        <div className="item-added-notification">
+                                                            Added to Cart!
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
+                                        </div>
 
-                                        ))}
-                                    </div>
+                                    ))}
+                                </div>
 
-                                ) : (
-                                    <p className="text-center text-muted">No menu items available</p>
-                                ))}
-                            </div>
+                            ) : (
+                                <p className="text-center text-muted">No menu items available</p>
+                            ))}
                         </div>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
             <Footer />
         </div>
     );

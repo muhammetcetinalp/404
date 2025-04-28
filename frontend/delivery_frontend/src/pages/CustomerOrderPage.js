@@ -117,7 +117,7 @@ const OrderPage = () => {
                 theme="colored"
             />
 
-            <div className="container-fluid py-5" style={{ background: "#EBEDF3" }}>
+            <div className="container-fluid py-5" style={{ background: "#EBEDF3", minHeight: "70vh" }}>
                 <div className="container">
                     {error && (
                         <div className="alert alert-danger" role="alert">
@@ -130,54 +130,60 @@ const OrderPage = () => {
                         <div className="col-12">
                             <div className="card shadow-sm">
                                 <div className="card-body p-0">
-                                    <div className="status-filter-bar d-flex">
+                                    <div className="status-filter-bar d-flex flex-wrap">
                                         <div
-                                            className={`status-item flex-fill text-center p-3 cursor-pointer ${activeStatus === 'all' ? 'active bg-light border-bottom border-warning' : ''}`}
+                                            className={`status-item flex-fill text-center p-2 p-md-3 cursor-pointer ${activeStatus === 'all' ? 'active bg-light border-bottom border-warning' : ''}`}
                                             onClick={() => setActiveStatus('all')}
                                         >
-                                            <FontAwesomeIcon icon={faTasks} className="me-2" />
-                                            All Orders
-                                            <span className="badge bg-secondary ms-2">{orders.length}</span>
+                                            <FontAwesomeIcon icon={faTasks} className="me-1 me-md-2" />
+                                            <span className="d-none d-sm-inline">All Orders</span>
+                                            <span className="d-inline d-sm-none">All</span>
+                                            <span className="badge bg-secondary ms-1 ms-md-2">{orders.length}</span>
                                         </div>
                                         <div
-                                            className={`status-item flex-fill text-center p-3 cursor-pointer ${activeStatus === 'pending' ? 'active bg-light border-bottom border-warning' : ''}`}
+                                            className={`status-item flex-fill text-center p-2 p-md-3 cursor-pointer ${activeStatus === 'pending' ? 'active bg-light border-bottom border-warning' : ''}`}
                                             onClick={() => setActiveStatus('pending')}
                                         >
-                                            <FontAwesomeIcon icon={faClock} className="me-2 text-warning" />
-                                            Pending
-                                            <span className="badge bg-warning ms-2">{getStatusCount('pending')}</span>
+                                            <FontAwesomeIcon icon={faClock} className="me-1 me-md-2 text-warning" />
+                                            <span className="d-none d-sm-inline">Pending</span>
+                                            <span className="d-inline d-sm-none">Pending</span>
+                                            <span className="badge bg-warning ms-1 ms-md-2">{getStatusCount('pending')}</span>
                                         </div>
                                         <div
-                                            className={`status-item flex-fill text-center p-3 cursor-pointer ${activeStatus === 'inProgress' ? 'active bg-light border-bottom border-warning' : ''}`}
+                                            className={`status-item flex-fill text-center p-2 p-md-3 cursor-pointer ${activeStatus === 'inProgress' ? 'active bg-light border-bottom border-warning' : ''}`}
                                             onClick={() => setActiveStatus('inProgress')}
                                         >
-                                            <FontAwesomeIcon icon={faShippingFast} className="me-2 text-info" />
-                                            In Progress
-                                            <span className="badge bg-info ms-2">{getStatusCount('inProgress')}</span>
+                                            <FontAwesomeIcon icon={faShippingFast} className="me-1 me-md-2 text-info" />
+                                            <span className="d-none d-sm-inline">In Progress</span>
+                                            <span className="d-inline d-sm-none">In Prog</span>
+                                            <span className="badge bg-info ms-1 ms-md-2">{getStatusCount('inProgress')}</span>
                                         </div>
                                         <div
-                                            className={`status-item flex-fill text-center p-3 cursor-pointer ${activeStatus === 'preparing' ? 'active bg-light border-bottom border-warning' : ''}`}
+                                            className={`status-item flex-fill text-center p-2 p-md-3 cursor-pointer ${activeStatus === 'preparing' ? 'active bg-light border-bottom border-warning' : ''}`}
                                             onClick={() => setActiveStatus('preparing')}
                                         >
-                                            <FontAwesomeIcon icon={faUtensils} className="me-2 text-info" />
-                                            Preparing
-                                            <span className="badge bg-info ms-2" style={{ backgroundColor: '#17a2b8' }}>{getStatusCount('preparing')}</span>
+                                            <FontAwesomeIcon icon={faUtensils} className="me-1 me-md-2 text-info" />
+                                            <span className="d-none d-sm-inline">Preparing</span>
+                                            <span className="d-inline d-sm-none">Prep</span>
+                                            <span className="badge bg-info ms-1 ms-md-2" style={{ backgroundColor: '#17a2b8' }}>{getStatusCount('preparing')}</span>
                                         </div>
                                         <div
-                                            className={`status-item flex-fill text-center p-3 cursor-pointer ${activeStatus === 'ready' ? 'active bg-light border-bottom border-warning' : ''}`}
+                                            className={`status-item flex-fill text-center p-2 p-md-3 cursor-pointer ${activeStatus === 'ready' ? 'active bg-light border-bottom border-warning' : ''}`}
                                             onClick={() => setActiveStatus('ready')}
                                         >
-                                            <FontAwesomeIcon icon={faCheck} className="me-2 text-primary" />
-                                            Ready
-                                            <span className="badge bg-primary ms-2">{getStatusCount('ready')}</span>
+                                            <FontAwesomeIcon icon={faCheck} className="me-1 me-md-2 text-primary" />
+                                            <span className="d-none d-sm-inline">Ready</span>
+                                            <span className="d-inline d-sm-none">Ready</span>
+                                            <span className="badge bg-primary ms-1 ms-md-2">{getStatusCount('ready')}</span>
                                         </div>
                                         <div
-                                            className={`status-item flex-fill text-center p-3 cursor-pointer ${activeStatus === 'delivered' ? 'active bg-light border-bottom border-warning' : ''}`}
+                                            className={`status-item flex-fill text-center p-2 p-md-3 cursor-pointer ${activeStatus === 'delivered' ? 'active bg-light border-bottom border-warning' : ''}`}
                                             onClick={() => setActiveStatus('delivered')}
                                         >
-                                            <FontAwesomeIcon icon={faTruck} className="me-2 text-success" />
-                                            Delivered
-                                            <span className="badge bg-success ms-2">{getStatusCount('delivered')}</span>
+                                            <FontAwesomeIcon icon={faTruck} className="me-1 me-md-2 text-success" />
+                                            <span className="d-none d-sm-inline">Delivered</span>
+                                            <span className="d-inline d-sm-none">Deliv</span>
+                                            <span className="badge bg-success ms-1 ms-md-2">{getStatusCount('delivered')}</span>
                                         </div>
                                     </div>
                                 </div>

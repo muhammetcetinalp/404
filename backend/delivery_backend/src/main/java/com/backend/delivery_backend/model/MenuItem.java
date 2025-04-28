@@ -31,4 +31,3 @@ public class MenuItem {
     @JoinColumn(name = "restaurant_id")
     private RestaurantOwner restaurant;
 }
-

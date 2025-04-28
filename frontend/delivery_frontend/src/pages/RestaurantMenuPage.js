@@ -390,7 +390,7 @@ const RestaurantMenuPage = () => {
                                                             />
                                                         </div>
                                                         <div className="col-md-4 mb-3">
-                                                            <label htmlFor="price" className="form-label">Price (TL)*</label>
+                                                            <label htmlFor="price" className="form-label">Price ($)*</label>
                                                             <input
                                                                 type="number"
                                                                 step="0.01"
@@ -477,7 +477,7 @@ const RestaurantMenuPage = () => {
                                                                     <p className="text-muted mb-2">{item.description}</p>
                                                                 </div>
                                                                 <div className="col-md-4 d-flex flex-column justify-content-between align-items-end text-md-end">
-                                                                    <h5 className="text-orange mb-3">{item.price.toFixed(2)} TL</h5>
+                                                                    <h5 className="text-orange mb-3">${item.price.toFixed(2)}</h5>
                                                                     <div className="btn-group" role="group">
                                                                         <button
                                                                             className="btn btn-outline-secondary"

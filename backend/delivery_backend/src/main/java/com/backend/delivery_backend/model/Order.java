@@ -16,6 +16,9 @@ public class Order {
     @JoinColumn(name = "customer_id")
     private Customer customer;
 
+    @ManyToOne
+    private Courier courier;
+
     private String deliveryAddress;
     private String paymentMethod;
     private String orderStatus;
@@ -125,5 +128,13 @@ public class Order {
 
     public void setRestaurant(RestaurantOwner restaurant) {
         this.restaurant = restaurant;
+    }
+
+    public Courier getCourier() {
+        return courier;
+    }
+
+    public void setCourier(Courier courier) {
+        this.courier = courier;
     }
 }

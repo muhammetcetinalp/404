@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/restaurants")
@@ -129,5 +130,15 @@ public class RestaurantController {
 
         boolean isOpen = restaurantOwner.isOpen();  // açık mı?
         return ResponseEntity.ok(new RestaurantStatusDTO(isOpen));
+    }
+
+    @GetMapping("/public")
+    public ResponseEntity<?> getAllApprovedRestaurants() {
+        List<RestaurantOwner> restaurants = restaurantOwnerRepository.findByApprovedTrue();
+        // Hesap durumu aktif olan restoranları filtrele
+        restaurants = restaurants.stream()
+                .filter(r -> !"BANNED".equals(r.getAccountStatus()) && !"SUSPENDED".equals(r.getAccountStatus()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(restaurants);
     }
 }

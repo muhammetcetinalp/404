@@ -296,8 +296,8 @@ const CustomerDashboard = () => {
                 <div className="container dashboard-welcome-text">
                     <div className="row justify-content-center">
                         <div className="col-lg-5 col-md-10 col-sm-12">
-                            <div className="search-container mb-4">
-                                <div className="input-group" style={{ borderRadius: '25px', overflow: 'hidden' }}>
+                            <div className="search-container mb-4 d-flex justify-content-center">
+                                <div className="input-group" style={{ borderRadius: '25px', overflow: 'hidden', width: '100%' }}>
                                     <input
                                         type="text"
                                         className="form-control border-0 py-2"

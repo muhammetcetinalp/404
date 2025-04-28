@@ -41,7 +41,27 @@ const RestaurantDashboard = () => {
         restaurantId = localStorage.getItem('restaurantId');
         console.log("Restaurant ID (from localStorage):", restaurantId);
     }
-
+    const CustomCloseButton = ({ closeToast }) => (
+        <button
+            onClick={closeToast}
+            style={{
+                background: 'transparent',
+                border: 'none',
+                fontSize: '16px',
+                color: 'white',
+                cursor: 'pointer',
+                padding: '4px',
+                margin: '0',
+                width: '35px',
+                height: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
+            ×
+        </button>
+    );
     // Headers for API requests
     const headers = {
         'Authorization': `Bearer ${token}`,
@@ -329,15 +349,19 @@ const RestaurantDashboard = () => {
 
             <ToastContainer
                 position="top-right"
-                autoClose={5000}
+                autoClose={3000}
                 hideProgressBar={false}
-                newestOnTop
+                newestOnTop={false}
                 closeOnClick
                 rtl={false}
                 pauseOnFocusLoss
                 draggable
                 pauseOnHover
                 theme="colored"
+                closeButton={<CustomCloseButton />}
+                toastClassName="custom-toast"
+                bodyClassName="custom-toast-body"
+                icon={true}
             />
 
             <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
@@ -691,3 +715,7 @@ const RestaurantDashboard = () => {
 };
 
 export default RestaurantDashboard;
+
+
+
+

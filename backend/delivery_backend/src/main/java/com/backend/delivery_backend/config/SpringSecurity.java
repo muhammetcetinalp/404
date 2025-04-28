@@ -63,7 +63,8 @@ public class SpringSecurity {
 								"/api/login",
 								"/api/logout",
 								"/api/public/**",
-                                "/api/couriers/**"
+								"/api/couriers/active",
+								"/api/couriers/**"
 						).permitAll()
 						.anyRequest().authenticated()
 				)

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -17,9 +18,13 @@ import {
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
+import CourierIntegration from './CourierIntegration';
 import '../styles/dashboard.css';
 import '../styles/restaurant-dashboard.css';
+import { jwtDecode } from 'jwt-decode';
+import { AccountStatusBanner, checkAccountStatus } from '../components/AccountStatusBanner';
 
+// Import restaurant images
 import restaurantImg1 from '../assets/images/exampleRestaurants/image1.png';
 import restaurantImg2 from '../assets/images/exampleRestaurants/image2.png';
 import restaurantImg3 from '../assets/images/exampleRestaurants/image3.png';
@@ -41,18 +46,28 @@ const CourierRestaurantsPage = () => {
     const email = localStorage.getItem('email');
     const token = localStorage.getItem('token');
 
+    // Get courier ID from JWT token
+    let courierId;
+    try {
+        const decoded = jwtDecode(token);
+        courierId = decoded.id;
+        console.log("Courier ID (from JWT):", courierId);
+    } catch (error) {
+        console.error("JWT decode error:", error);
+    }
+
     const statusColors = {
-        "registered": "success",
-        "pending": "warning",
-        "not_registered": "secondary"
+        "ACCEPTED": "success",
+        "PENDING": "warning",
+        "NOT_REGISTERED": "secondary"
     };
 
     // Array of status options for filtering
     const statusOptions = [
         { value: 'all', label: 'All Restaurants', icon: faUtensils },
-        { value: 'registered', label: 'Registered Only', icon: faCheckCircle },
-        { value: 'pending', label: 'Pending Approval', icon: faHourglassHalf },
-        { value: 'not_registered', label: 'Not Registered', icon: faTimes }
+        { value: 'ACCEPTED', label: 'Registered Only', icon: faCheckCircle },
+        { value: 'PENDING', label: 'Pending Approval', icon: faHourglassHalf },
+        { value: 'NOT_REGISTERED', label: 'Not Registered', icon: faTimes }
     ];
 
     // Array of sort options
@@ -68,82 +83,60 @@ const CourierRestaurantsPage = () => {
             return;
         }
 
-        // Enhanced example restaurants data with images
-        const exampleRestaurants = [
-            {
-                id: 1,
-                name: "Apple Jabba",
-                cuisine: "Italian",
-                location: "123 Main St, City",
-                rating: 4.7,
-                totalOrders: 156,
-                status: "registered",
-                registerDate: "2025-01-15T10:30:00",
-                imageUrl: restaurantImg1
-            },
-            {
-                id: 2,
-                name: "BB.Q Chicken",
-                cuisine: "Korean Fried Chicken",
-                location: "789 Broadway, City",
-                rating: 4.5,
-                totalOrders: 89,
-                status: "pending",
-                registerDate: "2025-03-28T14:00:00",
-                imageUrl: restaurantImg2
-            },
-            {
-                id: 3,
-                name: "Beef Rosati",
-                cuisine: "Steakhouse",
-                location: "567 5th Ave, City",
-                rating: 4.8,
-                totalOrders: 210,
-                status: "not_registered",
-                registerDate: null,
-                imageUrl: restaurantImg3
-            },
-            {
-                id: 4,
-                name: "Istanbul Kebab",
-                cuisine: "Turkish",
-                location: "432 Oak St, City",
-                rating: 4.6,
-                totalOrders: 178,
-                status: "registered",
-                registerDate: "2025-02-20T09:15:00",
-                imageUrl: restaurantImg4
-            },
-            {
-                id: 5,
-                name: "Sushi Master",
-                cuisine: "Japanese",
-                location: "901 Pine St, City",
-                rating: 4.9,
-                totalOrders: 312,
-                status: "not_registered",
-                registerDate: null,
-                imageUrl: restaurantImg5
-            },
-            {
-                id: 6,
-                name: "Taj Mahal",
-                cuisine: "Indian",
-                location: "345 Elm St, City",
-                rating: 4.4,
-                totalOrders: 95,
-                status: "pending",
-                registerDate: "2025-03-30T11:45:00",
-                imageUrl: restaurantImg6
+        // Check account status
+        if (!checkAccountStatus()) {
+            return; // If BANNED, the checkAccountStatus function will handle redirection
+        }
+
+        // Fetch restaurants with user-specific registration status
+        const fetchRestaurants = async () => {
+            try {
+                setLoading(true);
+
+                // Tüm restoranları çek
+                const response = await api.get(`/restaurants/public`);
+
+                // Kurye-restoran ilişki durumunu çek
+                const relationshipsResponse = await api.get(`/courier-requests/courier/${courierId}/restaurant-relationships`);
+                const relationships = relationshipsResponse.data;
+
+                // Restoranları ilişki durumuyla birleştir
+                if (response.data && Array.isArray(response.data)) {
+                    const restaurantsWithStatus = response.data.map(restaurant => {
+                        const relationship = relationships.find(rel => rel.restaurantId === restaurant.restaurantId);
+                        let status = "NOT_REGISTERED";
+
+                        if (relationship) {
+                            status = relationship.status;
+                        }
+
+                        // Add a default image based on index
+                        const images = [restaurantImg1, restaurantImg2, restaurantImg3, restaurantImg4, restaurantImg5, restaurantImg6];
+                        const randomIndex = Math.floor(Math.random() * images.length);
+
+                        return {
+                            ...restaurant,
+                            status,
+                            imageUrl: images[randomIndex],
+                            totalOrders: relationship?.totalOrders || 0
+                        };
+                    });
+
+                    setRestaurants(restaurantsWithStatus);
+                    setFilteredRestaurants(restaurantsWithStatus);
+                }
+
+                setLoading(false);
+            } catch (err) {
+                console.error('Error fetching restaurants:', err);
+                setError('Failed to load restaurant data. Showing example data instead.');
+                setLoading(false);
+                setError('Could not fetch restaurant data. Showing example data instead.');
             }
-        ];
+        };
 
-        setRestaurants(exampleRestaurants);
-        setFilteredRestaurants(exampleRestaurants);
-        setLoading(false);
-
-        //  fetch data from API
-    }, [token, navigate]);
+        fetchRestaurants();
+    }, [token, navigate, courierId]);
 
     useEffect(() => {
         let results = restaurants;
@@ -152,8 +145,8 @@ const CourierRestaurantsPage = () => {
         if (searchTerm) {
             results = results.filter(restaurant =>
                 restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                restaurant.cuisine.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                restaurant.location.toLowerCase().includes(searchTerm.toLowerCase())
+                restaurant.cuisineType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                restaurant.address.toLowerCase().includes(searchTerm.toLowerCase())
             );
         }
 
@@ -182,11 +175,14 @@ const CourierRestaurantsPage = () => {
 
     const handleRequestRegistration = async (restaurantId) => {
         try {
+            await CourierIntegration.sendRestaurantRequest(courierId, restaurantId);
+
+            // Update local state to reflect the change
             const updatedRestaurants = restaurants.map(restaurant => {
-                if (restaurant.id === restaurantId) {
+                if (restaurant.restaurantId === restaurantId) {
                     return {
                         ...restaurant,
-                        status: "pending",
+                        status: "PENDING",
                         registerDate: new Date().toISOString()
                     };
                 }
@@ -205,32 +201,47 @@ const CourierRestaurantsPage = () => {
         }
     };
 
+
     const handleCancelRequest = async (restaurantId) => {
         try {
-            //  update the local state
+            console.log(`Cancelling request for restaurant ID: ${restaurantId}`);
+
+            // API isteği
+            await api.post('/courier-requests/cancel', null, {
+                params: {
+                    courierId: courierId,
+                    restaurantId: restaurantId
+                }
+            });
+
+            console.log("API call successful");
+
+            // Lokal state'i güncelle
             const updatedRestaurants = restaurants.map(restaurant => {
-                if (restaurant.id === restaurantId) {
+                if (restaurant.restaurantId === restaurantId) {
                     return {
                         ...restaurant,
-                        status: "not_registered",
-                        registerDate: null
+                        status: "NOT_REGISTERED"
                     };
                 }
                 return restaurant;
             });
 
+            // State güncelleme
             setRestaurants(updatedRestaurants);
             setFilteredRestaurants(
                 updatedRestaurants.filter(r =>
                     filterOption === 'all' || r.status === filterOption
                 )
             );
-        } catch (err) {
-            console.error('Error:', err);
-            setError('Failed to cancel registration request. Please try again.');
+
+            console.log("States updated");
+
+        } catch (error) {
+            console.error('Error cancelling request:', error);
+            // Hata durumunda kullanıcıya bildir
         }
     };
-
     const formatDate = (dateTimeStr) => {
         if (!dateTimeStr) return 'N/A';
         const date = new Date(dateTimeStr);
@@ -239,7 +250,7 @@ const CourierRestaurantsPage = () => {
 
     const renderStatusButton = (restaurant) => {
         switch (restaurant.status) {
-            case 'registered':
+            case 'ACCEPTED':
                 return (
                     <div className="status-container">
                         <div className="status-indicator registered">
@@ -251,7 +262,7 @@ const CourierRestaurantsPage = () => {
                         </div>
                     </div>
                 );
-            case 'pending':
+            case 'PENDING':
                 return (
                     <div>
                         <span className="badge bg-warning p-2 mb-2 d-block">
@@ -260,18 +271,18 @@ const CourierRestaurantsPage = () => {
                         </span>
                         <button
                             className="btn btn-outline-danger btn-sm"
-                            onClick={() => handleCancelRequest(restaurant.id)}
+                            onClick={() => handleCancelRequest(restaurant.restaurantId)}
                         >
                             <FontAwesomeIcon icon={faTimes} className="mr-1" />
                             Cancel Request
                         </button>
                     </div>
                 );
-            case 'not_registered':
+            case 'NOT_REGISTERED':
                 return (
                     <button
                         className="btn btn-warning btn-sm"
-                        onClick={() => handleRequestRegistration(restaurant.id)}
+                        onClick={() => handleRequestRegistration(restaurant.restaurantId)}
                     >
                         Request Registration
                     </button>
@@ -285,6 +296,7 @@ const CourierRestaurantsPage = () => {
         <div>
             <div className="container-fluid dashboard-header">
                 <Header />
+                <AccountStatusBanner />
                 <div className="container dashboard-welcome-text">
                     <div className="row justify-content-center">
                         <div className="col-lg-5 col-md-10 col-sm-12">
@@ -370,8 +382,6 @@ const CourierRestaurantsPage = () => {
                         {/* Main Content - Restaurants */}
                         <div className="col-lg-9 col-md-8 col-sm-12">
                             <div className="bg-white p-4 mb-4">
-
-
                                 {loading ? (
                                     <div className="text-center py-5">
                                         <div className="spinner-border text-warning" role="status">
@@ -382,7 +392,7 @@ const CourierRestaurantsPage = () => {
                                 ) : filteredRestaurants.length > 0 ? (
                                     <div className="restaurant-list">
                                         {filteredRestaurants.map(restaurant => (
-                                            <div className="restaurant-item mb-4" key={restaurant.id}>
+                                            <div className="restaurant-item mb-4" key={restaurant.restaurantId}>
                                                 <div className="card restaurant-card">
                                                     <div className="card-body">
                                                         <div className="row align-items-center">
@@ -406,11 +416,11 @@ const CourierRestaurantsPage = () => {
                                                                     <span className="ml-2">({restaurant.rating})</span>
                                                                 </div>
                                                                 <p className="card-text mb-1">
-                                                                    <small><strong>Cuisine:</strong> {restaurant.cuisine}</small>
+                                                                    <small><strong>Cuisine:</strong> {restaurant.cuisineType}</small>
                                                                 </p>
                                                                 <p className="card-text mb-1">
                                                                     <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-1" />
-                                                                    <small>{restaurant.location}</small>
+                                                                    <small>{restaurant.address}</small>
                                                                 </p>
                                                                 <p className="card-text">
                                                                     <small><strong>Total Orders:</strong> {restaurant.totalOrders}</small>

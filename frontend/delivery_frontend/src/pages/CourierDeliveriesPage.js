@@ -1,37 +1,63 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMotorcycle, faMapMarkerAlt, faUser, faCheckCircle, faBox, faTruck, faFilter } from '@fortawesome/free-solid-svg-icons';
+import {
+    faMotorcycle,
+    faMapMarkerAlt,
+    faUser,
+    faCheckCircle,
+    faBox,
+    faTruck,
+    faFilter,
+    faPhone
+} from '@fortawesome/free-solid-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
+import { jwtDecode } from 'jwt-decode';
 import '../styles/dashboard.css';
 import '../styles/restaurant-dashboard.css';
 import '../styles/order.css';
 import '../styles/courier.css';
+import { AccountStatusBanner, checkAccountStatus } from '../components/AccountStatusBanner';
 
 const CourierDeliveriesPage = () => {
-    const [myDeliveries, setMyDeliveries] = useState([]);
+    const [deliveries, setDeliveries] = useState([]);
     const [filteredDeliveries, setFilteredDeliveries] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [sortOption, setSortOption] = useState('latest');
     const [expandedOrderId, setExpandedOrderId] = useState(null);
-    const [orderDetails, setOrderDetails] = useState({});
-    const [loadingOrderDetails, setLoadingOrderDetails] = useState(false);
-    const [activeTab, setActiveTab] = useState('ready_for_pickup'); // Default active tab
+    const [activeTab, setActiveTab] = useState('IN_PROGRESS');
     const navigate = useNavigate();
 
-    const name = localStorage.getItem('name');
-    const email = localStorage.getItem('email');
     const token = localStorage.getItem('token');
 
-    const orderStatusColors = {
-        "confirmed": "info",
-        "ready_for_pickup": "warning",
-        "picked_up": "primary",
-        "delivered": "success",
-        "cancelled": "danger"
+    // Get courier ID from token
+    let courierId;
+    try {
+        const decoded = jwtDecode(token);
+        courierId = decoded.id;
+    } catch (error) {
+        console.error("Error decoding token:", error);
+    }
+
+    // Map status to colors
+    const statusColors = {
+        "PENDING": "secondary",
+        "IN_PROGRESS": "warning",
+        "PICKED_UP": "primary",
+        "DELIVERED": "success",
+        "CANCELLED": "danger"
+    };
+
+    // Map status to display names
+    const statusDisplayNames = {
+        "PENDING": "Pending",
+        "IN_PROGRESS": "Ready for Pickup",
+        "PICKED_UP": "Out for Delivery",
+        "DELIVERED": "Delivered",
+        "CANCELLED": "Cancelled"
     };
 
     useEffect(() => {
@@ -40,102 +66,62 @@ const CourierDeliveriesPage = () => {
             return;
         }
 
-        // Example deliveries data -  this should come from your API
-        const exampleDeliveries = [
-            {
-                id: 1,
-                restaurantName: "Apple Jabba",
-                restaurantLocation: "123 Main St, City",
-                customerName: "John Doe",
-                customerLocation: "456 Park Ave, City",
-                customerPhone: "+90 555 123 4567",
-                status: "ready_for_pickup",
-                orderTime: "2025-03-31T15:30:00",
-                totalPrice: 195.50,
-                items: [
-                    { name: "Margherita Pizza", quantity: 2, price: 25.99 },
-                    { name: "Pasta Carbonara", quantity: 1, price: 13.50 }
-                ]
-            },
-            {
-                id: 2,
-                restaurantName: "BB.Q Chicken",
-                restaurantLocation: "789 Broadway, City",
-                customerName: "Jane Smith",
-                customerLocation: "321 Oak St, City",
-                customerPhone: "+90 555 987 6543",
-                status: "picked_up",
-                orderTime: "2025-03-31T16:00:00",
-                totalPrice: 210.75,
-                items: [
-                    { name: "Original Fried Chicken", quantity: 1, price: 15.99 },
-                    { name: "Spicy Chicken Wings", quantity: 2, price: 12.99 }
-                ]
-            },
-            {
-                id: 3,
-                restaurantName: "Beef Rosati",
-                restaurantLocation: "567 5th Ave, City",
-                customerName: "Robert Johnson",
-                customerLocation: "890 Pine St, City",
-                customerPhone: "+90 555 789 0123",
-                status: "delivered",
-                orderTime: "2025-03-30T14:45:00",
-                totalPrice: 175.25,
-                items: [
-                    { name: "T-Bone Steak", quantity: 1, price: 28.99 },
-                    { name: "Beef Burger", quantity: 1, price: 16.99 }
-                ]
-            }
-        ];
-
-        setMyDeliveries(exampleDeliveries);
-        applyFilters(exampleDeliveries, sortOption, activeTab);
-        setLoading(false);
-
-        // you need fetch data from your API:
-        /*
-        const fetchMyDeliveries = async () => {
-            try {
-                const response = await api.get('/courier/my-deliveries');
-                setMyDeliveries(response.data);
-                applyFilters(response.data, sortOption, activeTab);
-                setLoading(false);
-            } catch (err) {
-                console.error('Error:', err);
-                setError('Failed to load deliveries. Please try again later.');
-                setLoading(false);
-            }
-        };
-        fetchMyDeliveries();
-        */
-    }, [token, navigate]);
-
-    const applyFilters = (deliveries, sort, status) => {
-        let results = [...deliveries];
-
-        // Filter by status
-        if (status !== 'all') {
-            results = results.filter(delivery => delivery.status === status);
+        // Check account status (banned/suspended)
+        if (!checkAccountStatus()) {
+            return;
         }
 
-        // Sorting logic
+        const fetchDeliveries = async () => {
+            try {
+                setLoading(true);
+
+                // API'den verileri çek
+                const response = await api.get('/courier/orders/assigned');
+
+                if (response.data && Array.isArray(response.data)) {
+                    setDeliveries(response.data);
+                    applyFilters(response.data, sortOption, activeTab);
+                } else {
+                    throw new Error('Invalid data format');
+                }
+
+                setLoading(false);
+            } catch (err) {
+                console.error('Error fetching deliveries:', err);
+                setError('Failed to load deliveries. Please try again later.');
+                setLoading(false);
+
+
+
+
+            }
+        };
+
+        fetchDeliveries();
+    }, [token, navigate]);
+
+    // Filter and sort deliveries
+    const applyFilters = (allDeliveries, sort, status) => {
+        let results = [...allDeliveries];
+
+        // Filter by status if not "all"
+        if (status !== 'all') {
+            results = results.filter(delivery => delivery.orderStatus === status);
+        }
+
+        // Apply sorting
         switch (sort) {
             case 'latest':
-                results.sort((a, b) => new Date(b.orderTime) - new Date(a.orderTime));
+                results.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
                 break;
             case 'oldest':
-                results.sort((a, b) => new Date(a.orderTime) - new Date(b.orderTime));
+                results.sort((a, b) => new Date(a.orderDate) - new Date(b.orderDate));
                 break;
-            case 'status':
-                // Sort by status priority (ready_for_pickup -> picked_up -> delivered)
-                const statusPriority = {
-                    "ready_for_pickup": 1,
-                    "picked_up": 2,
-                    "delivered": 3,
-                    "cancelled": 4
-                };
-                results.sort((a, b) => statusPriority[a.status] - statusPriority[b.status]);
+            case 'highest':
+                results.sort((a, b) => b.totalAmount - a.totalAmount);
+                break;
+            case 'lowest':
+                results.sort((a, b) => a.totalAmount - b.totalAmount);
                 break;
             default:
                 break;
@@ -144,101 +130,86 @@ const CourierDeliveriesPage = () => {
         setFilteredDeliveries(results);
     };
 
+    // Apply filters when options change
     useEffect(() => {
-        applyFilters(myDeliveries, sortOption, activeTab);
-    }, [sortOption, activeTab, myDeliveries]);
+        applyFilters(deliveries, sortOption, activeTab);
+    }, [sortOption, activeTab, deliveries]);
 
+    // Toggle order details expansion
     const handleExpandOrder = (orderId) => {
         if (expandedOrderId === orderId) {
             setExpandedOrderId(null);
         } else {
             setExpandedOrderId(orderId);
-            setLoadingOrderDetails(true);
-
-            // Find the order in our current state to display details
-            const orderDetail = myDeliveries.find(order => order.id === orderId);
-            if (orderDetail) {
-                setOrderDetails({ ...orderDetails, [orderId]: orderDetail });
-                setLoadingOrderDetails(false);
-            }
-
-            //  you need fetch additional details:
-            /*
-            const fetchOrderDetails = async () => {
-                try {
-                    const response = await api.get(`/orders/${orderId}`);
-                    setOrderDetails({ ...orderDetails, [orderId]: response.data });
-                    setLoadingOrderDetails(false);
-                } catch (err) {
-                    console.error('Error:', err);
-                    setLoadingOrderDetails(false);
-                }
-            };
-            fetchOrderDetails();
-            */
         }
     };
 
+    // Update order status
     const handleUpdateStatus = async (orderId, newStatus) => {
         try {
-            // you need make an API call:
-            // await api.put(`/courier/orders/${orderId}/status`, { status: newStatus });
+            const response = await api.patch(`/orders/status/${orderId}`, {
+                status: newStatus
+            });
 
-            //  update the local state
-            const updatedDeliveries = myDeliveries.map(delivery => {
-                if (delivery.id === orderId) {
-                    return { ...delivery, status: newStatus };
+            console.log("Status update response:", response.data);
+
+            // Update local state
+            const updatedDeliveries = deliveries.map(delivery => {
+                if (delivery.orderId === orderId) {
+                    return { ...delivery, orderStatus: newStatus };
                 }
                 return delivery;
             });
 
-            setMyDeliveries(updatedDeliveries);
+            setDeliveries(updatedDeliveries);
             applyFilters(updatedDeliveries, sortOption, activeTab);
 
-            // If the order details are expanded, update those too
-            if (orderDetails[orderId]) {
-                setOrderDetails({
-                    ...orderDetails,
-                    [orderId]: { ...orderDetails[orderId], status: newStatus }
-                });
-            }
         } catch (err) {
-            console.error('Error:', err);
+            console.error('Error updating order status:', err);
             setError('Failed to update order status. Please try again.');
         }
     };
 
+    // Format date for display
     const formatDateTime = (dateTimeStr) => {
         const date = new Date(dateTimeStr);
-        return date.toLocaleString();
+        return date.toLocaleString('tr-TR', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     };
 
+    // Render action buttons based on status
     const renderStatusButtons = (order) => {
-        switch (order.status) {
-            case 'ready_for_pickup':
+        switch (order.orderStatus) {
+            case 'IN_PROGRESS':
                 return (
                     <button
                         className="btn btn-primary btn-sm mb-2 w-100"
-                        onClick={() => handleUpdateStatus(order.id, 'picked_up')}
+                        onClick={() => handleUpdateStatus(order.orderId, 'PICKED_UP')}
                     >
                         <FontAwesomeIcon icon={faBox} className="mr-1" />
                         Mark as Picked Up
                     </button>
                 );
-            case 'picked_up':
+            case 'PICKED_UP':
                 return (
                     <button
                         className="btn btn-success btn-sm mb-2 w-100"
-                        onClick={() => handleUpdateStatus(order.id, 'delivered')}
+                        onClick={() => handleUpdateStatus(order.orderId, 'DELIVERED')}
                     >
                         <FontAwesomeIcon icon={faTruck} className="mr-1" />
                         Mark as Delivered
                     </button>
                 );
-            case 'delivered':
+            case 'DELIVERED':
                 return (
                     <button
-                        className="btn btn-secondary btn-sm mb-2 w-100" disabled
+                        className="btn btn-secondary btn-sm mb-2 w-100"
+                        disabled
                     >
                         <FontAwesomeIcon icon={faCheckCircle} className="mr-1" />
                         Completed
@@ -249,27 +220,24 @@ const CourierDeliveriesPage = () => {
         }
     };
 
-    const handleTabChange = (tab) => {
-        setActiveTab(tab);
-    };
-
     return (
-        <div>
+        <div className="d-flex flex-column min-vh-100">
             <div className="container-fluid dashboard-header">
                 <Header />
+                <AccountStatusBanner />
                 <div className="container dashboard-welcome-text">
                     <div className="row">
                         <div className="col-12 text-center">
                             <h1 className="display-4 text-white">My Deliveries</h1>
                             <p className="lead text-white">
-                                Manage your active deliveries and update their status.
+                                Manage your active deliveries and update their status
                             </p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
+            <div className="container-fluid py-4" style={{ background: "#EBEDF3", flex: 1 }}>
                 <div className="container">
                     {error && (
                         <div className="alert alert-danger" role="alert">
@@ -280,68 +248,81 @@ const CourierDeliveriesPage = () => {
                     <div className="row">
                         {/* Left Sidebar - Sort Options */}
                         <div className="col-lg-3 col-md-4 col-sm-12 mb-4">
-                            <div className="bg-white p-4 dashboard-sidebar">
+                            <div className="bg-white p-4 dashboard-sidebar rounded shadow-sm">
                                 <h5 className="mb-3">
                                     <FontAwesomeIcon icon={faFilter} className="mr-2" />
                                     Sort By
                                 </h5>
 
-                                <div className="ml-2">
-                                    <div className="list-group">
-                                        <button
-                                            className={`list-group-item list-group-item-action ${sortOption === 'latest' ? 'active' : ''}`}
-                                            onClick={() => setSortOption('latest')}
-                                        >
-                                            Latest First
-                                        </button>
-                                        <button
-                                            className={`list-group-item list-group-item-action ${sortOption === 'oldest' ? 'active' : ''}`}
-                                            onClick={() => setSortOption('oldest')}
-                                        >
-                                            Oldest First
-                                        </button>
-                                        <button
-                                            className={`list-group-item list-group-item-action ${sortOption === 'status' ? 'active' : ''}`}
-                                            onClick={() => setSortOption('status')}
-                                        >
-                                            By Status
-                                        </button>
-                                    </div>
+                                <div className="list-group">
+                                    <button
+                                        className={`list-group-item list-group-item-action ${sortOption === 'latest' ? 'active' : ''}`}
+                                        onClick={() => setSortOption('latest')}
+                                    >
+                                        Latest First
+                                    </button>
+                                    <button
+                                        className={`list-group-item list-group-item-action ${sortOption === 'oldest' ? 'active' : ''}`}
+                                        onClick={() => setSortOption('oldest')}
+                                    >
+                                        Oldest First
+                                    </button>
+                                    <button
+                                        className={`list-group-item list-group-item-action ${sortOption === 'highest' ? 'active' : ''}`}
+                                        onClick={() => setSortOption('highest')}
+                                    >
+                                        Highest Price
+                                    </button>
+                                    <button
+                                        className={`list-group-item list-group-item-action ${sortOption === 'lowest' ? 'active' : ''}`}
+                                        onClick={() => setSortOption('lowest')}
+                                    >
+                                        Lowest Price
+                                    </button>
                                 </div>
                             </div>
                         </div>
 
                         {/* Main Content - Orders */}
                         <div className="col-lg-9 col-md-8 col-sm-12">
-                            <div className="bg-white p-4 mb-4">
-                                {/* Status Tabs - Similar to OrderPage.js */}
+                            <div className="bg-white p-4 rounded shadow-sm">
+                                {/* Status Tabs */}
                                 <div className="card-header bg-white p-0 mb-4">
                                     <div className="order-tabs-container">
                                         <div
-                                            className={`order-tab ${activeTab === 'ready_for_pickup' ? 'active' : ''}`}
-                                            onClick={() => handleTabChange('ready_for_pickup')}
+                                            className={`order-tab ${activeTab === 'IN_PROGRESS' ? 'active' : ''}`}
+                                            onClick={() => setActiveTab('IN_PROGRESS')}
                                         >
                                             <div className="order-tab-content">
                                                 <FontAwesomeIcon icon={faBox} />
-                                                <span className="order-req-tab-text">Ready for Pickup</span>
+                                                <span className="order-tab-text">Ready for Pickup</span>
                                             </div>
                                         </div>
                                         <div
-                                            className={`order-tab ${activeTab === 'picked_up' ? 'active' : ''}`}
-                                            onClick={() => handleTabChange('picked_up')}
+                                            className={`order-tab ${activeTab === 'PICKED_UP' ? 'active' : ''}`}
+                                            onClick={() => setActiveTab('PICKED_UP')}
                                         >
                                             <div className="order-tab-content">
                                                 <FontAwesomeIcon icon={faMotorcycle} />
-                                                <span className="order-req-tab-text">Picked Up</span>
+                                                <span className="order-tab-text">Out for Delivery</span>
                                             </div>
                                         </div>
                                         <div
-                                            className={`order-tab ${activeTab === 'delivered' ? 'active' : ''}`}
-                                            onClick={() => handleTabChange('delivered')}
+                                            className={`order-tab ${activeTab === 'DELIVERED' ? 'active' : ''}`}
+                                            onClick={() => setActiveTab('DELIVERED')}
                                         >
                                             <div className="order-tab-content">
                                                 <FontAwesomeIcon icon={faCheckCircle} />
-                                                <span className="order-req-tab-text">Delivered</span>
+                                                <span className="order-tab-text">Delivered</span>
+                                            </div>
+                                        </div>
+                                        <div
+                                            className={`order-tab ${activeTab === 'all' ? 'active' : ''}`}
+                                            onClick={() => setActiveTab('all')}
+                                        >
+                                            <div className="order-tab-content">
+                                                <FontAwesomeIcon icon={faFilter} />
+                                                <span className="order-tab-text">All Orders</span>
                                             </div>
                                         </div>
                                     </div>
@@ -357,86 +338,107 @@ const CourierDeliveriesPage = () => {
                                 ) : filteredDeliveries.length > 0 ? (
                                     <div className="order-list">
                                         {filteredDeliveries.map(order => (
-                                            <div className="order-item" key={order.id}>
+                                            <div className="order-item mb-3" key={order.orderId}>
                                                 <div className="card">
                                                     <div className="card-body">
                                                         <div className="row">
-                                                            <div className="col-md-8 ">
+                                                            <div className="col-md-8">
                                                                 <h5 className="card-title location-line">
-                                                                    {order.restaurantName}
-                                                                    <span className={`badge bg-warning text-dark p-2 fs-6 ml-2`}>
-                                                                        {order.status.replace(/_/g, ' ')
-                                                                            .split(' ')
-                                                                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                                                                            .join(' ')}
+                                                                    {order.restaurant?.name || "Restaurant"}
+                                                                    <span className={`badge bg-${statusColors[order.orderStatus] || 'secondary'} text-white ml-2 p-2`}>
+                                                                        {statusDisplayNames[order.orderStatus] || order.orderStatus}
                                                                     </span>
                                                                 </h5>
-                                                                <p className="card-text  mb-1">
-                                                                    <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-1" />
-                                                                    <strong>Pickup:</strong> {order.restaurantLocation}
-                                                                </p>
-                                                                <p className="card-text mb-1">
-                                                                    <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-1" />
-                                                                    <strong>Delivery:</strong> {order.customerLocation}
-                                                                </p>
-                                                                <p className="card-text mb-1">
-                                                                    <FontAwesomeIcon icon={faUser} className="mr-1" />
-                                                                    <strong>Customer:</strong> {order.customerName} ({order.customerPhone})
-                                                                </p>
+                                                                <div className="mb-3">
+                                                                    <div className="d-flex align-items-center mb-1">
+                                                                        <div style={{ width: "20px" }}>
+                                                                            <FontAwesomeIcon icon={faMapMarkerAlt} className="text-danger" />
+                                                                        </div>
+                                                                        <div className="ml-2">
+                                                                            <strong>Pickup:</strong> {order.restaurant?.address || "Restaurant Address"}
+                                                                            {order.restaurant?.phone && (
+                                                                                <span className="ml-2">
+                                                                                    <FontAwesomeIcon icon={faPhone} className="mr-1" />
+                                                                                    {order.restaurant.phone}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="d-flex align-items-center mb-1">
+                                                                        <div style={{ width: "20px" }}>
+                                                                            <FontAwesomeIcon icon={faMapMarkerAlt} className="text-primary" />
+                                                                        </div>
+                                                                        <div className="ml-2">
+                                                                            <strong>Delivery:</strong> {order.deliveryAddress}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="d-flex align-items-center">
+                                                                        <div style={{ width: "20px" }}>
+                                                                            <FontAwesomeIcon icon={faUser} />
+                                                                        </div>
+                                                                        <div className="ml-2">
+                                                                            <strong>Customer:</strong> {order.customer?.name || "Customer"}
+                                                                            {order.customer?.phone && (
+                                                                                <span className="ml-2">
+                                                                                    <FontAwesomeIcon icon={faPhone} className="mr-1" />
+                                                                                    {order.customer.phone}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
                                                                 <p className="card-text">
-                                                                    <strong>Order Time:</strong> {formatDateTime(order.orderTime)}
+                                                                    <strong>Order Time:</strong> {formatDateTime(order.orderDate)}
                                                                 </p>
                                                             </div>
                                                             <div className="col-md-4 text-right">
-                                                                <h5 className="text-warning mb-3">₺{order.totalPrice.toFixed(2)}</h5>
+                                                                <h5 className="text-warning mb-3">₺{order.totalAmount.toFixed(2)}</h5>
                                                                 {renderStatusButtons(order)}
                                                                 <button
-                                                                    className="btn btn-outline-secondary btn-sm"
-                                                                    onClick={() => handleExpandOrder(order.id)}
+                                                                    className="btn btn-outline-secondary btn-sm w-100"
+                                                                    onClick={() => handleExpandOrder(order.orderId)}
                                                                 >
-                                                                    {expandedOrderId === order.id ? 'Hide Details' : 'View Details'}
+                                                                    {expandedOrderId === order.orderId ? 'Hide Details' : 'View Details'}
                                                                 </button>
                                                             </div>
                                                         </div>
                                                     </div>
 
-                                                    {expandedOrderId === order.id && (
+                                                    {expandedOrderId === order.orderId && (
                                                         <div className="card-footer order-details-section">
                                                             <h6 className="mb-3">Order Items</h6>
-                                                            {loadingOrderDetails ? (
-                                                                <div className="text-center py-3">
-                                                                    <div className="spinner-border spinner-border-sm text-warning" role="status">
-                                                                        <span className="sr-only">Loading details...</span>
-                                                                    </div>
-                                                                </div>
-                                                            ) : orderDetails[order.id] ? (
-                                                                <div>
-                                                                    <table className="table table-sm">
-                                                                        <thead>
-                                                                            <tr>
-                                                                                <th>Item</th>
-                                                                                <th>Quantity</th>
-                                                                                <th className="text-right">Price</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            {orderDetails[order.id].items.map((item, index) => (
-                                                                                <tr key={index}>
-                                                                                    <td>{item.name}</td>
-                                                                                    <td>{item.quantity}</td>
-                                                                                    <td className="text-right">₺{(item.price * item.quantity).toFixed(2)}</td>
-                                                                                </tr>
-                                                                            ))}
-                                                                            <tr className="table-active">
-                                                                                <td colSpan="2"><strong>Total</strong></td>
-                                                                                <td className="text-right"><strong>₺{order.totalPrice.toFixed(2)}</strong></td>
-                                                                            </tr>
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                            ) : (
-                                                                <p className="text-center text-muted">No details available</p>
-                                                            )}
+                                                            <div>
+                                                                <table className="table table-sm">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th>Item</th>
+                                                                            <th style={{ width: "80px" }}>Quantity</th>
+                                                                            <th style={{ width: "120px" }} className="text-right">Price</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {Object.entries(order.items || {}).map(([itemKey, quantity], index) => {
+                                                                            try {
+                                                                                const item = JSON.parse(itemKey);
+                                                                                return (
+                                                                                    <tr key={index}>
+                                                                                        <td>{item.name}</td>
+                                                                                        <td className="text-center">{quantity}</td>
+                                                                                        <td className="text-right">₺{(item.price * quantity).toFixed(2)}</td>
+                                                                                    </tr>
+                                                                                );
+                                                                            } catch (e) {
+                                                                                console.error("Error parsing item:", e);
+                                                                                return null;
+                                                                            }
+                                                                        })}
+                                                                        <tr className="table-active font-weight-bold">
+                                                                            <td colSpan="2">Total</td>
+                                                                            <td className="text-right">₺{order.totalAmount.toFixed(2)}</td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
                                                         </div>
                                                     )}
                                                 </div>
@@ -446,8 +448,8 @@ const CourierDeliveriesPage = () => {
                                 ) : (
                                     <div className="text-center py-5">
                                         <FontAwesomeIcon icon={faMotorcycle} size="3x" className="text-muted mb-3" />
-                                        <h5>No {activeTab.replace('_', ' ')} deliveries</h5>
-                                        <p>You don't have any {activeTab.replace('_', ' ')} deliveries at the moment.</p>
+                                        <h5>No {statusDisplayNames[activeTab] || activeTab} deliveries</h5>
+                                        <p>You don't have any {statusDisplayNames[activeTab]?.toLowerCase() || activeTab} deliveries at the moment.</p>
                                         <button className="btn btn-warning" onClick={() => navigate('/courier-dashboard')}>
                                             Find Available Orders
                                         </button>

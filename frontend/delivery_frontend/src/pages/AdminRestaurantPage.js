@@ -220,13 +220,7 @@ const AdminRestaurantPage = () => {
         try {
             await api.post(`/admin/approve-restaurant/${restaurantId}`);
 
-            toast.success('Restaurant approved successfully', {
-                style: {
-                    backgroundColor: '#eb6825',
-                    color: 'white',
-                    fontWeight: 'bold',
-                },
-            });
+            toast.success('Restaurant approved successfully');
             fetchRestaurants(); // Refresh the list after approval
         } catch (err) {
             console.error("Failed to approve restaurant", err);
@@ -274,13 +268,7 @@ const AdminRestaurantPage = () => {
             };
 
             await api.put(`/admin/update-user/${selectedUser.email}`, formattedData);
-            toast.success('Changes saved successfully!', {
-                style: {
-                    backgroundColor: '#eb6825',
-                    color: 'white',
-                    fontWeight: 'bold',
-                },
-            });
+            toast.success('Changes saved successfully!');
             setSelectedUser(null);
             fetchRestaurants(); // Refresh the list after edit
         } catch (err) {
@@ -332,13 +320,7 @@ const AdminRestaurantPage = () => {
             };
 
             await api.post('/register', formattedData);
-            toast.success('Restaurant created successfully!', {
-                style: {
-                    backgroundColor: '#eb6825',
-                    color: 'white',
-                    fontWeight: 'bold',
-                },
-            });
+            toast.success('Restaurant created successfully!');
             setShowAddModal(false);
             setAddUserForm({
                 name: '',

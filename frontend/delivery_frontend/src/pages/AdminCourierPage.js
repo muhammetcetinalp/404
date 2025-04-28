@@ -183,13 +183,7 @@ const AdminCourierPage = () => {
             };
 
             await api.put(`/admin/update-user/${selectedUser.email}`, formattedData);
-            toast.success('Changes saved successfully!', {
-                style: {
-                    backgroundColor: '#eb6825',
-                    color: 'white',
-                    fontWeight: 'bold',
-                },
-            });
+            toast.success('Changes saved successfully!');
             setSelectedUser(null);
             fetchCouriers(); // Refresh the list after edit
         } catch (err) {
@@ -234,13 +228,7 @@ const AdminCourierPage = () => {
             };
 
             await api.post('/register', formattedData);
-            toast.success('Courier created successfully!', {
-                style: {
-                    backgroundColor: '#eb6825',
-                    color: 'white',
-                    fontWeight: 'bold',
-                },
-            });
+            toast.success('Courier created successfully!');
             setShowAddModal(false);
             setAddUserForm({
                 name: '',

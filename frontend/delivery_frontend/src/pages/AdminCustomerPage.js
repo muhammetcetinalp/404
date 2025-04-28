@@ -51,35 +51,35 @@ const AdminCustomerPage = () => {
 
     const validateForm = (form, isEdit = false) => {
         const errors = {};
-        
+
         if (!validateEmail(form.email) && !isEdit) {
             errors.email = 'Please enter a valid email address';
         }
-        
+
         if (!validatePhone(form.phone)) {
             errors.phone = 'Please enter a valid Turkish phone number (10 digits without +90)';
         }
-        
+
         if (!form.name || form.name.trim() === '') {
             errors.name = 'Name is required';
         }
-        
+
         if (!isEdit && (!form.password)) {
             errors.password = 'Password must be fill';
         }
-        
+
         if (!form.city || form.city.trim() === '') {
             errors.city = 'City is required';
         }
-        
+
         if (!form.district || form.district.trim() === '') {
             errors.district = 'District is required';
         }
-        
+
         if (!form.address || form.address.trim() === '') {
             errors.address = 'Address is required';
         }
-        
+
         return errors;
     };
 
@@ -176,7 +176,7 @@ const AdminCustomerPage = () => {
 
     const handleEditChange = (e) => {
         setEditForm({ ...editForm, [e.target.name]: e.target.value });
-        
+
         // Clear error for this field when user starts typing
         if (editFormErrors[e.target.name]) {
             setEditFormErrors({
@@ -188,27 +188,21 @@ const AdminCustomerPage = () => {
 
     const saveEdit = async () => {
         const errors = validateForm(editForm, true);
-        
+
         if (Object.keys(errors).length > 0) {
             setEditFormErrors(errors);
             return;
         }
-        
+
         try {
             // Format phone number with +90 prefix if it doesn't have it
             const formattedData = {
                 ...editForm,
                 phone: editForm.phone
             };
-            
+
             await api.put(`/admin/update-user/${selectedUser.email}`, formattedData);
-            toast.success('Changes saved successfully!', {
-                style: {
-                    backgroundColor: '#eb6825',
-                    color: 'white',
-                    fontWeight: 'bold',
-                },
-            });
+            toast.success('Changes saved successfully!');
             setSelectedUser(null);
             fetchCustomers(); // Refresh the list after edit
         } catch (err) {
@@ -225,7 +219,7 @@ const AdminCustomerPage = () => {
 
     const handleAddUserChange = (e) => {
         setAddUserForm({ ...addUserForm, [e.target.name]: e.target.value });
-        
+
         // Clear error for this field when user starts typing
         if (formErrors[e.target.name]) {
             setFormErrors({
@@ -237,29 +231,23 @@ const AdminCustomerPage = () => {
 
     const submitAddUser = async (e) => {
         e.preventDefault();
-        
+
         const errors = validateForm(addUserForm);
-        
+
         if (Object.keys(errors).length > 0) {
             setFormErrors(errors);
             return;
         }
-        
+
         try {
             // Format phone number with +90 prefix
             const formattedData = {
                 ...addUserForm,
                 phone: addUserForm.phone
             };
-            
+
             await api.post('/register', formattedData);
-            toast.success('Customer created successfully!', {
-                style: {
-                    backgroundColor: '#eb6825',
-                    color: 'white',
-                    fontWeight: 'bold',
-                },
-            });
+            toast.success('Customer created successfully!');
             setShowAddModal(false);
             setAddUserForm({
                 name: '',

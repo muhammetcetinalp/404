@@ -238,14 +238,7 @@ const CheckoutPage = () => {
 
             await api.post(`/orders/create?${queryParams.toString()}`, body);
 
-            toast.success('Order placed successfully!', {
-                style: {
-                    backgroundColor: '#eb6825',
-                    color: 'white',
-                    fontWeight: 'bold',
-                },
-                closeButton: <CustomCloseButton />
-            });
+            toast.success('Order placed successfully!');
 
             setTimeout(() => {
                 navigate('/customer-dashboard');

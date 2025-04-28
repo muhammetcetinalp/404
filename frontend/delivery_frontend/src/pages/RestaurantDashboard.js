@@ -106,6 +106,16 @@ const RestaurantDashboard = () => {
             );
 
             console.log("Past Orders fetched:", response.data);
+            // Tip verisinin doğru gelip gelmediğini kontrol edelim
+            if (response.data && response.data.length > 0) {
+                console.log("First order complete data:", response.data[0]);
+                console.log("First order tip data:", {
+                    tip_amount: response.data[0].tip_amount,
+                    tipAmount: response.data[0].tipAmount,
+                    tip: response.data[0].tip
+                });
+            }
+            
             setOrders(response.data);
             setFilteredOrders(response.data);
             setLoading(false);
@@ -298,6 +308,21 @@ const RestaurantDashboard = () => {
             default:
                 return 'Unknown';
         }
+    };
+
+    // Ürünlerin toplam fiyatını hesaplayan fonksiyon ekleyelim
+    const calculateItemsTotal = (items) => {
+        if (!items || !Array.isArray(items) || items.length === 0) return 0;
+        return items.reduce((total, item) => total + (item.price * item.quantity), 0);
+    };
+    
+    // Tip miktarını hesaplayan fonksiyon ekleyelim
+    const calculateTipAmount = (order) => {
+        if (!order || !order.totalAmount) return 0;
+        const itemsTotal = calculateItemsTotal(order.items);
+        // Eğer ürünlerin toplamı total'dan küçükse aradaki fark tiptir
+        const tipAmount = order.totalAmount - itemsTotal;
+        return tipAmount > 0 ? tipAmount : 0;
     };
 
     return (
@@ -513,7 +538,7 @@ const RestaurantDashboard = () => {
                                                                 <p className="mb-1">
                                                                     <strong>Total Amount:</strong>
                                                                 </p>
-                                                                <h5 className="text-warning text-orange">${order.totalAmount.toFixed(2)}</h5>
+                                                                <h5 className="text-warning text-orange">{calculateItemsTotal(order.items).toFixed(2)} TL</h5>
                                                                 <p className="mb-0 small">
                                                                     <strong>Items:</strong> {order.items ? order.items.reduce((acc, item) => acc + (item.quantity || 0), 0) : 0}
                                                                 </p>
@@ -602,15 +627,31 @@ const RestaurantDashboard = () => {
                                                                                         <tr key={index}>
                                                                                             <td>{item.name}</td>
                                                                                             <td>{item.quantity}</td>
-                                                                                            <td>${item.price.toFixed(2)}</td>
-                                                                                            <td>${(item.quantity * item.price).toFixed(2)}</td>
+                                                                                            <td>{item.price.toFixed(2)} TL</td>
+                                                                                            <td>{(item.quantity * item.price).toFixed(2)} TL</td>
                                                                                         </tr>
                                                                                     ))}
                                                                                 </tbody>
                                                                                 <tfoot>
                                                                                     <tr>
-                                                                                        <td colSpan="3" className="text-right"><strong>Subtotal:</strong></td>
-                                                                                        <td>${order.totalAmount.toFixed(2)}</td>
+                                                                                        <td colSpan="3" className="text-right"><strong>Items Total:</strong></td>
+                                                                                        <td>{calculateItemsTotal(order.items).toFixed(2)} TL</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td colSpan="3" className="text-right"><strong>Tip Amount:</strong></td>
+                                                                                        <td>{calculateTipAmount(order).toFixed(2)} TL</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td colSpan="3" className="text-right"><strong>Tax:</strong></td>
+                                                                                        <td>5.00 TL</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td colSpan="3" className="text-right"><strong>Delivery Fee:</strong></td>
+                                                                                        <td>{(order.deliveryMethod === 'DELIVERY' || order.deliveryType === 'DELIVERY') ? '60.00' : '0.00'} TL</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td colSpan="3" className="text-right"><strong>Total:</strong></td>
+                                                                                        <td><strong>{(order.totalAmount + 5 + ((order.deliveryMethod === 'DELIVERY' || order.deliveryType === 'DELIVERY') ? 60 : 0)).toFixed(2)} TL</strong></td>
                                                                                     </tr>
                                                                                 </tfoot>
                                                                             </table>

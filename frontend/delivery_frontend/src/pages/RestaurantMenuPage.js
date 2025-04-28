@@ -378,7 +378,7 @@ const RestaurantMenuPage = () => {
                                                 <form onSubmit={editItemId ? handleUpdateMenuItem : handleAddMenuItem}>
                                                     <div className="row">
                                                         <div className="col-md-8 mb-3">
-                                                            <label htmlFor="name" className="form-label">Menu Item Name*</label>
+                                                            <label htmlFor="name" className="form-label text-dark">Menu Item Name*</label>
                                                             <input
                                                                 type="text"
                                                                 className="form-control"
@@ -390,7 +390,7 @@ const RestaurantMenuPage = () => {
                                                             />
                                                         </div>
                                                         <div className="col-md-4 mb-3">
-                                                            <label htmlFor="price" className="form-label">Price ($)*</label>
+                                                            <label htmlFor="price" className="form-label text-dark">Price (TL)*</label>
                                                             <input
                                                                 type="number"
                                                                 step="0.01"
@@ -406,7 +406,7 @@ const RestaurantMenuPage = () => {
                                                     </div>
                                                     <div className="row mb-3">
                                                         <div className="col-md-12">
-                                                            <label htmlFor="description" className="form-label">Description*</label>
+                                                            <label htmlFor="description" className="form-label text-dark">Description*</label>
                                                             <textarea
                                                                 className="form-control"
                                                                 id="description"
@@ -429,7 +429,7 @@ const RestaurantMenuPage = () => {
                                                                     checked={newMenuItem.available}
                                                                     onChange={handleInputChange}
                                                                 />
-                                                                <label className="form-check-label" htmlFor="available">
+                                                                <label className="form-check-label text-dark" htmlFor="available">
                                                                     Available
                                                                 </label>
                                                             </div>
@@ -477,7 +477,7 @@ const RestaurantMenuPage = () => {
                                                                     <p className="text-muted mb-2">{item.description}</p>
                                                                 </div>
                                                                 <div className="col-md-4 d-flex flex-column justify-content-between align-items-end text-md-end">
-                                                                    <h5 className="text-orange mb-3">${item.price.toFixed(2)}</h5>
+                                                                    <h5 className="text-orange mb-3">{item.price.toFixed(2)} TL</h5>
                                                                     <div className="btn-group" role="group">
                                                                         <button
                                                                             className="btn btn-outline-secondary"

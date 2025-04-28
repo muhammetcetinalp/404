@@ -13,7 +13,10 @@ import {
     faClipboardList,
     faArrowLeft,
     faSync,
-    faCalendar
+    faCalendar,
+    faChevronDown,
+    faChevronUp,
+    faClock
 } from '@fortawesome/free-solid-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -180,7 +183,7 @@ const CourierDeliveriesPage = () => {
             case 'IN_PROGRESS':
                 return (
                     <button
-                        className="btn btn-warning w-100"
+                        className="btn btn-orange btn-warning btn-sm w-100"
                         onClick={() => handleUpdateStatus(order.orderId, 'PICKED_UP')}
                     >
                         <FontAwesomeIcon icon={faBox} className="me-2" /> Mark as Picked Up
@@ -189,7 +192,7 @@ const CourierDeliveriesPage = () => {
             case 'PICKED_UP':
                 return (
                     <button
-                        className="btn btn-success w-100"
+                        className="btn btn-success btn-sm w-100"
                         onClick={() => handleUpdateStatus(order.orderId, 'DELIVERED')}
                     >
                         <FontAwesomeIcon icon={faTruck} className="me-2" /> Mark as Delivered
@@ -197,7 +200,7 @@ const CourierDeliveriesPage = () => {
                 );
             case 'DELIVERED':
                 return (
-                    <button className="btn btn-outline-success w-100" disabled>
+                    <button className="btn btn-outline-success btn-sm w-100" disabled>
                         <FontAwesomeIcon icon={faCheckCircle} className="me-2" /> Delivered
                     </button>
                 );
@@ -239,7 +242,7 @@ const CourierDeliveriesPage = () => {
                 icon={true}
             />
 
-            <div className="container-fluid py-5 flex-grow-1" style={{ background: "#EBEDF3", minHeight: "70vh" }}>
+            <div className="container-fluid py-4 flex-grow-1" style={{ background: "#EBEDF3", minHeight: "70vh" }}>
                 <div className="container">
                     {/* Status Filter Bar */}
                     <div className="row mb-4">
@@ -286,90 +289,96 @@ const CourierDeliveriesPage = () => {
                             <p className="mt-3">Loading your deliveries...</p>
                         </div>
                     ) : sortedDeliveries.length > 0 ? (
-                        <div className="row">
+                        <div className="order-list">
                             {sortedDeliveries.map(order => (
-                                <div className="col-lg-6 mb-4" key={order.orderId}>
-                                    <div className={`card delivery-card border-${getStatusColor(order.orderStatus)} h-100 shadow-sm`}>
-                                        <div className="card-header bg-white d-flex justify-content-between align-items-center">
-                                            <h5 className="m-0">
-                                                Order #{order.orderId.substring(order.orderId.length - 6)}
-                                            </h5>
-                                            <span className={`badge bg-${getStatusColor(order.orderStatus)}`}>
-                                                {order.orderStatus.replace('_', ' ')}
-                                            </span>
-                                        </div>
-
+                                <div className="order-item mb-4" key={order.orderId}>
+                                    <div className="card">
                                         <div className="card-body">
-                                            <div className="mb-3">
-                                                <p className="mb-2">
-                                                    <FontAwesomeIcon icon={faCalendar} className="text-muted me-2" />
-                                                    {formatDateTime(order.orderDate)}
-                                                </p>
-                                                <p className="mb-2">
-                                                    <FontAwesomeIcon icon={faMapMarkerAlt} className="text-danger me-2" />
-                                                    <strong>Restaurant:</strong> {order.restaurant?.name || "Restaurant"}
-                                                </p>
-                                                <p className="mb-2">
-                                                    <FontAwesomeIcon icon={faUser} className="text-warning me-2" />
-                                                    <strong>Customer:</strong> {order.customer?.name || "Customer"}
-                                                </p>
-                                                <p className="mb-0">
-                                                    <strong>Delivery to:</strong> {order.deliveryAddress}
-                                                </p>
-                                            </div>
-
-                                            <div className="d-flex justify-content-between align-items-center">
-                                                <h5 className="text-warning mb-0">₺{order.totalAmount?.toFixed(2)}</h5>
-                                                <button
-                                                    className="btn btn-sm btn-outline-warning"
-                                                    onClick={() => handleExpandOrder(order.orderId)}
-                                                >
-                                                    {expandedOrderId === order.orderId ? 'Hide Details' : 'View Items'}
-                                                </button>
-                                            </div>
-
-                                            {expandedOrderId === order.orderId && (
-                                                <div className="mt-3">
-                                                    <hr />
-                                                    <h6 className="mb-3">Order Items</h6>
-                                                    <div className="table-responsive">
-                                                        <table className="table table-sm">
-                                                            <thead className="table-light">
-                                                                <tr>
-                                                                    <th>Item</th>
-                                                                    <th className="text-center">Qty</th>
-                                                                    <th className="text-end">Price</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {order.items && Object.entries(order.items).map(([item, qty], idx) => {
-                                                                    try {
-                                                                        const parsedItem = JSON.parse(item);
-                                                                        return (
-                                                                            <tr key={idx}>
-                                                                                <td>{parsedItem.name}</td>
-                                                                                <td className="text-center">{qty}</td>
-                                                                                <td className="text-end">₺{(parsedItem.price * qty).toFixed(2)}</td>
-                                                                            </tr>
-                                                                        );
-                                                                    } catch (e) {
-                                                                        return null;
-                                                                    }
-                                                                })}
-                                                                <tr className="table-active">
-                                                                    <td colSpan="2"><strong>Total</strong></td>
-                                                                    <td className="text-end"><strong>₺{order.totalAmount?.toFixed(2)}</strong></td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
+                                            <div className="row align-items-center">
+                                                <div className="col-md-3">
+                                                    <div className="order-info-column">
+                                                        <h5 className="card-title">Order #{order.orderId.substring(order.orderId.length - 6)}</h5>
+                                                        <p className="mb-1 small">
+                                                            <FontAwesomeIcon icon={faCalendar} className="text-muted me-2" />
+                                                            {formatDateTime(order.orderDate)}
+                                                        </p>
+                                                        <span className={`badge bg-${getStatusColor(order.orderStatus)}`}>
+                                                            {order.orderStatus.replace('_', ' ')}
+                                                        </span>
                                                     </div>
                                                 </div>
-                                            )}
+                                                <div className="col-md-4">
+                                                    <p className="mb-1 small">
+                                                        <FontAwesomeIcon icon={faMapMarkerAlt} className="text-danger me-2" />
+                                                        <strong>From:</strong> {order.restaurant?.name || "Restaurant"}
+                                                    </p>
+                                                    <p className="mb-1 small">
+                                                        <FontAwesomeIcon icon={faUser} className="text-info me-2" />
+                                                        <strong>To:</strong> {order.customer?.name || "Customer"}
+                                                    </p>
+                                                    <p className="mb-0 small">
+                                                        <FontAwesomeIcon icon={faClock} className="text-secondary me-2" />
+                                                        <strong>Address:</strong> {order.deliveryAddress}
+                                                    </p>
+                                                </div>
+                                                <div className="col-md-3">
+                                                    <p className="mb-1">
+                                                        <strong>Total Amount:</strong>
+                                                    </p>
+                                                    <h5 className="text-orange">₺{order.totalAmount?.toFixed(2)}</h5>
+                                                </div>
+                                                <div className="col-md-2 text-right">
+                                                    {renderActionButton(order)}
+                                                    <button
+                                                        className="btn btn-outline-secondary btn-sm w-100 mt-2"
+                                                        onClick={() => handleExpandOrder(order.orderId)}
+                                                    >
+                                                        {expandedOrderId === order.orderId ? (
+                                                            <>Hide Items <FontAwesomeIcon icon={faChevronUp} /></>
+                                                        ) : (
+                                                            <>View Items <FontAwesomeIcon icon={faChevronDown} /></>
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
 
-                                        <div className="card-footer bg-white">
-                                            {renderActionButton(order)}
-                                        </div>
+                                        {expandedOrderId === order.orderId && (
+                                            <div className="card-footer order-details-section p-3">
+                                                <h6 className="mb-3">Order Items</h6>
+                                                <div className="table-responsive">
+                                                    <table className="table table-sm">
+                                                        <thead className="thead-light">
+                                                            <tr>
+                                                                <th>Item</th>
+                                                                <th className="text-center">Qty</th>
+                                                                <th className="text-end">Price</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {order.items && Object.entries(order.items).map(([item, qty], idx) => {
+                                                                try {
+                                                                    const parsedItem = JSON.parse(item);
+                                                                    return (
+                                                                        <tr key={idx}>
+                                                                            <td>{parsedItem.name}</td>
+                                                                            <td className="text-center">{qty}</td>
+                                                                            <td className="text-end">₺{(parsedItem.price * qty).toFixed(2)}</td>
+                                                                        </tr>
+                                                                    );
+                                                                } catch (e) {
+                                                                    return null;
+                                                                }
+                                                            })}
+                                                            <tr className="table-warning">
+                                                                <td colSpan="2"><strong>Total</strong></td>
+                                                                <td className="text-end"><strong>₺{order.totalAmount?.toFixed(2)}</strong></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             ))}

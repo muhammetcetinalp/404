@@ -1714,6 +1714,20 @@
     gap: 8px;
 }
 
+.btn-approve2,
+.btn-reject {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .approve-button,
 .approved-badge {
     display: inline-flex;
@@ -1751,7 +1765,19 @@
     /* border olmasın */
 }
 
+.btn-approve2 {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 4px 20px;
+    margin-bottom: 5px;
+    max-width: 95px;
+}
 
+.btn-approve2:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
 
 .btn-approve {
     background-color: var(--primary-color);
@@ -1782,6 +1808,14 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
+}
+
+.quick-actions .action-button:hover,
+.quick-actions .action-button:hover span,
+.quick-actions .action-button:hover .action-icon {
+
+    color: white;
+    transform: translateY(-2px);
 }
 
 .quick-actions .action-button {
@@ -1862,6 +1896,12 @@
     }
 
     .btn-approve,
+    .btn-reject {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .btn-approve2,
     .btn-reject {
         flex: 1;
         justify-content: center;
@@ -1986,4 +2026,184 @@
     justify-content: flex-end;
     gap: 0.5rem;
     border-top: 1px solid #eee;
+}
+
+/* Admin sayfaları için genel responsive tasarım */
+@media screen and (max-width: 1200px) {
+
+    .admin-content-grid,
+    .admin-stats-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .admin-content {
+        padding: 15px;
+    }
+}
+
+@media screen and (max-width: 992px) {
+    .admin-dashboard {
+        flex-direction: column;
+    }
+
+    .admin-sidebar {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    .admin-content {
+        width: 100%;
+    }
+
+    .user-table {
+        font-size: 14px;
+    }
+
+    .user-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .user-actions button {
+        padding: 5px;
+        margin: 2px 0;
+    }
+
+    .admin-card {
+        overflow-x: auto;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .restaurant-approval-item {
+        flex-direction: column;
+    }
+
+    .restaurant-approval-actions {
+        margin-top: 10px;
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .action-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .header-actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .search-container {
+        width: 100%;
+    }
+
+    .btn-add-user {
+        margin-top: 10px;
+        width: 100%;
+    }
+
+    .user-table-container {
+        overflow-x: auto;
+    }
+
+    .user-table thead th,
+    .user-table tbody td {
+        padding: 8px 5px;
+    }
+}
+
+@media screen and (max-width: 576px) {
+    .action-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-row {
+        flex-direction: column;
+    }
+
+    .form-group.half {
+        width: 100%;
+    }
+
+    .modal-content {
+        width: 95%;
+        padding: 15px;
+    }
+
+    .user-table {
+        font-size: 12px;
+    }
+
+    .status-dropdown-content {
+        right: 0;
+        left: auto;
+    }
+
+    /* İkona dönüşecek butonlar için */
+    .btn-edit,
+    .btn-delete,
+    .btn-status {
+        min-width: 30px;
+        padding: 5px;
+    }
+
+    .btn-edit span,
+    .btn-delete span,
+    .btn-status span {
+        display: none;
+    }
+}
+
+/* En küçük ekranlarda tablo görünümünü kart görünümüne çevirme */
+@media screen and (max-width: 480px) {
+
+    .user-table,
+    .user-table tbody,
+    .user-table thead,
+    .user-table tr,
+    .user-table th,
+    .user-table td {
+        display: block;
+    }
+
+    .user-table thead {
+        display: none;
+    }
+
+    .user-table tbody tr {
+        margin-bottom: 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 5px;
+        padding: 10px;
+    }
+
+    .user-table td {
+        text-align: right;
+        padding-left: 50%;
+        position: relative;
+        border-bottom: 1px solid #eee;
+    }
+
+    .user-table td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-weight: bold;
+    }
+
+    .user-table td:last-child {
+        border-bottom: none;
+    }
+
+    .user-actions {
+        display: flex;
+        justify-content: space-between;
+        padding-left: 0 !important;
+    }
 }

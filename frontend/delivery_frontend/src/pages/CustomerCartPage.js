@@ -21,7 +21,27 @@ const Cart = () => {
     const [warning, setWarning] = useState('');
     const [accountStatus, setAccountStatus] = useState('ACTIVE');
     const navigate = useNavigate();
-
+    const CustomCloseButton = ({ closeToast }) => (
+        <button
+            onClick={closeToast}
+            style={{
+                background: 'transparent',
+                border: 'none',
+                fontSize: '16px',
+                color: 'white',
+                cursor: 'pointer',
+                padding: '4px',
+                margin: '0',
+                width: '35px',
+                height: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
+            ×
+        </button>
+    );
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -159,13 +179,17 @@ const Cart = () => {
                 position="top-right"
                 autoClose={3000}
                 hideProgressBar={false}
-                newestOnTop
+                newestOnTop={false}
                 closeOnClick
                 rtl={false}
                 pauseOnFocusLoss
                 draggable
                 pauseOnHover
                 theme="colored"
+                closeButton={<CustomCloseButton />}
+                toastClassName="custom-toast"
+                bodyClassName="custom-toast-body"
+                icon={true}
             />
 
             <div className="container-fluid py-4" style={{ background: "#EBEDF3", minHeight: "60vh" }}>

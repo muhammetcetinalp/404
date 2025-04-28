@@ -20,7 +20,27 @@ const OrderPage = () => {
     const [expandedOrders, setExpandedOrders] = useState({});
     const [activeStatus, setActiveStatus] = useState('all');
     const navigate = useNavigate();
-
+    const CustomCloseButton = ({ closeToast }) => (
+        <button
+            onClick={closeToast}
+            style={{
+                background: 'transparent',
+                border: 'none',
+                fontSize: '16px',
+                color: 'white',
+                cursor: 'pointer',
+                padding: '4px',
+                margin: '0',
+                width: '35px',
+                height: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
+            ×
+        </button>
+    );
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -125,6 +145,10 @@ const OrderPage = () => {
                 draggable
                 pauseOnHover
                 theme="colored"
+                closeButton={<CustomCloseButton />}
+                toastClassName="custom-toast"
+                bodyClassName="custom-toast-body"
+                icon={true}
             />
 
             <div className="container-fluid py-5" style={{ background: "#EBEDF3", minHeight: "70vh" }}>

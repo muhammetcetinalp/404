@@ -53,7 +53,9 @@ public class CourierRestaurantRequestService {
                         r.getRestaurant().getName(),
                         r.getRestaurant().getRestaurantId(),
                         r.getStatus(),
-                        r.getCreatedAt()
+                        r.getCreatedAt(),
+                        r.getCourier().getEmail(),
+                        r.getCourier().getPhone()
                 ))
                 .collect(Collectors.toList());
     }

@@ -35,7 +35,27 @@ const CourierDeliveriesPage = () => {
     const [activeTab, setActiveTab] = useState('CURRENT'); // CURRENT, COMPLETED, ALL
     const [refreshing, setRefreshing] = useState(false);
     const navigate = useNavigate();
-
+    const CustomCloseButton = ({ closeToast }) => (
+        <button
+            onClick={closeToast}
+            style={{
+                background: 'transparent',
+                border: 'none',
+                fontSize: '16px',
+                color: 'white',
+                cursor: 'pointer',
+                padding: '4px',
+                margin: '0',
+                width: '35px',
+                height: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
+            ×
+        </button>
+    );
     const token = localStorage.getItem('token');
 
     // Get courier ID from JWT token
@@ -89,7 +109,8 @@ const CourierDeliveriesPage = () => {
 
     const handleUpdateStatus = async (orderId, newStatus) => {
         try {
-            await api.patch(`/courier/orders/update-status/${orderId}`, newStatus, {
+            // Send the status as a string value, not a JSON object
+            await api.patch(`/courier/orders/update-status/${orderId}`, { status: newStatus }, {
                 headers: {
                     'Content-Type': 'application/json'
                 }
@@ -212,6 +233,10 @@ const CourierDeliveriesPage = () => {
                 draggable
                 pauseOnHover
                 theme="colored"
+                closeButton={<CustomCloseButton />}
+                toastClassName="custom-toast"
+                bodyClassName="custom-toast-body"
+                icon={true}
             />
 
             <div className="container-fluid py-5 flex-grow-1" style={{ background: "#EBEDF3", minHeight: "70vh" }}>

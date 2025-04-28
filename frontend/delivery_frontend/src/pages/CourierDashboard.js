@@ -289,12 +289,12 @@ const CourierDashboard = () => {
                                                             <h5 className="card-title font-weight-bold text-warning mb-2">
                                                                 Order #{order.orderId.substring(order.orderId.length - 6)}
                                                             </h5>
-                                                            <p className="card-text mb-1">
-                                                                <FontAwesomeIcon icon={faMapMarkerAlt} className="text-danger mr-2" />
+                                                            <p className="card-text mb-1 ">
+                                                                <FontAwesomeIcon icon={faMapMarkerAlt} className="text-danger mr-2 me-1" />
                                                                 <strong>From:</strong> {order.restaurant?.address || "Restaurant Address"}
                                                             </p>
                                                             <p className="card-text mb-1">
-                                                                <FontAwesomeIcon icon={faUser} className="text-info mr-2" />
+                                                                <FontAwesomeIcon icon={faUser} className="text-info mr-2 me-1" />
                                                                 <strong>To:</strong> {order.deliveryAddress}
                                                             </p>
                                                             <p className="card-text text-muted">

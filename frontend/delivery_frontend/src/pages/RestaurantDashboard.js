@@ -26,7 +26,27 @@ const RestaurantDashboard = () => {
     const [restaurantOpen, setRestaurantOpen] = useState();
     const [accountStatus, setAccountStatus] = useState('ACTIVE');
     const navigate = useNavigate();
-
+    const CustomCloseButton = ({ closeToast }) => (
+        <button
+            onClick={closeToast}
+            style={{
+                background: 'transparent',
+                border: 'none',
+                fontSize: '16px',
+                color: 'white',
+                cursor: 'pointer',
+                padding: '4px',
+                margin: '0',
+                width: '35px',
+                height: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
+            ×
+        </button>
+    );
     const token = localStorage.getItem('token');
 
     // Get restaurant ID from JWT token
@@ -55,6 +75,7 @@ const RestaurantDashboard = () => {
         { value: 'IN PROGRESS', label: 'Accepted' },
         { value: 'PREPARING', label: 'Preparing' },
         { value: 'READY', label: 'Ready for Pickup' },
+        { value: 'PICKED_UP', label: 'Picked Up' },
         { value: 'DELIVERED', label: 'Delivered' },
         { value: 'CANCELLED', label: 'Cancelled' }
     ];
@@ -115,7 +136,7 @@ const RestaurantDashboard = () => {
                     tip: response.data[0].tip
                 });
             }
-            
+
             setOrders(response.data);
             setFilteredOrders(response.data);
             setLoading(false);
@@ -273,12 +294,14 @@ const RestaurantDashboard = () => {
 
     // Function to get status badge class
     const getStatusBadgeClass = (status) => {
-        switch (status) {
+        const upperStatus = status.toUpperCase();
+        switch (upperStatus) {
             case 'PENDING': return 'bg-warning';
             case 'IN PROGRESS': return 'bg-primary';
             case 'ACCEPTED': return 'bg-primary';
             case 'PREPARING': return 'bg-info';
             case 'READY': return 'bg-success';
+            case 'PICKED_UP': return 'bg-primary';
             case 'DELIVERED': return 'bg-success';
             case 'CANCELLED': return 'bg-danger';
             default: return 'bg-secondary';
@@ -287,15 +310,16 @@ const RestaurantDashboard = () => {
 
     // Calculate estimated delivery time
     const getEstimatedDeliveryTime = (order) => {
-        if (order.orderStatus === 'DELIVERED') return 'Delivered';
-        if (order.orderStatus === 'CANCELLED') return 'Cancelled';
+        const status = order.orderStatus.toUpperCase();
+        if (status === 'DELIVERED') return 'Delivered';
+        if (status === 'CANCELLED') return 'Cancelled';
 
         // Basic calculation - adjust based on your business logic
         const orderTime = new Date(order.orderDate);
         const now = new Date();
         const minutesSinceOrder = Math.floor((now - orderTime) / (1000 * 60));
 
-        switch (order.orderStatus) {
+        switch (status) {
             case 'PENDING':
                 return '30-45 min';
             case 'IN PROGRESS':
@@ -305,6 +329,8 @@ const RestaurantDashboard = () => {
                 return '15-25 min';
             case 'READY':
                 return '5-10 min';
+            case 'PICKED_UP':
+                return '5-15 min';
             default:
                 return 'Unknown';
         }
@@ -315,7 +341,7 @@ const RestaurantDashboard = () => {
         if (!items || !Array.isArray(items) || items.length === 0) return 0;
         return items.reduce((total, item) => total + (item.price * item.quantity), 0);
     };
-    
+
     // Tip miktarını hesaplayan fonksiyon ekleyelim
     const calculateTipAmount = (order) => {
         if (!order || !order.totalAmount) return 0;
@@ -354,15 +380,19 @@ const RestaurantDashboard = () => {
 
             <ToastContainer
                 position="top-right"
-                autoClose={5000}
+                autoClose={3000}
                 hideProgressBar={false}
-                newestOnTop
+                newestOnTop={false}
                 closeOnClick
                 rtl={false}
                 pauseOnFocusLoss
                 draggable
                 pauseOnHover
                 theme="colored"
+                closeButton={<CustomCloseButton />}
+                toastClassName="custom-toast"
+                bodyClassName="custom-toast-body"
+                icon={true}
             />
 
             <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
@@ -482,6 +512,7 @@ const RestaurantDashboard = () => {
                                                     {option.value === 'ACCEPTED' && <FontAwesomeIcon icon={faCheckCircle} />}
                                                     {option.value === 'PREPARING' && <FontAwesomeIcon icon={faUtensils} />}
                                                     {option.value === 'READY' && <FontAwesomeIcon icon={faShippingFast} />}
+                                                    {option.value === 'PICKED_UP' && <FontAwesomeIcon icon={faShippingFast} />}
                                                     {option.value === 'DELIVERED' && <FontAwesomeIcon icon={faCheckCircle} />}
                                                     {option.value === 'CANCELLED' && <FontAwesomeIcon icon={faTimesCircle} />}
                                                 </span>
@@ -519,7 +550,7 @@ const RestaurantDashboard = () => {
                                                                         <strong>Time:</strong> {formatDateTime(order.orderDate)}
                                                                     </p>
                                                                     <span className={`badge ${getStatusBadgeClass(order.orderStatus)}`}>
-                                                                        {order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1).toLowerCase()}
+                                                                        {order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1).toLowerCase().replace('_', ' ')}
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -555,7 +586,7 @@ const RestaurantDashboard = () => {
                                                                     )}
                                                                 </button>
 
-                                                                {order.orderStatus === 'PENDING' && (
+                                                                {order.orderStatus.toUpperCase() === 'PENDING' && (
                                                                     <>
                                                                         <button
                                                                             className="btn btn-success btn-sm mb-2 w-100"
@@ -573,7 +604,7 @@ const RestaurantDashboard = () => {
                                                                         </button>
                                                                     </>
                                                                 )}
-                                                                {order.orderStatus === 'IN PROGRESS' && (
+                                                                {order.orderStatus.toUpperCase() === 'IN PROGRESS' && (
                                                                     <button
                                                                         className="btn btn-info btn-sm w-100"
                                                                         onClick={() => handleUpdateOrderStatus(order.orderId, 'PREPARING')}
@@ -583,13 +614,23 @@ const RestaurantDashboard = () => {
                                                                     </button>
                                                                 )}
 
-                                                                {order.orderStatus === 'PREPARING' && (
+                                                                {order.orderStatus.toUpperCase() === 'PREPARING' && (
                                                                     <button
                                                                         className="btn btn-success btn-sm w-100"
                                                                         onClick={() => handleUpdateOrderStatus(order.orderId, 'READY')}
                                                                         disabled={accountStatus === 'SUSPENDED'}
                                                                     >
                                                                         Ready for Pickup
+                                                                    </button>
+                                                                )}
+
+                                                                {order.orderStatus.toUpperCase() === 'READY' && (
+                                                                    <button
+                                                                        className="btn btn-primary btn-sm w-100"
+                                                                        onClick={() => handleUpdateOrderStatus(order.orderId, 'PICKED_UP')}
+                                                                        disabled={accountStatus === 'SUSPENDED'}
+                                                                    >
+                                                                        Mark as Picked Up
                                                                     </button>
                                                                 )}
                                                             </div>
@@ -662,32 +703,38 @@ const RestaurantDashboard = () => {
                                                                                 <ul className="list-group list-group-flush">
                                                                                     <li className="list-group-item d-flex justify-content-between align-items-center">
                                                                                         <span>Order Placed</span>
-                                                                                        <span className={`badge ${order.orderStatus === 'CANCELLED' ? 'bg-danger' : 'bg-success'}`}>
-                                                                                            {order.orderStatus === 'CANCELLED' ? 'Cancelled' : 'Completed'}
+                                                                                        <span className={`badge ${order.orderStatus.toUpperCase() === 'CANCELLED' ? 'bg-danger' : 'bg-success'}`}>
+                                                                                            {order.orderStatus.toUpperCase() === 'CANCELLED' ? 'Cancelled' : 'Completed'}
                                                                                         </span>
                                                                                     </li>
                                                                                     <li className="list-group-item d-flex justify-content-between align-items-center">
                                                                                         <span>Order Accepted</span>
-                                                                                        <span className={`badge ${order.orderStatus === 'CANCELLED' ? 'bg-danger' : (order.orderStatus === 'PENDING' ? 'bg-secondary' : 'bg-success')}`}>
-                                                                                            {order.orderStatus === 'CANCELLED' ? 'Cancelled' : (order.orderStatus === 'PENDING' ? 'Pending' : 'Completed')}
+                                                                                        <span className={`badge ${order.orderStatus.toUpperCase() === 'CANCELLED' ? 'bg-danger' : (order.orderStatus.toUpperCase() === 'PENDING' ? 'bg-secondary' : 'bg-success')}`}>
+                                                                                            {order.orderStatus.toUpperCase() === 'CANCELLED' ? 'Cancelled' : (order.orderStatus.toUpperCase() === 'PENDING' ? 'Pending' : 'Completed')}
                                                                                         </span>
                                                                                     </li>
                                                                                     <li className="list-group-item d-flex justify-content-between align-items-center">
                                                                                         <span>Preparing</span>
-                                                                                        <span className={`badge ${order.orderStatus === 'CANCELLED' ? 'bg-danger' : (['PENDING', 'IN PROGRESS'].includes(order.orderStatus) ? 'bg-secondary' : 'bg-success')}`}>
-                                                                                            {order.orderStatus === 'CANCELLED' ? 'Cancelled' : (['PENDING', 'IN PROGRESS'].includes(order.orderStatus) ? 'Pending' : 'Completed')}
+                                                                                        <span className={`badge ${order.orderStatus.toUpperCase() === 'CANCELLED' ? 'bg-danger' : (['PENDING', 'IN PROGRESS'].includes(order.orderStatus.toUpperCase()) ? 'bg-secondary' : 'bg-success')}`}>
+                                                                                            {order.orderStatus.toUpperCase() === 'CANCELLED' ? 'Cancelled' : (['PENDING', 'IN PROGRESS'].includes(order.orderStatus.toUpperCase()) ? 'Pending' : 'Completed')}
                                                                                         </span>
                                                                                     </li>
                                                                                     <li className="list-group-item d-flex justify-content-between align-items-center">
                                                                                         <span>Ready for Pickup</span>
-                                                                                        <span className={`badge ${order.orderStatus === 'CANCELLED' ? 'bg-danger' : (['PENDING', 'IN PROGRESS', 'PREPARING'].includes(order.orderStatus) ? 'bg-secondary' : 'bg-success')}`}>
-                                                                                            {order.orderStatus === 'CANCELLED' ? 'Cancelled' : (['PENDING', 'IN PROGRESS', 'PREPARING'].includes(order.orderStatus) ? 'Pending' : 'Completed')}
+                                                                                        <span className={`badge ${order.orderStatus.toUpperCase() === 'CANCELLED' ? 'bg-danger' : (['PENDING', 'IN PROGRESS', 'PREPARING'].includes(order.orderStatus.toUpperCase()) ? 'bg-secondary' : 'bg-success')}`}>
+                                                                                            {order.orderStatus.toUpperCase() === 'CANCELLED' ? 'Cancelled' : (['PENDING', 'IN PROGRESS', 'PREPARING'].includes(order.orderStatus.toUpperCase()) ? 'Pending' : 'Completed')}
+                                                                                        </span>
+                                                                                    </li>
+                                                                                    <li className="list-group-item d-flex justify-content-between align-items-center">
+                                                                                        <span>Picked Up</span>
+                                                                                        <span className={`badge ${order.orderStatus.toUpperCase() === 'CANCELLED' ? 'bg-danger' : (['PENDING', 'IN PROGRESS', 'PREPARING', 'READY'].includes(order.orderStatus.toUpperCase()) ? 'bg-secondary' : 'bg-success')}`}>
+                                                                                            {order.orderStatus.toUpperCase() === 'CANCELLED' ? 'Cancelled' : (['PENDING', 'IN PROGRESS', 'PREPARING', 'READY'].includes(order.orderStatus.toUpperCase()) ? 'Pending' : 'Completed')}
                                                                                         </span>
                                                                                     </li>
                                                                                     <li className="list-group-item d-flex justify-content-between align-items-center">
                                                                                         <span>Delivered</span>
-                                                                                        <span className={`badge ${order.orderStatus === 'CANCELLED' ? 'bg-danger' : (order.orderStatus === 'DELIVERED' ? 'bg-success' : 'bg-secondary')}`}>
-                                                                                            {order.orderStatus === 'CANCELLED' ? 'Cancelled' : (order.orderStatus === 'DELIVERED' ? 'Completed' : 'Pending')}
+                                                                                        <span className={`badge ${order.orderStatus.toUpperCase() === 'CANCELLED' ? 'bg-danger' : (order.orderStatus.toUpperCase() === 'DELIVERED' ? 'bg-success' : 'bg-secondary')}`}>
+                                                                                            {order.orderStatus.toUpperCase() === 'CANCELLED' ? 'Cancelled' : (order.orderStatus.toUpperCase() === 'DELIVERED' ? 'Completed' : 'Pending')}
                                                                                         </span>
                                                                                     </li>
                                                                                 </ul>

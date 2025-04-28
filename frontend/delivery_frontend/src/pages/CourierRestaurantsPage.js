@@ -387,10 +387,10 @@ const CourierRestaurantsPage = () => {
                                         <p className="mt-2">Loading restaurants...</p>
                                     </div>
                                 ) : filteredRestaurants.length > 0 ? (
-                                    <div className="restaurant-list">
+                                    <div className="restaurant-list w-100 px-2">
                                         {filteredRestaurants.map(restaurant => (
                                             <div className="restaurant-item mb-4" key={restaurant.restaurantId}>
-                                                <div className="card restaurant-card">
+                                                <div className="card restaurant-card w-100">
                                                     <div className="card-body">
                                                         <div className="row align-items-center">
                                                             <div className="col-md-2">
@@ -416,7 +416,7 @@ const CourierRestaurantsPage = () => {
                                                                     <small><strong>Cuisine:</strong> {restaurant.cuisineType}</small>
                                                                 </p>
                                                                 <p className="card-text mb-1">
-                                                                    <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-1" />
+                                                                    <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-1 me-1" />
                                                                     <small>{restaurant.address}</small>
                                                                 </p>
                                                                 <p className="card-text">

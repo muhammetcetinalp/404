@@ -77,6 +77,9 @@ const Header = () => {
       <Nav.Link as={Link} to="/menu-management" className="custom-link">
         Menus
       </Nav.Link>
+      <Nav.Link as={Link} to="/courier-management" className="custom-link">
+        Couriers
+      </Nav.Link>
       <NavDropdown title={email || 'RESTAURANT'} id="restaurant-dropdown" align="end"
         className="custom-link nav-dropdown">
         <NavDropdown.Item as={Link} to="/profile">Profile</NavDropdown.Item>

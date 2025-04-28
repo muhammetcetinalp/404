@@ -1,6 +1,7 @@
 import React from 'react';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import Home from './pages/Home';
@@ -23,6 +24,7 @@ import CustomerCheckoutPage from './pages/CustomerCheckoutPage.js';
 import RestaurantMenuPage from './pages/RestaurantMenuPage.js';
 import CourierDeliveriesPage from './pages/CourierDeliveriesPage.js';
 import CourierRestaurantsPage from './pages/CourierRestaurantsPage.js';
+import RestaurantCourierManagementPage from './pages/RestaurantCourierManagementPage.js';
 
 // Import new admin pages
 import AdminCustomerPage from './pages/AdminCustomerPage';
@@ -50,6 +52,7 @@ const App = () => {
         <Route path="/restaurant-dashboard" element={<PrivateRoute allowedRoles={['restaurant_owner']}> <RestaurantDashboard /> </PrivateRoute>} />
         <Route path="/courier-dashboard" element={<PrivateRoute allowedRoles={['courier']}> <CourierDashboard /> </PrivateRoute>} />
         <Route path="/menu-management" element={<PrivateRoute allowedRoles={['restaurant_owner']}> <RestaurantMenuPage /> </PrivateRoute>} />
+        <Route path="/courier-management" element={<PrivateRoute allowedRoles={['restaurant_owner']}> <RestaurantCourierManagementPage /> </PrivateRoute>} />
         <Route path="/cart" element={<PrivateRoute allowedRoles={['customer']}> <CustomerCartPage /> </PrivateRoute>} />
         <Route path="/checkout" element={<PrivateRoute allowedRoles={['customer']}> <CustomerCheckoutPage /> </PrivateRoute>} />
         <Route path="/orders" element={<PrivateRoute allowedRoles={['customer']}> <CustomerOrderPage /> </PrivateRoute>} />

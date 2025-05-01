@@ -13,7 +13,8 @@ import {
     faSearch,
     faFont,
     faThumbsUp,
-    faSort
+    faSort,
+    faStore
 } from '@fortawesome/free-solid-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -40,6 +41,7 @@ const CourierRestaurantsPage = () => {
     const [sortOption, setSortOption] = useState('name');
     const [filterOption, setFilterOption] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
+    const [processingRegistration, setProcessingRegistration] = useState(null);
     const navigate = useNavigate();
 
     const name = localStorage.getItem('name');
@@ -72,9 +74,9 @@ const CourierRestaurantsPage = () => {
 
     // Array of sort options
     const sortOptions = [
-        { value: 'name', label: 'Restaurant Name', icon: faFont },
-        { value: 'rating', label: 'Highest Rating', icon: faStar },
-        { value: 'orders', label: 'Most Orders', icon: faSort }
+        { value: 'bestMatch', label: 'Best Match', icon: faThumbsUp },
+        { value: 'name', label: 'Alphabetical', icon: faFont },
+        { value: 'rating', label: 'Highest Rating', icon: faStar }
     ];
 
     useEffect(() => {
@@ -163,9 +165,7 @@ const CourierRestaurantsPage = () => {
             case 'rating':
                 results.sort((a, b) => b.rating - a.rating);
                 break;
-            case 'orders':
-                results.sort((a, b) => b.totalOrders - a.totalOrders);
-                break;
+            case 'bestMatch':
             default:
                 break;
         }
@@ -175,6 +175,7 @@ const CourierRestaurantsPage = () => {
 
     const handleRequestRegistration = async (restaurantId) => {
         try {
+            setProcessingRegistration(restaurantId);
             await CourierIntegration.sendRestaurantRequest(courierId, restaurantId);
 
             // Update local state to reflect the change
@@ -198,6 +199,8 @@ const CourierRestaurantsPage = () => {
         } catch (err) {
             console.error('Error:', err);
             setError('Failed to request registration. Please try again.');
+        } finally {
+            setProcessingRegistration(null);
         }
     };
 
@@ -205,6 +208,7 @@ const CourierRestaurantsPage = () => {
     const handleCancelRequest = async (restaurantId) => {
         try {
             console.log(`Cancelling request for restaurant ID: ${restaurantId}`);
+            setProcessingRegistration(restaurantId);
 
             // API isteği
             await api.post('/courier-requests/cancel', null, {
@@ -240,6 +244,8 @@ const CourierRestaurantsPage = () => {
         } catch (error) {
             console.error('Error cancelling request:', error);
             // Hata durumunda kullanıcıya bildir
+        } finally {
+            setProcessingRegistration(null);
         }
     };
     const formatDate = (dateTimeStr) => {
@@ -249,11 +255,13 @@ const CourierRestaurantsPage = () => {
     };
 
     const renderStatusButton = (restaurant) => {
+        const isProcessing = processingRegistration === restaurant.restaurantId;
+
         switch (restaurant.status) {
             case 'ACCEPTED':
                 return (
                     <div className="status-container">
-                        <div className="status-indicator registered">
+                        <div className="status-indicator registered" style={{ backgroundColor: '#eb6825' }}>
                             <FontAwesomeIcon icon={faCheckCircle} />
                         </div>
                         <div className="status-text">
@@ -264,28 +272,51 @@ const CourierRestaurantsPage = () => {
                 );
             case 'PENDING':
                 return (
-                    <div>
-                        <span className="badge bg-warning p-2 mb-2 d-block">
-                            <FontAwesomeIcon icon={faHourglassHalf} className="mr-1" />
+                    <div style={{ minHeight: '72px' }}>
+                        <span className="btn-pending-approval badge bg-warning p-2 mb-2 d-block text-white">
+                            <FontAwesomeIcon icon={faHourglassHalf} className="me-2" />
                             Pending Approval
                         </span>
                         <button
-                            className="btn btn-outline-danger btn-sm"
+                            className="btn btn-outline-danger btn-sm w-100"
                             onClick={() => handleCancelRequest(restaurant.restaurantId)}
+                            disabled={isProcessing}
                         >
-                            <FontAwesomeIcon icon={faTimes} className="mr-1" />
-                            Cancel Request
+                            {isProcessing ? (
+                                <>
+                                    <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                    Processing...
+                                </>
+                            ) : (
+                                <>
+                                    <FontAwesomeIcon icon={faTimes} className="me-1" />
+                                    Cancel Request
+                                </>
+                            )}
                         </button>
                     </div>
                 );
             case 'NOT_REGISTERED':
                 return (
-                    <button
-                        className="btn btn-warning btn-sm"
-                        onClick={() => handleRequestRegistration(restaurant.restaurantId)}
-                    >
-                        Request Registration
-                    </button>
+                    <div style={{ minHeight: '72px', display: 'flex', alignItems: 'center' }}>
+                        <button
+                            className="btn btn-orange btn-warning btn-sm w-100"
+                            onClick={() => handleRequestRegistration(restaurant.restaurantId)}
+                            disabled={isProcessing}
+                        >
+                            {isProcessing ? (
+                                <>
+                                    <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                    Processing...
+                                </>
+                            ) : (
+                                <>
+                                    <FontAwesomeIcon icon={faStore} className="me-1" />
+                                    Request Registration
+                                </>
+                            )}
+                        </button>
+                    </div>
                 );
             default:
                 return null;
@@ -300,7 +331,7 @@ const CourierRestaurantsPage = () => {
                 <div className="container dashboard-welcome-text">
                     <div className="row justify-content-center">
                         <div className="col-lg-5 col-md-10 col-sm-12">
-                            <h1 className="display-4 text-white mb-4">Restaurant Network</h1>
+
                             <div className="search-container mb-4">
                                 <div className="input-group" style={{ borderRadius: '25px', overflow: 'hidden' }}>
                                     <input
@@ -312,7 +343,7 @@ const CourierRestaurantsPage = () => {
                                         style={{ height: '50px' }}
                                     />
                                     <button
-                                        className="btn btn-warning border-0"
+                                        className="btn btn-orange btn-warning border-0"
                                         type="button"
                                         style={{ height: '50px', width: '60px' }}
                                     >
@@ -325,7 +356,7 @@ const CourierRestaurantsPage = () => {
                 </div>
             </div>
 
-            <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
+            <div className="container-fluid py-4" style={{ background: "#EBEDF3", minHeight: "70vh" }}>
                 <div className="container">
                     {error && (
                         <div className="alert alert-danger" role="alert">
@@ -336,9 +367,9 @@ const CourierRestaurantsPage = () => {
                     <div className="row">
                         {/* Left Sidebar - Filters and Sorting */}
                         <div className="col-lg-3 col-md-4 col-sm-12 mb-4">
-                            <div className="bg-white p-4 dashboard-sidebar">
+                            <div className="bg-white p-4 dashboard-sidebar rounded shadow-sm">
                                 <h5 className="mb-3">
-                                    <FontAwesomeIcon icon={faFilter} className="mr-2" />
+                                    <FontAwesomeIcon icon={faSort} className="me-2" />
                                     Sort By
                                 </h5>
 
@@ -352,13 +383,13 @@ const CourierRestaurantsPage = () => {
                                             <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
                                                 <FontAwesomeIcon icon={option.icon} />
                                             </span>
-                                            <span className="ml-2">{option.label}</span>
+                                            <span className="ms-2">{option.label}</span>
                                         </button>
                                     ))}
                                 </div>
 
                                 <h5 className="mb-3">
-                                    <FontAwesomeIcon icon={faFilter} className="mr-2" />
+                                    <FontAwesomeIcon icon={faFilter} className="me-1" />
                                     Filter by Status
                                 </h5>
 
@@ -372,7 +403,7 @@ const CourierRestaurantsPage = () => {
                                             <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
                                                 <FontAwesomeIcon icon={option.icon} />
                                             </span>
-                                            <span className="ml-2">{option.label}</span>
+                                            <span className="ms-2">{option.label}</span>
                                         </button>
                                     ))}
                                 </div>
@@ -381,7 +412,9 @@ const CourierRestaurantsPage = () => {
 
                         {/* Main Content - Restaurants */}
                         <div className="col-lg-9 col-md-8 col-sm-12">
-                            <div className="bg-white p-4 mb-4">
+                            <div className="bg-white p-4 rounded shadow-sm">
+                                <h4 className="mb-4 border-bottom pb-2">Available Restaurants</h4>
+
                                 {loading ? (
                                     <div className="text-center py-5">
                                         <div className="spinner-border text-warning" role="status">
@@ -400,7 +433,8 @@ const CourierRestaurantsPage = () => {
                                                                 <img
                                                                     src={restaurant.imageUrl || require("../assets/images/symbolshop.png")}
                                                                     alt={restaurant.name}
-                                                                    className="img-fluid restaurant-image"
+                                                                    className="img-fluid rounded"
+                                                                    style={{ height: "80px", objectFit: "cover", width: "100%" }}
                                                                 />
                                                             </div>
                                                             <div className="col-md-7">
@@ -413,20 +447,20 @@ const CourierRestaurantsPage = () => {
                                                                             className={i < Math.floor(restaurant.rating) ? 'text-warning' : 'text-muted'}
                                                                         />
                                                                     ))}
-                                                                    <span className="ml-2">({restaurant.rating})</span>
+                                                                    <span className="ms-2">({restaurant.rating})</span>
                                                                 </div>
-                                                                <p className="card-text mb-1">
-                                                                    <small><strong>Cuisine:</strong> {restaurant.cuisineType}</small>
+                                                                <p className="restorant-card-text card-text mb-1 small">
+                                                                    <strong>Cuisine:</strong> {restaurant.cuisineType}
                                                                 </p>
-                                                                <p className="card-text mb-1">
-                                                                    <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-1" />
-                                                                    <small>{restaurant.address}</small>
+                                                                <p className="restorant-card-text card-text mb-1 small">
+                                                                    <FontAwesomeIcon icon={faMapMarkerAlt} className="text-danger me-1" />
+                                                                    {restaurant.address}
                                                                 </p>
-                                                                <p className="card-text">
-                                                                    <small><strong>Total Orders:</strong> {restaurant.totalOrders}</small>
+                                                                <p className="restorant-card-text card-text small">
+                                                                    <strong>Total Orders:</strong> {restaurant.totalOrders}
                                                                 </p>
                                                             </div>
-                                                            <div className="col-md-3 text-right">
+                                                            <div className="col-md-3 text-end">
                                                                 {renderStatusButton(restaurant)}
                                                             </div>
                                                         </div>
@@ -439,7 +473,7 @@ const CourierRestaurantsPage = () => {
                                     <div className="text-center py-5">
                                         <FontAwesomeIcon icon={faUtensils} size="3x" className="text-muted mb-3" />
                                         <h5>No restaurants found</h5>
-                                        <p>Try adjusting your filters or search terms.</p>
+                                        <p className="text-muted">Try adjusting your filters or search terms.</p>
                                     </div>
                                 )}
                             </div>

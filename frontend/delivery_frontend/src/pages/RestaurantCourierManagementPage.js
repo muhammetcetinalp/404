@@ -296,7 +296,7 @@ const RestaurantCourierManagementPage = () => {
                 icon={true}
             />
 
-            <div className="flex-grow-1" style={{ background: "#EBEDF3" }}>
+            <div className="flex-grow-1" style={{ background: "#EBEDF3", minHeight: "70vh" }}>
                 <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
                     <div className="container">
                         {error && (
@@ -375,11 +375,11 @@ const RestaurantCourierManagementPage = () => {
                                                                 <table className="table table-hover">
                                                                     <thead className="table-light">
                                                                         <tr>
-                                                                            <th scope="col">Name</th>
-                                                                            <th scope="col">Email</th>
-                                                                            <th scope="col">Phone</th>
-                                                                            <th scope="col">Status</th>
-                                                                            <th scope="col">Actions</th>
+                                                                            <th scope="col" width="25%">Name</th>
+                                                                            <th scope="col" width="25%">Email</th>
+                                                                            <th scope="col" width="20%">Phone</th>
+                                                                            <th scope="col" width="10%">Status</th>
+                                                                            <th scope="col" width="20%" className="text-end">Actions</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
@@ -398,7 +398,7 @@ const RestaurantCourierManagementPage = () => {
                                                                                 <td className="align-middle">
                                                                                     <span className="badge bg-success">Active</span>
                                                                                 </td>
-                                                                                <td className="align-middle">
+                                                                                <td className="align-middle text-end">
                                                                                     <button
                                                                                         className="btn btn-outline-danger btn-sm"
                                                                                         onClick={() => handleRemoveCourier(courier.requestId)}
@@ -431,11 +431,11 @@ const RestaurantCourierManagementPage = () => {
                                                                 <table className="table table-hover">
                                                                     <thead className="table-light">
                                                                         <tr>
-                                                                            <th scope="col">Name</th>
-                                                                            <th scope="col">Email</th>
-                                                                            <th scope="col">Phone</th>
-                                                                            <th scope="col">Status</th>
-                                                                            <th scope="col">Actions</th>
+                                                                            <th scope="col" width="25%">Name</th>
+                                                                            <th scope="col" width="25%">Email</th>
+                                                                            <th scope="col" width="20%">Phone</th>
+                                                                            <th scope="col" width="10%">Status</th>
+                                                                            <th scope="col" width="20%" className="text-end">Actions</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
@@ -454,7 +454,7 @@ const RestaurantCourierManagementPage = () => {
                                                                                 <td className="align-middle">
                                                                                     <span className="badge bg-warning">Pending</span>
                                                                                 </td>
-                                                                                <td className="align-middle">
+                                                                                <td className="align-middle text-end">
                                                                                     <div className="btn-group" role="group">
                                                                                         <button
                                                                                             className="btn btn-success btn-sm"
@@ -496,11 +496,11 @@ const RestaurantCourierManagementPage = () => {
                                                                 <table className="table table-hover">
                                                                     <thead className="table-light">
                                                                         <tr>
-                                                                            <th scope="col">Name</th>
-                                                                            <th scope="col">Email</th>
-                                                                            <th scope="col">Phone</th>
-                                                                            <th scope="col">Status</th>
-                                                                            <th scope="col">Actions</th>
+                                                                            <th scope="col" width="25%">Name</th>
+                                                                            <th scope="col" width="25%">Email</th>
+                                                                            <th scope="col" width="20%">Phone</th>
+                                                                            <th scope="col" width="10%">Status</th>
+                                                                            <th scope="col" width="20%" className="text-end">Actions</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
@@ -519,7 +519,7 @@ const RestaurantCourierManagementPage = () => {
                                                                                 <td className="align-middle">
                                                                                     <span className="badge bg-success">Active</span>
                                                                                 </td>
-                                                                                <td className="align-middle">
+                                                                                <td className="align-middle text-end">
                                                                                     <button
                                                                                         className="btn btn-outline-danger btn-sm"
                                                                                         onClick={() => handleRemoveCourier(courier.requestId)}
@@ -547,7 +547,7 @@ const RestaurantCourierManagementPage = () => {
                                                                                 <td className="align-middle">
                                                                                     <span className="badge bg-warning">Pending</span>
                                                                                 </td>
-                                                                                <td className="align-middle">
+                                                                                <td className="align-middle text-end">
                                                                                     <div className="btn-group" role="group">
                                                                                         <button
                                                                                             className="btn btn-success btn-sm"

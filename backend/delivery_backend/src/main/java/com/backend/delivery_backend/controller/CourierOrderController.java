@@ -10,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/courier/orders")
@@ -135,14 +136,42 @@ public class CourierOrderController {
     }
 
     @PatchMapping("/update-status/{orderId}")
-    public ResponseEntity<?> updateOrderStatus(@PathVariable String orderId, @RequestBody String newStatus) {
+    public ResponseEntity<?> updateOrderStatus(@PathVariable String orderId, @RequestBody Map<String, String> requestBody) {
+        String newStatus = requestBody.get("status");
+        
+        if (newStatus == null) {
+            return ResponseEntity.badRequest().body("Status field is required");
+        }
+        
+        // If it's a JSON object containing status, just use the raw string value
+        if (newStatus.contains("{") || newStatus.contains(":")) {
+            try {
+                // Just take the plain string value without parsing as JSON
+                newStatus = newStatus.replaceAll("[{}\"]", "").replaceAll("status:", "").trim();
+            } catch (Exception e) {
+                // If there's an error, just proceed with the original value
+                System.err.println("Error parsing status: " + e.getMessage());
+            }
+        }
+        
+        // Standardize the status format
+        newStatus = newStatus.replace("\"", "").toUpperCase().trim();
+        
+        // Special case for "picked up" format
+        if (newStatus.equals("PICKED UP")) {
+            newStatus = "PICKED_UP";
+        }
+        
+        // Log the final status value for debugging
+        System.out.println("Setting order status to: " + newStatus);
+        
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found."));
 
         order.setOrderStatus(newStatus);
         orderRepository.save(order);
 
-        return ResponseEntity.ok("Order status updated successfully.");
+        return ResponseEntity.ok("Order status updated successfully to " + newStatus);
     }
 
 

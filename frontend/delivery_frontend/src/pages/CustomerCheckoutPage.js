@@ -318,7 +318,7 @@ const CheckoutPage = () => {
                                             }}
                                             disabled={accountStatus === 'SUSPENDED' || accountStatus === 'BANNED'}
                                         />
-                                        <label htmlFor="pickup" className="form-check-label">Pickup</label>
+                                        <label htmlFor="pickup" className="form-check-label text-dark">Pickup</label>
                                     </div>
                                     <div className="form-check">
                                         <input
@@ -333,7 +333,7 @@ const CheckoutPage = () => {
                                             }}
                                             disabled={accountStatus === 'SUSPENDED' || accountStatus === 'BANNED'}
                                         />
-                                        <label htmlFor="delivery" className="form-check-label">Delivery</label>
+                                        <label htmlFor="delivery" className="form-check-label text-dark">Delivery</label>
                                     </div>
                                 </div>
 

@@ -13,11 +13,14 @@ public class CourierRestaurantRequestDTO {
     private String restaurantId;
     private RequestStatus status;
     private LocalDateTime createdAt;
+    private String email;
+    private String phone;
 
     // Constructor
     public CourierRestaurantRequestDTO(Long requestId, String courierName, String courierId,
                                        String restaurantName, String restaurantId,
-                                       RequestStatus status, LocalDateTime createdAt) {
+                                       RequestStatus status, LocalDateTime createdAt,
+                                       String email, String phone) {
         this.requestId = requestId;
         this.courierName = courierName;
         this.courierId = courierId;
@@ -25,6 +28,8 @@ public class CourierRestaurantRequestDTO {
         this.restaurantId = restaurantId;
         this.status = status;
         this.createdAt = createdAt;
+        this.email = email;
+        this.phone = phone;
     }
 
     // Getter - Setter
@@ -48,4 +53,10 @@ public class CourierRestaurantRequestDTO {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
 }

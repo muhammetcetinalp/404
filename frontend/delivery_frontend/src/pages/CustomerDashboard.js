@@ -14,6 +14,28 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../styles/dashboard.css';
 
+// Import restaurant images
+import image1 from '../assets/images/exampleRestaurants/image1.png';
+import image2 from '../assets/images/exampleRestaurants/image2.png';
+import image3 from '../assets/images/exampleRestaurants/image3.png';
+import image4 from '../assets/images/exampleRestaurants/image4.png';
+import image5 from '../assets/images/exampleRestaurants/image5.png';
+import image6 from '../assets/images/exampleRestaurants/image6.png';
+import image7 from '../assets/images/exampleRestaurants/image7.jpg';
+import image8 from '../assets/images/exampleRestaurants/image8.jpg';
+import image9 from '../assets/images/exampleRestaurants/image9.jpg';
+import image10 from '../assets/images/exampleRestaurants/image10.jpg';
+import image11 from '../assets/images/exampleRestaurants/image11.jpg';
+import image12 from '../assets/images/exampleRestaurants/image12.jpg';
+import image13 from '../assets/images/exampleRestaurants/image13.jpg';
+import image14 from '../assets/images/exampleRestaurants/image14.jpg';
+import image15 from '../assets/images/exampleRestaurants/image15.jpg';
+import image16 from '../assets/images/exampleRestaurants/image16.jpg';
+import image17 from '../assets/images/exampleRestaurants/image17.jpg';
+import image18 from '../assets/images/exampleRestaurants/image18.jpg';
+import image19 from '../assets/images/exampleRestaurants/image19.jpg';
+import image20 from '../assets/images/exampleRestaurants/image20.jpg';
+
 const CustomerDashboard = () => {
     const [restaurants, setRestaurants] = useState([]);
     const [filteredRestaurants, setFilteredRestaurants] = useState([]);
@@ -32,9 +54,35 @@ const CustomerDashboard = () => {
     const [cartError, setCartError] = useState('');
     const [addingToFavorite, setAddingToFavorite] = useState(false);
     const [accountStatus, setAccountStatus] = useState('ACTIVE');
+    const [restaurantImages, setRestaurantImages] = useState({});
     const navigate = useNavigate();
 
     const token = localStorage.getItem('token');
+    
+    // Array of restaurant images
+    const restaurantImageArray = [
+        image1, image2, image3, image4, image5, image6, image7, image8, image9, image10, 
+        image11, image12, image13, image14, image15, image16, image17, image18, image19, image20
+    ];
+
+    // Function to get a random image for a restaurant
+    const getRandomImage = (restaurantId) => {
+        // If this restaurant already has an assigned image, return it
+        if (restaurantImages[restaurantId]) {
+            return restaurantImages[restaurantId];
+        }
+        
+        // Otherwise, assign a random image and save it
+        const randomIndex = Math.floor(Math.random() * restaurantImageArray.length);
+        const selectedImage = restaurantImageArray[randomIndex];
+        
+        setRestaurantImages(prev => ({
+            ...prev,
+            [restaurantId]: selectedImage
+        }));
+        
+        return selectedImage;
+    };
 
     const categories = [
         'Italian', 'Chinese', 'Mexican', 'Indian', 'Japanese', 'American', 'Turkish'
@@ -168,6 +216,14 @@ const CustomerDashboard = () => {
             }
         }
 
+        // Always sort closed restaurants to appear at the bottom
+        results.sort((a, b) => {
+            // If one is open and the other is closed, prioritize the open one
+            if (a.open && !b.open) return -1;
+            if (!a.open && b.open) return 1;
+            return 0;
+        });
+
         setFilteredRestaurants(results);
     }, [searchTerm, sortOption, selectedCategories, restaurants, favoriteRestaurants]);
 
@@ -297,16 +353,40 @@ const CustomerDashboard = () => {
                     <div className="row justify-content-center">
                         <div className="col-lg-5 col-md-10 col-sm-12">
                             <div className="search-container mb-4 d-flex justify-content-center">
-                                <div className="input-group" style={{ borderRadius: '25px', overflow: 'hidden', width: '100%' }}>
+                                <div style={{
+                                    width: '100%',
+                                    display: 'flex',
+                                    borderRadius: '25px',
+                                    overflow: 'hidden',
+                                    boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                                }}>
                                     <input
                                         type="text"
-                                        className="form-control border-0 py-2"
                                         placeholder="Search for restaurants..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        style={{ height: '50px' }}
+                                        style={{
+                                            flex: 1,
+                                            height: '50px',
+                                            border: 'none',
+                                            paddingLeft: '20px',
+                                            fontSize: '16px',
+                                            outline: 'none'
+                                        }}
                                     />
-                                    <button className="btn btn-orange border-0" style={{ height: '50px', width: '60px' }}>
+                                    <button
+                                        style={{
+                                            width: '60px',
+                                            height: '50px',
+                                            backgroundColor: '#eb6825',
+                                            border: 'none',
+                                            color: 'white',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
                                         <FontAwesomeIcon icon={faSearch} />
                                     </button>
                                 </div>
@@ -348,7 +428,7 @@ const CustomerDashboard = () => {
 
                         <div className="row">
                             <div className="col-lg-2 col-md-3 col-sm-12 mb-4">
-                                <div className="bg-white p-4 dashboard-sidebar">
+                                <div className="bg-white p-4 dashboard-sidebar" style={{ minHeight: "250px" }}>
                                     <h5 className="mb-3"><FontAwesomeIcon icon={faSort} className="mr-2 me-2" />Sort By</h5>
                                     <div className="ml-2 list-group">
                                         {[
@@ -371,7 +451,7 @@ const CustomerDashboard = () => {
                             </div>
 
                             <div className="col-lg-7 col-md-6 col-sm-12">
-                                <div className="bg-white p-4 mb-4">
+                                <div className="bg-white p-4 mb-4" style={{ minHeight: "250px" }}>
                                     <h4 className="mb-4">Restaurants</h4>
 
                                     {loading ? (
@@ -383,12 +463,12 @@ const CustomerDashboard = () => {
                                         <div className="restaurant-list">
                                             {filteredRestaurants.map(restaurant => (
                                                 <div className="restaurant-item mb-4" key={restaurant.restaurantId}>
-                                                    <div className="card shadow-sm restaurant-card">
-                                                        <div className="row g-0 align-items-center">
+                                                    <div className={`card shadow-sm restaurant-card ${!restaurant.open ? 'closed-restaurant' : ''}`}>
+                                                        <div className="row g-0 align-items-center" style={!restaurant.open ? {opacity: '0.8', filter: 'blur(0.5px)'} : {}}>
                                                             {/* Image */}
                                                             <div className="col-md-3 text-center p-2">
                                                                 <img
-                                                                    src={require("../assets/images/symbolshop.png")}
+                                                                    src={getRandomImage(restaurant.restaurantId)}
                                                                     alt={restaurant.name}
                                                                     className="img-fluid rounded restaurant-image"
                                                                 />
@@ -433,7 +513,6 @@ const CustomerDashboard = () => {
                                                             <div className="col-md-3 text-end p-3 d-flex flex-column align-items-end position-relative">
                                                                 {/* Moved Favorite Button back inside col-md-3 */}
                                                                 <button
-                                                                    /* Use flexbox to align icon within the button */
                                                                     className="btn btn-link p-0 d-inline-flex justify-content-end"
                                                                     onClick={(e) => handleToggleFavorite(restaurant.restaurantId, e)}
                                                                     title={favoriteRestaurants.includes(restaurant.restaurantId) ? "Remove from favorites" : "Add to favorites"}
@@ -453,13 +532,19 @@ const CustomerDashboard = () => {
 
                                                                 {/* View Menus Button - Add margin-top */}
                                                                 <button
-                                                                    className="btn btn-orange w-100 mt-5" /* Added mt-5 */
+                                                                    className="btn btn-orange w-100 mt-5"
                                                                     onClick={() => handleViewRestaurant(restaurant)}
+                                                                    disabled={!restaurant.open}
                                                                 >
                                                                     View Menus <FontAwesomeIcon icon={faChevronDown} className="ms-2" />
                                                                 </button>
                                                             </div>
                                                         </div>
+                                                        {!restaurant.open && (
+                                                            <div className="closed-overlay">
+                                                                <span className="closed-text">Closed</span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             ))}
@@ -474,7 +559,7 @@ const CustomerDashboard = () => {
                             </div>
 
                             <div className="col-lg-3 col-md-3 col-sm-12 mb-4">
-                                <div className="bg-white p-4 dashboard-sidebar">
+                                <div className="bg-white p-4 dashboard-sidebar" style={{ minHeight: "250px" }}>
                                     <h5 className="mb-3"><FontAwesomeIcon icon={faFilter} className="mr-2 me-1" />Categories</h5>
                                     <div className="category-list">
                                         {categories.map(category => (
@@ -502,6 +587,12 @@ const CustomerDashboard = () => {
                     <div className="menu-modal">
                         <div className="menu-modal-header d-flex align-items-center justify-content-between">
                             <div className="d-flex align-items-center w-100">
+                                <img 
+                                    src={getRandomImage(selectedRestaurant.restaurantId)} 
+                                    alt={selectedRestaurant.name}
+                                    className="rounded me-3"
+                                    style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                                />
                                 <h4 className="mb-0 text-truncate" style={{ maxWidth: '85%' }}>
                                     {selectedRestaurant.name}
                                 </h4>

@@ -8,7 +8,15 @@ import {
     faFilter,
     faMapMarkerAlt,
     faUser,
-    faClipboardCheck
+    faClipboardCheck,
+    faSort,
+    faArrowDown,
+    faArrowUp,
+    faArrowUpShortWide,
+    faArrowDownShortWide,
+    faChevronDown,
+    faChevronUp,
+    faClock
 } from '@fortawesome/free-solid-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -191,19 +199,16 @@ const CourierDashboard = () => {
                 <div className="container dashboard-welcome-text">
                     <div className="row">
                         <div className="col-12 text-center">
-                            <h1 className="display-4 text-white">
-                                <FontAwesomeIcon icon={faMotorcycle} className="mr-3" />
-                                New Order Requests
-                            </h1>
-                            <p className="lead text-white">
-                                Accept or decline new delivery requests from your restaurants
-                            </p>
+                            <h2 className="display-4 text-white">
+                                Order Requests
+                            </h2>
+
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="container-fluid py-4 flex-grow-1" style={{ background: "#EBEDF3" }}>
+            <div className="container-fluid py-4 flex-grow-1" style={{ background: "#EBEDF3", minHeight: "70vh" }}>
                 <div className="container">
                     {error && (
                         <div className="alert alert-danger" role="alert">
@@ -216,7 +221,7 @@ const CourierDashboard = () => {
                         <div className="col-lg-3 col-md-4 col-sm-12 mb-4">
                             <div className="bg-white p-4 dashboard-sidebar rounded shadow-sm">
                                 <h5 className="mb-3">
-                                    <FontAwesomeIcon icon={faFilter} className="mr-2" /> Sort By
+                                    <FontAwesomeIcon icon={faSort} className="mr-2 me-1" /> Sort By
                                 </h5>
 
                                 <div className="list-group">
@@ -224,35 +229,37 @@ const CourierDashboard = () => {
                                         className={`list-group-item list-group-item-action ${sortOption === 'latest' ? 'active' : ''}`}
                                         onClick={() => setSortOption('latest')}
                                     >
-                                        Latest Orders
+                                        <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
+                                            <FontAwesomeIcon icon={faArrowDownShortWide} />
+                                        </span>
+                                        <span className="ml-2">Latest Orders</span>
                                     </button>
                                     <button
                                         className={`list-group-item list-group-item-action ${sortOption === 'oldest' ? 'active' : ''}`}
                                         onClick={() => setSortOption('oldest')}
                                     >
-                                        Oldest Orders
+                                        <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
+                                            <FontAwesomeIcon icon={faArrowUpShortWide} />
+                                        </span>
+                                        <span className="ml-2">Oldest Orders</span>
                                     </button>
                                     <button
                                         className={`list-group-item list-group-item-action ${sortOption === 'highestPrice' ? 'active' : ''}`}
                                         onClick={() => setSortOption('highestPrice')}
                                     >
-                                        Highest Price
+                                        <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
+                                            <FontAwesomeIcon icon={faArrowDown} />
+                                        </span>
+                                        <span className="ml-2">Highest Price</span>
                                     </button>
                                     <button
                                         className={`list-group-item list-group-item-action ${sortOption === 'lowestPrice' ? 'active' : ''}`}
                                         onClick={() => setSortOption('lowestPrice')}
                                     >
-                                        Lowest Price
-                                    </button>
-                                </div>
-
-                                <div className="mt-4">
-                                    <button
-                                        className="btn btn-outline-primary w-100"
-                                        onClick={() => navigate('/my-deliveries')}
-                                    >
-                                        <FontAwesomeIcon icon={faClipboardCheck} className="mr-2" />
-                                        View My Deliveries
+                                        <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
+                                            <FontAwesomeIcon icon={faArrowUp} />
+                                        </span>
+                                        <span className="ml-2">Lowest Price</span>
                                     </button>
                                 </div>
                             </div>
@@ -273,33 +280,45 @@ const CourierDashboard = () => {
                                 ) : pendingOrders.length > 0 ? (
                                     <div className="order-list">
                                         {pendingOrders.map(order => (
-                                            <div className="card mb-3 border-left border-warning"
-                                                style={{ borderLeftWidth: '5px' }}
+                                            <div 
+                                                className="order-item mb-4" 
                                                 key={order.orderId}
                                             >
-                                                <div className="card-body">
-                                                    <div className="row">
-                                                        <div className="col-md-8">
-                                                            <h5 className="card-title font-weight-bold text-warning mb-2">
-                                                                Order #{order.orderId.substring(order.orderId.length - 6)}
-                                                            </h5>
-                                                            <p className="card-text mb-1">
-                                                                <FontAwesomeIcon icon={faMapMarkerAlt} className="text-danger mr-2" />
-                                                                <strong>From:</strong> {order.restaurant?.address || "Restaurant Address"}
-                                                            </p>
-                                                            <p className="card-text mb-1">
-                                                                <FontAwesomeIcon icon={faUser} className="text-info mr-2" />
-                                                                <strong>To:</strong> {order.deliveryAddress}
-                                                            </p>
-                                                            <p className="card-text text-muted">
-                                                                <small>Ordered: {formatDateTime(order.orderDate)}</small>
-                                                            </p>
-                                                        </div>
-                                                        <div className="col-md-4 text-right">
-                                                            <h4 className="text-warning mb-3">₺{order.totalAmount.toFixed(2)}</h4>
-                                                            <div className="btn-group d-flex flex-column">
+                                                <div className="card">
+                                                    <div className="card-body">
+                                                        <div className="row align-items-center">
+                                                            <div className="col-md-3">
+                                                                <div className="order-info-column">
+                                                                    <h5 className="card-title">Order #{order.orderId.substring(order.orderId.length - 6)}</h5>
+                                                                    <p className="mb-1 small">
+                                                                        <strong>Time:</strong> {formatDateTime(order.orderDate)}
+                                                                    </p>
+                                                                    <span className="badge bg-warning">Pending</span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="col-md-4">
+                                                                <p className="mb-1 small">
+                                                                    <FontAwesomeIcon icon={faMapMarkerAlt} className="text-danger mr-2 me-1" />
+                                                                    <strong>From:</strong> {order.restaurant?.address || "Restaurant Address"}
+                                                                </p>
+                                                                <p className="mb-1 small">
+                                                                    <FontAwesomeIcon icon={faUser} className="text-info mr-2 me-1" />
+                                                                    <strong>To:</strong> {order.deliveryAddress}
+                                                                </p>
+                                                                <p className="mb-0 small">
+                                                                    <FontAwesomeIcon icon={faClock} className="text-secondary mr-2 me-1" />
+                                                                    <strong>Est. Time:</strong> 30-45 min
+                                                                </p>
+                                                            </div>
+                                                            <div className="col-md-3">
+                                                                <p className="mb-1">
+                                                                    <strong>Total Amount:</strong>
+                                                                </p>
+                                                                <h5 className="text-orange">₺{order.totalAmount.toFixed(2)}</h5>
+                                                            </div>
+                                                            <div className="col-md-2 text-right">
                                                                 <button
-                                                                    className="btn btn-success mb-2"
+                                                                    className="btn btn-success btn-sm mb-2 w-100"
                                                                     onClick={() => handleAcceptOrder(order.orderId)}
                                                                     disabled={processingOrders.has(order.orderId)}
                                                                 >
@@ -315,15 +334,54 @@ const CourierDashboard = () => {
                                                                         </>
                                                                     )}
                                                                 </button>
+                                                                <button
+                                                                    className="btn btn-outline-secondary btn-sm w-100"
+                                                                    onClick={() => handleExpandOrder(order.orderId)}
+                                                                >
+                                                                    {expandedOrderId === order.orderId ? (
+                                                                        <>Hide Details <FontAwesomeIcon icon={faChevronUp} /></>
+                                                                    ) : (
+                                                                        <>View Details <FontAwesomeIcon icon={faChevronDown} /></>
+                                                                    )}
+                                                                </button>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <button
-                                                        className="btn btn-sm btn-outline-secondary mt-2"
-                                                        onClick={() => handleExpandOrder(order.orderId)}
-                                                    >
-                                                        {expandedOrderId === order.orderId ? 'Hide Details' : 'View Order Details'}
-                                                    </button>
+
+                                                    {expandedOrderId === order.orderId && (
+                                                        <div className="card-footer order-details-section p-3">
+                                                            <h6 className="mb-3">Order Items</h6>
+                                                            <table className="table table-sm">
+                                                                <thead className="thead-light">
+                                                                    <tr>
+                                                                        <th>Item</th>
+                                                                        <th>Quantity</th>
+                                                                        <th className="text-right">Price</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {Object.entries(orderDetails[order.orderId]?.items || {}).map(([itemKey, quantity], index) => {
+                                                                        try {
+                                                                            const item = JSON.parse(itemKey);
+                                                                            return (
+                                                                                <tr key={index}>
+                                                                                    <td>{item.name}</td>
+                                                                                    <td>{quantity}</td>
+                                                                                    <td className="text-right">₺{(item.price * quantity).toFixed(2)}</td>
+                                                                                </tr>
+                                                                            );
+                                                                        } catch (e) {
+                                                                            return null;
+                                                                        }
+                                                                    })}
+                                                                    <tr className="table-warning">
+                                                                        <td colSpan="2"><strong>Total</strong></td>
+                                                                        <td className="text-right"><strong>₺{order.totalAmount.toFixed(2)}</strong></td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    )}
                                                 </div>
 
                                                 {expandedOrderId === order.orderId && (
@@ -368,12 +426,7 @@ const CourierDashboard = () => {
                                         <FontAwesomeIcon icon={faMotorcycle} size="3x" className="text-muted mb-3" />
                                         <h5>No new order requests</h5>
                                         <p>There are currently no new orders available for delivery.</p>
-                                        <button
-                                            className="btn btn-primary mt-3"
-                                            onClick={() => window.location.reload()}
-                                        >
-                                            Refresh
-                                        </button>
+
                                     </div>
                                 )}
                             </div>

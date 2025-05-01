@@ -21,7 +21,27 @@ const Cart = () => {
     const [warning, setWarning] = useState('');
     const [accountStatus, setAccountStatus] = useState('ACTIVE');
     const navigate = useNavigate();
-
+    const CustomCloseButton = ({ closeToast }) => (
+        <button
+            onClick={closeToast}
+            style={{
+                background: 'transparent',
+                border: 'none',
+                fontSize: '16px',
+                color: 'white',
+                cursor: 'pointer',
+                padding: '4px',
+                margin: '0',
+                width: '35px',
+                height: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
+            ×
+        </button>
+    );
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -159,13 +179,17 @@ const Cart = () => {
                 position="top-right"
                 autoClose={3000}
                 hideProgressBar={false}
-                newestOnTop
+                newestOnTop={false}
                 closeOnClick
                 rtl={false}
                 pauseOnFocusLoss
                 draggable
                 pauseOnHover
                 theme="colored"
+                closeButton={<CustomCloseButton />}
+                toastClassName="custom-toast"
+                bodyClassName="custom-toast-body"
+                icon={true}
             />
 
             <div className="container-fluid py-4" style={{ background: "#EBEDF3", minHeight: "60vh" }}>
@@ -189,7 +213,7 @@ const Cart = () => {
 
                         <div className="row">
                             <div className="col-lg-8 col-md-12 mb-4">
-                                <div className="bg-white p-4 rounded shadow-sm">
+                                <div className="bg-white p-4 rounded shadow-sm" style={{ minHeight: "280px" }}>
                                     <h4 className="mb-4">Shopping Cart</h4>
 
                                     {loading ? (
@@ -273,7 +297,7 @@ const Cart = () => {
                             </div>
 
                             <div className="col-lg-4 col-md-12">
-                                <div className="bg-white p-4 rounded shadow-sm">
+                                <div className="bg-white p-4 rounded shadow-sm" style={{ minHeight: "280px" }}>
                                     <h4 className="mb-4">Order Summary</h4>
                                     <div className="d-flex justify-content-between mb-2">
                                         <span>Subtotal</span>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api';
 import Header from '../components/Header';
@@ -25,27 +25,93 @@ const RegisterPage = () => {
 
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
+
+  const validateEmail = (email) => {
+    const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
+  };
+
+  const validatePhone = (phone) => {
+    return phone.length === 10 && /^[0-9]+$/.test(phone);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    let newValue = value;
+    let errors = { ...formErrors };
 
-    // For phone field, only allow numeric values
-    if (name === 'phone' && value !== '') {
-      const numericValue = value.replace(/[^0-9]/g, '');
-      setForm({ ...form, [name]: numericValue });
-    } else {
-      setForm({ ...form, [name]: value });
+    if (name === 'phone') {
+      // Strip any non-numeric characters
+      newValue = value.replace(/[^0-9]/g, '');
+      
+      // Restrict to 10 digits
+      if (newValue.length > 10) {
+        newValue = newValue.slice(0, 10);
+      }
+      
+      // Validate phone number
+      if (newValue && !validatePhone(newValue)) {
+        errors.phone = 'Phone number must be exactly 10 digits';
+      } else {
+        delete errors.phone;
+      }
     }
+
+    if (name === 'email') {
+      if (value && !validateEmail(value)) {
+        errors.email = 'Please enter a valid email address';
+      } else {
+        delete errors.email;
+      }
+    }
+
+    if (name === 'password') {
+      if (!value) {
+        errors.password = 'Password must be filled';
+      } else {
+        delete errors.password;
+      }
+      
+      if (form.confirmPassword && value !== form.confirmPassword) {
+        errors.confirmPassword = 'Passwords do not match';
+      } else if (form.confirmPassword) {
+        delete errors.confirmPassword;
+      }
+    }
+
+    if (name === 'confirmPassword') {
+      if (form.password && value !== form.password) {
+        errors.confirmPassword = 'Passwords do not match';
+      } else {
+        delete errors.confirmPassword;
+      }
+    }
+
+    setFormErrors(errors);
+    setForm({ ...form, [name]: newValue });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(''); // Clear any previous errors
+    setError('');
+
+    // Check for form errors
+    if (Object.keys(formErrors).length > 0) {
+      setError('Please fix the errors in the form before submitting.');
+      return;
+    }
 
     // Validate passwords match
     if (form.password !== form.confirmPassword) {
       setError("Passwords do not match.");
-      return; // Stop here and don't proceed with API call
+      return;
+    }
+
+    // Validate phone number
+    if (!validatePhone(form.phone)) {
+      setError("Phone number must be exactly 10 digits.");
+      return;
     }
 
     setIsSubmitting(true);
@@ -66,13 +132,6 @@ const RegisterPage = () => {
       setError(err.response?.data?.message || 'Registration failed. Please check your information.');
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handlePhoneKeyPress = (e) => {
-    // Allow only numeric input for phone field
-    if (!/[0-9]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Tab') {
-      e.preventDefault();
     }
   };
 
@@ -116,6 +175,7 @@ const RegisterPage = () => {
                     onChange={handleChange}
                     required
                   />
+                  {formErrors.email && <div className="input-error">{formErrors.email}</div>}
                 </div>
 
                 <div className="form-row">
@@ -129,6 +189,7 @@ const RegisterPage = () => {
                       onChange={handleChange}
                       required
                     />
+                    {formErrors.password && <div className="input-error">{formErrors.password}</div>}
                   </div>
 
                   <div className="form-group">
@@ -141,22 +202,27 @@ const RegisterPage = () => {
                       onChange={handleChange}
                       required
                     />
+                    {formErrors.confirmPassword && <div className="input-error">{formErrors.confirmPassword}</div>}
                   </div>
                 </div>
 
                 <div className="form-group">
                   <label htmlFor="phone">Phone Number</label>
-                  <input
-                    type="text"
-                    id="phone"
-                    name="phone"
-                    value={form.phone}
-                    onChange={handleChange}
-                    onKeyDown={handlePhoneKeyPress}
-                    required
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                  />
+                  <div className="phone-input-container">
+                    <div className="phone-prefix">+90</div>
+                    <input
+                      type="text"
+                      id="phone"
+                      name="phone"
+                      value={form.phone}
+                      onChange={handleChange}
+                      required
+                      inputMode="numeric"
+                      placeholder="5XX XXX XXXX"
+                      className="phone-input-with-prefix"
+                    />
+                  </div>
+                  {formErrors.phone && <div className="input-error">{formErrors.phone}</div>}
                 </div>
 
                 <div className="form-group">
@@ -221,7 +287,7 @@ const RegisterPage = () => {
                     <h3 className="section-title">Business Hours</h3>
 
                     <div className="form-row">
-                      <div className="form-group">
+                      <div className="form-group half">
                         <label htmlFor="businessHoursStart">Opening Time</label>
                         <input
                           type="time"
@@ -230,10 +296,12 @@ const RegisterPage = () => {
                           value={form.businessHoursStart}
                           onChange={handleChange}
                           required
+                          placeholder="Opening Hour (e.g. 09:00)"
+                          className="form-control"
                         />
                       </div>
 
-                      <div className="form-group">
+                      <div className="form-group half">
                         <label htmlFor="businessHoursEnd">Closing Time</label>
                         <input
                           type="time"
@@ -242,33 +310,40 @@ const RegisterPage = () => {
                           value={form.businessHoursEnd}
                           onChange={handleChange}
                           required
+                          placeholder="Closing Hour (e.g. 22:00)"
+                          className="form-control"
                         />
                       </div>
-                      <div className="form-group">
-                        <label htmlFor="cuisineType">Cuisine Type</label>
-                        <input
-                          type="text"
-                          id="cuisineType"
-                          name="cuisineType"
-                          value={form.cuisineType}
-                          onChange={handleChange}
-                          required
-                        />
-                      </div>
+                    </div>
+                    
+                    <div className="form-group">
+                      <label htmlFor="cuisineType">Cuisine Type</label>
+                      <input
+                        type="text"
+                        id="cuisineType"
+                        name="cuisineType"
+                        value={form.cuisineType}
+                        onChange={handleChange}
+                        required
+                        placeholder="e.g. Italian, Turkish"
+                        className="form-control"
+                      />
+                    </div>
 
-                      <div className="form-group">
-                        <label htmlFor="deliveryType">Delivery Type</label>
-                        <select
-                          id="deliveryType"
-                          name="deliveryType"
-                          value={form.deliveryType}
-                          onChange={handleChange}
-                          required
-                        >
-                          <option value="DELIVERY">Delivery</option>
-                          <option value="PICKUP">Pickup</option>
-                        </select>
-                      </div>
+                    <div className="form-group">
+                      <label htmlFor="deliveryType">Delivery Type</label>
+                      <select
+                        id="deliveryType"
+                        name="deliveryType"
+                        value={form.deliveryType}
+                        onChange={handleChange}
+                        required
+                        className="form-control"
+                      >
+                        <option value="DELIVERY">Delivery</option>
+                        <option value="PICKUP">Pickup</option>
+                        <option value="BOTH">Both</option>
+                      </select>
                     </div>
                   </div>
                 )}

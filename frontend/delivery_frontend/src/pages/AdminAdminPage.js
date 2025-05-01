@@ -27,7 +27,7 @@ const AdminAdminPage = () => {
         role: 'admin'
     });
     const [addUserError, setAddUserError] = useState('');
-    
+
     // Validation errors state
     const [formErrors, setFormErrors] = useState({});
     const [editFormErrors, setEditFormErrors] = useState({});
@@ -43,26 +43,26 @@ const AdminAdminPage = () => {
         const phoneRegex = /^[0-9]{10}$/;
         return phoneRegex.test(phone);
     };
-    
+
     const validateForm = (form, isEdit = false) => {
         const errors = {};
-        
+
         if (!isEdit && !validateEmail(form.email)) {
             errors.email = 'Please enter a valid email address';
         }
-        
+
         if (!validatePhone(form.phone)) {
             errors.phone = 'Please enter a valid Turkish phone number (10 digits without +90)';
         }
-        
+
         if (!form.name || form.name.trim() === '') {
             errors.name = 'Name is required';
         }
-        
+
         if (!isEdit && !form.password) {
             errors.password = 'Password must be filled';
         }
-        
+
         return errors;
     };
 
@@ -148,7 +148,7 @@ const AdminAdminPage = () => {
 
     const handleEditChange = (e) => {
         setEditForm({ ...editForm, [e.target.name]: e.target.value });
-        
+
         // Clear error for this field when user starts typing
         if (editFormErrors[e.target.name]) {
             setEditFormErrors({
@@ -160,19 +160,19 @@ const AdminAdminPage = () => {
 
     const saveEdit = async () => {
         const errors = validateForm(editForm, true);
-        
+
         if (Object.keys(errors).length > 0) {
             setEditFormErrors(errors);
             return;
         }
-        
+
         try {
             // Format phone number with +90 prefix if it doesn't have it
             const formattedData = {
                 ...editForm,
                 phone: editForm.phone
             };
-            
+
             await api.put(`/admin/update-user/${selectedUser.email}`, formattedData);
             toast.success('Changes saved successfully!', {
                 style: {
@@ -197,7 +197,7 @@ const AdminAdminPage = () => {
 
     const handleAddUserChange = (e) => {
         setAddUserForm({ ...addUserForm, [e.target.name]: e.target.value });
-        
+
         // Clear error for this field when user starts typing
         if (formErrors[e.target.name]) {
             setFormErrors({
@@ -209,21 +209,21 @@ const AdminAdminPage = () => {
 
     const submitAddUser = async (e) => {
         e.preventDefault();
-        
+
         const errors = validateForm(addUserForm);
-        
+
         if (Object.keys(errors).length > 0) {
             setFormErrors(errors);
             return;
         }
-        
+
         try {
             // Format phone number with +90 prefix
             const formattedData = {
                 ...addUserForm,
                 phone: addUserForm.phone
             };
-            
+
             await api.post('/admin/add-admin', formattedData);
             toast.success('Admin created successfully!', {
                 style: {

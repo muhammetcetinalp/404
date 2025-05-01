@@ -21,7 +21,27 @@ const Cart = () => {
     const [warning, setWarning] = useState('');
     const [accountStatus, setAccountStatus] = useState('ACTIVE');
     const navigate = useNavigate();
-
+    const CustomCloseButton = ({ closeToast }) => (
+        <button
+            onClick={closeToast}
+            style={{
+                background: 'transparent',
+                border: 'none',
+                fontSize: '16px',
+                color: 'white',
+                cursor: 'pointer',
+                padding: '4px',
+                margin: '0',
+                width: '35px',
+                height: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
+            ×
+        </button>
+    );
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -77,7 +97,8 @@ const Cart = () => {
     }, [navigate]);
 
     const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const deliveryFee = 60.0;
+    // Set delivery fee to 0 if cart is empty, otherwise 60.0
+    const deliveryFee = cartItems.length > 0 ? 60.0 : 0;
     const total = subtotal + deliveryFee;
 
     const handleQuantityChange = async (menuItemId, change) => {
@@ -158,16 +179,20 @@ const Cart = () => {
                 position="top-right"
                 autoClose={3000}
                 hideProgressBar={false}
-                newestOnTop
+                newestOnTop={false}
                 closeOnClick
                 rtl={false}
                 pauseOnFocusLoss
                 draggable
                 pauseOnHover
                 theme="colored"
+                closeButton={<CustomCloseButton />}
+                toastClassName="custom-toast"
+                bodyClassName="custom-toast-body"
+                icon={true}
             />
 
-            <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
+            <div className="container-fluid py-4" style={{ background: "#EBEDF3", minHeight: "60vh" }}>
                 <div className="cart-section-wrapper">
 
                     <div className="container">
@@ -188,7 +213,7 @@ const Cart = () => {
 
                         <div className="row">
                             <div className="col-lg-8 col-md-12 mb-4">
-                                <div className="bg-white p-4 rounded shadow-sm">
+                                <div className="bg-white p-4 rounded shadow-sm" style={{ minHeight: "280px" }}>
                                     <h4 className="mb-4">Shopping Cart</h4>
 
                                     {loading ? (
@@ -272,16 +297,18 @@ const Cart = () => {
                             </div>
 
                             <div className="col-lg-4 col-md-12">
-                                <div className="bg-white p-4 rounded shadow-sm">
+                                <div className="bg-white p-4 rounded shadow-sm" style={{ minHeight: "280px" }}>
                                     <h4 className="mb-4">Order Summary</h4>
                                     <div className="d-flex justify-content-between mb-2">
                                         <span>Subtotal</span>
                                         <span>{subtotal.toFixed(2)} TL</span>
                                     </div>
-                                    <div className="d-flex justify-content-between mb-2">
-                                        <span>Delivery Fee</span>
-                                        <span>{deliveryFee.toFixed(2)} TL</span>
-                                    </div>
+                                    {cartItems.length > 0 && (
+                                        <div className="d-flex justify-content-between mb-2">
+                                            <span>Delivery Fee</span>
+                                            <span>{deliveryFee.toFixed(2)} TL</span>
+                                        </div>
+                                    )}
                                     <hr />
                                     <div className="d-flex justify-content-between mb-4">
                                         <span className="font-weight-bold">Total</span>

@@ -1,3 +1,37 @@
+/* Add styles for closed restaurants */
+.closed-restaurant {
+    position: relative;
+    overflow: hidden;
+}
+
+.closed-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 10;
+    pointer-events: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(2px);
+}
+
+.closed-text {
+    background-color: #eb6825;
+    color: white;
+    padding: 8px 35px;
+    font-weight: 600;
+    border-radius: 30px;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    text-transform: uppercase;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 /* Dashboard Styles */
 body {
     background-color: white;
@@ -118,6 +152,10 @@ body {
     }
 }
 
+.form-control {
+    margin-top: 0;
+}
+
 .search-container {
     margin-top: 20px;
 }
@@ -156,20 +194,6 @@ body {
 .category-item.selected {
     background-color: #eb6825;
     color: white;
-}
-
-/* Restaurant card styles */
-.restaurant-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border: none;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.restaurant-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
 }
 
 .restaurant-image {
@@ -293,16 +317,11 @@ body {
 
 /* Ana içerik bölümü ile footer arasında boşluk */
 .flex-grow-1 {
-    margin-bottom: 80px;
+
     background-color: #EBEDF3;
 }
 
-/* Responsive tasarım için */
-@media (max-width: 768px) {
-    .flex-grow-1 {
-        margin-bottom: 50px;
-    }
-}
+
 
 .dashboard-sidebar {
     border-radius: 8px;
@@ -943,4 +962,11 @@ body {
 /* Add cursor style to clickable elements */
 .cursor-pointer {
     cursor: pointer;
+}
+
+/* Button styles for disabled state */
+.btn-orange:disabled {
+    background-color: #eb6825;
+    color: white;
+    opacity: 0.65;
 }

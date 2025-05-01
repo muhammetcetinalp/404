@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faSpinner, faTruck, faTasks, faChevronDown, faChevronUp,
     faCheck, faClock, faShippingFast, faExclamationTriangle,
-    faUtensils
+    faUtensils, faBoxOpen
 } from '@fortawesome/free-solid-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -20,7 +20,27 @@ const OrderPage = () => {
     const [expandedOrders, setExpandedOrders] = useState({});
     const [activeStatus, setActiveStatus] = useState('all');
     const navigate = useNavigate();
-
+    const CustomCloseButton = ({ closeToast }) => (
+        <button
+            onClick={closeToast}
+            style={{
+                background: 'transparent',
+                border: 'none',
+                fontSize: '16px',
+                color: 'white',
+                cursor: 'pointer',
+                padding: '4px',
+                margin: '0',
+                width: '35px',
+                height: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
+            ×
+        </button>
+    );
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -35,6 +55,12 @@ const OrderPage = () => {
         try {
             const res = await api.get('/orders/history');
             setOrders(res.data);
+
+            // Debug: Log all unique statuses to console
+            if (res.data && res.data.length > 0) {
+                const uniqueStatuses = [...new Set(res.data.map(order => order.orderStatus))];
+                console.log("All order statuses in system:", uniqueStatuses);
+            }
         } catch (err) {
             console.error('Error fetching past orders:', err);
             setError('Failed to load past orders.');
@@ -50,17 +76,19 @@ const OrderPage = () => {
     const getStatusBadge = (status) => {
         const lowerStatus = status.toLowerCase();
 
-        if (lowerStatus === 'delivered') {
+        if (lowerStatus.includes('deliver')) {
             return <span className="badge bg-success">DELIVERED</span>;
         } else if (lowerStatus === 'pending') {
             return <span className="badge bg-warning">PENDING</span>;
-        } else if (lowerStatus === 'in_progress' || lowerStatus === 'in progress') {
+        } else if (lowerStatus.includes('progress')) {
             return <span className="badge bg-info">IN PROGRESS</span>;
-        } else if (lowerStatus === 'preparing') {
+        } else if (lowerStatus.includes('prepar')) {
             return <span className="badge bg-info" style={{ backgroundColor: '#17a2b8' }}>PREPARING</span>;
         } else if (lowerStatus === 'ready') {
             return <span className="badge bg-primary">READY</span>;
-        } else if (lowerStatus === 'cancelled') {
+        } else if (lowerStatus.includes('pick')) {
+            return <span className="badge" style={{ backgroundColor: '#6f42c1', color: 'white' }}>PICKED UP</span>;
+        } else if (lowerStatus.includes('cancel')) {
             return <span className="badge bg-danger">CANCELLED</span>;
         } else {
             return <span className="badge bg-secondary">{status}</span>;
@@ -70,23 +98,25 @@ const OrderPage = () => {
     const filteredOrders = activeStatus === 'all'
         ? orders
         : orders.filter(order => {
-            const status = order.orderStatus.toLowerCase();
-            if (activeStatus === 'delivered') return status === 'delivered';
-            if (activeStatus === 'pending') return status === 'pending';
-            if (activeStatus === 'inProgress') return status === 'in_progress' || status === 'in progress';
-            if (activeStatus === 'preparing') return status === 'preparing';
+            const status = order.orderStatus?.toLowerCase() || '';
+            if (activeStatus === 'delivered') return status.includes('deliver');
+            if (activeStatus === 'pending') return status.includes('pending');
+            if (activeStatus === 'inProgress') return status.includes('progress');
+            if (activeStatus === 'preparing') return status.includes('prepar');
             if (activeStatus === 'ready') return status === 'ready';
+            if (activeStatus === 'pickedUp') return status.includes('pick');
             return true;
         });
 
     const getStatusCount = (statusType) => {
         return orders.filter(order => {
-            const status = order.orderStatus.toLowerCase();
-            if (statusType === 'delivered') return status === 'delivered';
-            if (statusType === 'pending') return status === 'pending';
-            if (statusType === 'inProgress') return status === 'in_progress' || status === 'in progress';
-            if (statusType === 'preparing') return status === 'preparing';
+            const status = order.orderStatus?.toLowerCase() || '';
+            if (statusType === 'delivered') return status.includes('deliver');
+            if (statusType === 'pending') return status.includes('pending');
+            if (statusType === 'inProgress') return status.includes('progress');
+            if (statusType === 'preparing') return status.includes('prepar');
             if (statusType === 'ready') return status === 'ready';
+            if (statusType === 'pickedUp') return status.includes('pick');
             return false;
         }).length;
     };
@@ -115,9 +145,13 @@ const OrderPage = () => {
                 draggable
                 pauseOnHover
                 theme="colored"
+                closeButton={<CustomCloseButton />}
+                toastClassName="custom-toast"
+                bodyClassName="custom-toast-body"
+                icon={true}
             />
 
-            <div className="container-fluid py-5" style={{ background: "#EBEDF3" }}>
+            <div className="container-fluid py-5" style={{ background: "#EBEDF3", minHeight: "70vh" }}>
                 <div className="container">
                     {error && (
                         <div className="alert alert-danger" role="alert">
@@ -130,54 +164,69 @@ const OrderPage = () => {
                         <div className="col-12">
                             <div className="card shadow-sm">
                                 <div className="card-body p-0">
-                                    <div className="status-filter-bar d-flex">
+                                    <div className="status-filter-bar d-flex flex-wrap">
                                         <div
-                                            className={`status-item flex-fill text-center p-3 cursor-pointer ${activeStatus === 'all' ? 'active bg-light border-bottom border-warning' : ''}`}
+                                            className={`status-item flex-fill text-center p-2 p-md-3 cursor-pointer ${activeStatus === 'all' ? 'active bg-light border-bottom border-warning' : ''}`}
                                             onClick={() => setActiveStatus('all')}
                                         >
-                                            <FontAwesomeIcon icon={faTasks} className="me-2" />
-                                            All Orders
-                                            <span className="badge bg-secondary ms-2">{orders.length}</span>
+                                            <FontAwesomeIcon icon={faTasks} className="me-1 me-md-2" />
+                                            <span className="d-none d-sm-inline">All Orders</span>
+                                            <span className="d-inline d-sm-none">All</span>
+                                            <span className="badge bg-secondary ms-1 ms-md-2">{orders.length}</span>
                                         </div>
                                         <div
-                                            className={`status-item flex-fill text-center p-3 cursor-pointer ${activeStatus === 'pending' ? 'active bg-light border-bottom border-warning' : ''}`}
+                                            className={`status-item flex-fill text-center p-2 p-md-3 cursor-pointer ${activeStatus === 'pending' ? 'active bg-light border-bottom border-warning' : ''}`}
                                             onClick={() => setActiveStatus('pending')}
                                         >
-                                            <FontAwesomeIcon icon={faClock} className="me-2 text-warning" />
-                                            Pending
-                                            <span className="badge bg-warning ms-2">{getStatusCount('pending')}</span>
+                                            <FontAwesomeIcon icon={faClock} className="me-1 me-md-2 text-warning" />
+                                            <span className="d-none d-sm-inline">Pending</span>
+                                            <span className="d-inline d-sm-none">Pending</span>
+                                            <span className="badge bg-warning ms-1 ms-md-2">{getStatusCount('pending')}</span>
                                         </div>
                                         <div
-                                            className={`status-item flex-fill text-center p-3 cursor-pointer ${activeStatus === 'inProgress' ? 'active bg-light border-bottom border-warning' : ''}`}
+                                            className={`status-item flex-fill text-center p-2 p-md-3 cursor-pointer ${activeStatus === 'inProgress' ? 'active bg-light border-bottom border-warning' : ''}`}
                                             onClick={() => setActiveStatus('inProgress')}
                                         >
-                                            <FontAwesomeIcon icon={faShippingFast} className="me-2 text-info" />
-                                            In Progress
-                                            <span className="badge bg-info ms-2">{getStatusCount('inProgress')}</span>
+                                            <FontAwesomeIcon icon={faShippingFast} className="me-1 me-md-2 text-info" />
+                                            <span className="d-none d-sm-inline">In Progress</span>
+                                            <span className="d-inline d-sm-none">In Prog</span>
+                                            <span className="badge bg-info ms-1 ms-md-2">{getStatusCount('inProgress')}</span>
                                         </div>
                                         <div
-                                            className={`status-item flex-fill text-center p-3 cursor-pointer ${activeStatus === 'preparing' ? 'active bg-light border-bottom border-warning' : ''}`}
+                                            className={`status-item flex-fill text-center p-2 p-md-3 cursor-pointer ${activeStatus === 'preparing' ? 'active bg-light border-bottom border-warning' : ''}`}
                                             onClick={() => setActiveStatus('preparing')}
                                         >
-                                            <FontAwesomeIcon icon={faUtensils} className="me-2 text-info" />
-                                            Preparing
-                                            <span className="badge bg-info ms-2" style={{ backgroundColor: '#17a2b8' }}>{getStatusCount('preparing')}</span>
+                                            <FontAwesomeIcon icon={faUtensils} className="me-1 me-md-2 text-info" />
+                                            <span className="d-none d-sm-inline">Preparing</span>
+                                            <span className="d-inline d-sm-none">Prep</span>
+                                            <span className="badge bg-info ms-1 ms-md-2" style={{ backgroundColor: '#17a2b8' }}>{getStatusCount('preparing')}</span>
                                         </div>
                                         <div
-                                            className={`status-item flex-fill text-center p-3 cursor-pointer ${activeStatus === 'ready' ? 'active bg-light border-bottom border-warning' : ''}`}
+                                            className={`status-item flex-fill text-center p-2 p-md-3 cursor-pointer ${activeStatus === 'ready' ? 'active bg-light border-bottom border-warning' : ''}`}
                                             onClick={() => setActiveStatus('ready')}
                                         >
-                                            <FontAwesomeIcon icon={faCheck} className="me-2 text-primary" />
-                                            Ready
-                                            <span className="badge bg-primary ms-2">{getStatusCount('ready')}</span>
+                                            <FontAwesomeIcon icon={faCheck} className="me-1 me-md-2 text-primary" />
+                                            <span className="d-none d-sm-inline">Ready</span>
+                                            <span className="d-inline d-sm-none">Ready</span>
+                                            <span className="badge bg-primary ms-1 ms-md-2">{getStatusCount('ready')}</span>
                                         </div>
                                         <div
-                                            className={`status-item flex-fill text-center p-3 cursor-pointer ${activeStatus === 'delivered' ? 'active bg-light border-bottom border-warning' : ''}`}
+                                            className={`status-item flex-fill text-center p-2 p-md-3 cursor-pointer ${activeStatus === 'pickedUp' ? 'active bg-light border-bottom border-warning' : ''}`}
+                                            onClick={() => setActiveStatus('pickedUp')}
+                                        >
+                                            <FontAwesomeIcon icon={faBoxOpen} className="me-1 me-md-2" style={{ color: '#6f42c1' }} />
+                                            <span className="d-none d-sm-inline">Picked Up</span>
+                                            <span className="d-inline d-sm-none">Picked</span>
+                                            <span className="badge ms-1 ms-md-2" style={{ backgroundColor: '#6f42c1', color: 'white' }}>{getStatusCount('pickedUp')}</span>
+                                        </div>
+                                        <div
+                                            className={`status-item flex-fill text-center p-2 p-md-3 cursor-pointer ${activeStatus === 'delivered' ? 'active bg-light border-bottom border-warning' : ''}`}
                                             onClick={() => setActiveStatus('delivered')}
                                         >
-                                            <FontAwesomeIcon icon={faTruck} className="me-2 text-success" />
-                                            Delivered
-                                            <span className="badge bg-success ms-2">{getStatusCount('delivered')}</span>
+                                            <FontAwesomeIcon icon={faTruck} className="me-1 me-md-2 text-success" />
+                                            <span className="d-none d-sm-inline">Delivered</span>
+                                            <span className="d-inline d-sm-none">Deliv</span>
+                                            <span className="badge bg-success ms-1 ms-md-2">{getStatusCount('delivered')}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -194,7 +243,8 @@ const OrderPage = () => {
                                             activeStatus === 'delivered' ? 'Delivered Orders' :
                                                 activeStatus === 'pending' ? 'Pending Orders' :
                                                     activeStatus === 'preparing' ? 'Preparing Orders' :
-                                                        activeStatus === 'ready' ? 'Ready Orders' : 'In Progress Orders'}
+                                                        activeStatus === 'ready' ? 'Ready Orders' :
+                                                            activeStatus === 'pickedUp' ? 'Picked Up Orders' : 'In Progress Orders'}
                                     </h5>
                                 </div>
                                 <div className="card-body">
@@ -271,35 +321,52 @@ const OrderPage = () => {
 
                                                                             <div className="mt-3 order-timeline">
                                                                                 <div className="d-flex justify-content-between">
-                                                                                    <div className={`timeline-item ${order.orderStatus === 'PENDING' || order.orderStatus === 'IN_PROGRESS' || order.orderStatus === 'PREPARING' || order.orderStatus === 'READY' || order.orderStatus === 'DELIVERED' ? 'active' : ''}`}>
+                                                                                    <div className={`timeline-item ${['PENDING', 'IN_PROGRESS', 'PREPARING', 'READY', 'PICKED_UP', 'DELIVERED'].some(s =>
+                                                                                        order.orderStatus?.toUpperCase().includes(s)
+                                                                                    ) ? 'active' : ''}`}>
                                                                                         <div className="timeline-icon">
                                                                                             <FontAwesomeIcon icon={faClock} />
                                                                                         </div>
                                                                                         <div className="timeline-text">Order Placed</div>
                                                                                     </div>
 
-                                                                                    <div className={`timeline-item ${order.orderStatus === 'IN_PROGRESS' || order.orderStatus === 'PREPARING' || order.orderStatus === 'READY' || order.orderStatus === 'DELIVERED' ? 'active' : ''}`}>
+                                                                                    <div className={`timeline-item ${['IN_PROGRESS', 'PREPARING', 'READY', 'PICKED_UP', 'DELIVERED'].some(s =>
+                                                                                        order.orderStatus?.toUpperCase().includes(s)
+                                                                                    ) ? 'active' : ''}`}>
                                                                                         <div className="timeline-icon">
                                                                                             <FontAwesomeIcon icon={faShippingFast} />
                                                                                         </div>
                                                                                         <div className="timeline-text">In Progress</div>
                                                                                     </div>
 
-                                                                                    <div className={`timeline-item ${order.orderStatus === 'PREPARING' || order.orderStatus === 'READY' || order.orderStatus === 'DELIVERED' ? 'active' : ''}`}>
+                                                                                    <div className={`timeline-item ${['PREPARING', 'READY', 'PICKED_UP', 'DELIVERED'].some(s =>
+                                                                                        order.orderStatus?.toUpperCase().includes(s)
+                                                                                    ) ? 'active' : ''}`}>
                                                                                         <div className="timeline-icon">
                                                                                             <FontAwesomeIcon icon={faUtensils} />
                                                                                         </div>
                                                                                         <div className="timeline-text">Preparing</div>
                                                                                     </div>
 
-                                                                                    <div className={`timeline-item ${order.orderStatus === 'READY' || order.orderStatus === 'DELIVERED' ? 'active' : ''}`}>
+                                                                                    <div className={`timeline-item ${['READY', 'PICKED_UP', 'DELIVERED'].some(s =>
+                                                                                        order.orderStatus?.toUpperCase().includes(s)
+                                                                                    ) ? 'active' : ''}`}>
                                                                                         <div className="timeline-icon">
                                                                                             <FontAwesomeIcon icon={faCheck} />
                                                                                         </div>
                                                                                         <div className="timeline-text">Ready</div>
                                                                                     </div>
 
-                                                                                    <div className={`timeline-item ${order.orderStatus === 'DELIVERED' ? 'active' : ''}`}>
+                                                                                    <div className={`timeline-item ${['PICKED_UP', 'DELIVERED'].some(s =>
+                                                                                        order.orderStatus?.toUpperCase().includes(s)
+                                                                                    ) ? 'active' : ''}`}>
+                                                                                        <div className="timeline-icon">
+                                                                                            <FontAwesomeIcon icon={faBoxOpen} />
+                                                                                        </div>
+                                                                                        <div className="timeline-text">Picked Up</div>
+                                                                                    </div>
+
+                                                                                    <div className={`timeline-item ${order.orderStatus?.toUpperCase().includes('DELIVERED') ? 'active' : ''}`}>
                                                                                         <div className="timeline-icon">
                                                                                             <FontAwesomeIcon icon={faTruck} />
                                                                                         </div>

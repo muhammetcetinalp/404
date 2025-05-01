@@ -258,3 +258,11 @@
 .react-confirm-alert-overlay {
     background: rgba(0, 0, 0, 0.6);
 }
+
+.btn-pending-approval {
+    background-color: #eb6825 !important;
+}
+
+.restorant-card-text {
+    padding-left: 0px !important;
+}

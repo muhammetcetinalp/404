@@ -280,8 +280,8 @@ const CourierDashboard = () => {
                                 ) : pendingOrders.length > 0 ? (
                                     <div className="order-list">
                                         {pendingOrders.map(order => (
-                                            <div 
-                                                className="order-item mb-4" 
+                                            <div
+                                                className="order-item mb-4"
                                                 key={order.orderId}
                                             >
                                                 <div className="card">
@@ -293,7 +293,7 @@ const CourierDashboard = () => {
                                                                     <p className="mb-1 small">
                                                                         <strong>Time:</strong> {formatDateTime(order.orderDate)}
                                                                     </p>
-                                                                    <span className="badge bg-warning">Pending</span>
+                                                                    <span className="badge bg-warning">READY</span>
                                                                 </div>
                                                             </div>
                                                             <div className="col-md-4">
@@ -384,40 +384,7 @@ const CourierDashboard = () => {
                                                     )}
                                                 </div>
 
-                                                {expandedOrderId === order.orderId && (
-                                                    <div className="card-footer bg-light">
-                                                        <h6 className="mb-3">Order Items</h6>
-                                                        <table className="table table-sm">
-                                                            <thead className="thead-light">
-                                                                <tr>
-                                                                    <th>Item</th>
-                                                                    <th>Quantity</th>
-                                                                    <th className="text-right">Price</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {Object.entries(orderDetails[order.orderId]?.items || {}).map(([itemKey, quantity], index) => {
-                                                                    try {
-                                                                        const item = JSON.parse(itemKey);
-                                                                        return (
-                                                                            <tr key={index}>
-                                                                                <td>{item.name}</td>
-                                                                                <td>{quantity}</td>
-                                                                                <td className="text-right">₺{(item.price * quantity).toFixed(2)}</td>
-                                                                            </tr>
-                                                                        );
-                                                                    } catch (e) {
-                                                                        return null;
-                                                                    }
-                                                                })}
-                                                                <tr className="table-warning">
-                                                                    <td colSpan="2"><strong>Total</strong></td>
-                                                                    <td className="text-right"><strong>₺{order.totalAmount.toFixed(2)}</strong></td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                )}
+
                                             </div>
                                         ))}
                                     </div>

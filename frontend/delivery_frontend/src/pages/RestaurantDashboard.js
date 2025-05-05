@@ -250,9 +250,21 @@ const RestaurantDashboard = () => {
 
             console.log(`Updating order ${orderId} status to ${newStatus}`);
 
+            // Find the current order to check its delivery method
+            const currentOrder = orders.find(order => order.orderId === orderId);
+            let statusToSet = newStatus;
+
+            // Special handling for PICKUP orders that are being marked as picked up
+            if (newStatus === 'PICKED_UP' &&
+                (currentOrder.deliveryMethod === 'PICKUP' || currentOrder.deliveryType === 'PICKUP')) {
+                // For pickup orders, when marked as picked up, they should go directly to DELIVERED
+                statusToSet = 'DELIVERED';
+                console.log(`This is a PICKUP order, setting status directly to ${statusToSet}`);
+            }
+
             const response = await axios.patch(
                 `http://localhost:8080/api/orders/status/${orderId}`,
-                { status: newStatus },
+                { status: statusToSet },
                 { headers }
             );
 
@@ -260,7 +272,10 @@ const RestaurantDashboard = () => {
 
             // Update local state after successful API call
             const updatedOrders = orders.map(order =>
-                order.orderId === orderId ? { ...order, orderStatus: newStatus === 'ACCEPTED' ? 'IN PROGRESS' : newStatus } : order
+                order.orderId === orderId ? {
+                    ...order,
+                    orderStatus: statusToSet === 'ACCEPTED' ? 'IN PROGRESS' : statusToSet
+                } : order
             );
             setOrders(updatedOrders);
 
@@ -268,11 +283,19 @@ const RestaurantDashboard = () => {
             if (expandedOrderId === orderId) {
                 setOrderDetails({
                     ...orderDetails,
-                    [orderId]: { ...orderDetails[orderId], orderStatus: newStatus === 'ACCEPTED' ? 'IN PROGRESS' : newStatus }
+                    [orderId]: {
+                        ...orderDetails[orderId],
+                        orderStatus: statusToSet === 'ACCEPTED' ? 'IN PROGRESS' : statusToSet
+                    }
                 });
             }
 
-            toast.success(`Order status updated to ${newStatus === 'ACCEPTED' ? 'IN PROGRESS' : newStatus}`);
+            // Show appropriate success message
+            if (newStatus === 'PICKED_UP' && statusToSet === 'DELIVERED') {
+                toast.success(`Order has been picked up and marked as delivered`);
+            } else {
+                toast.success(`Order status updated to ${statusToSet === 'ACCEPTED' ? 'IN PROGRESS' : statusToSet}`);
+            }
         } catch (err) {
             console.error('Error updating order status:', err);
             const errorMessage = err.response?.data || 'Failed to update order status. Please try again.';
@@ -725,18 +748,38 @@ const RestaurantDashboard = () => {
                                                                                             {order.orderStatus.toUpperCase() === 'CANCELLED' ? 'Cancelled' : (['PENDING', 'IN PROGRESS', 'PREPARING'].includes(order.orderStatus.toUpperCase()) ? 'Pending' : 'Completed')}
                                                                                         </span>
                                                                                     </li>
-                                                                                    <li className="list-group-item d-flex justify-content-between align-items-center">
-                                                                                        <span>Picked Up</span>
-                                                                                        <span className={`badge ${order.orderStatus.toUpperCase() === 'CANCELLED' ? 'bg-danger' : (['PENDING', 'IN PROGRESS', 'PREPARING', 'READY'].includes(order.orderStatus.toUpperCase()) ? 'bg-secondary' : 'bg-success')}`}>
-                                                                                            {order.orderStatus.toUpperCase() === 'CANCELLED' ? 'Cancelled' : (['PENDING', 'IN PROGRESS', 'PREPARING', 'READY'].includes(order.orderStatus.toUpperCase()) ? 'Pending' : 'Completed')}
-                                                                                        </span>
-                                                                                    </li>
-                                                                                    <li className="list-group-item d-flex justify-content-between align-items-center">
-                                                                                        <span>Delivered</span>
-                                                                                        <span className={`badge ${order.orderStatus.toUpperCase() === 'CANCELLED' ? 'bg-danger' : (order.orderStatus.toUpperCase() === 'DELIVERED' ? 'bg-success' : 'bg-secondary')}`}>
-                                                                                            {order.orderStatus.toUpperCase() === 'CANCELLED' ? 'Cancelled' : (order.orderStatus.toUpperCase() === 'DELIVERED' ? 'Completed' : 'Pending')}
-                                                                                        </span>
-                                                                                    </li>
+                                                                                    {order.deliveryMethod === 'PICKUP' || order.deliveryType === 'PICKUP' ? (
+                                                                                        <>
+                                                                                            <li className="list-group-item d-flex justify-content-between align-items-center">
+                                                                                                <span>Picked Up</span>
+                                                                                                <span className={`badge ${order.orderStatus.toUpperCase() === 'CANCELLED' ? 'bg-danger' : (order.orderStatus.toUpperCase() === 'DELIVERED' ? 'bg-success' : 'bg-secondary')}`}>
+                                                                                                    {order.orderStatus.toUpperCase() === 'CANCELLED' ? 'Cancelled' : (order.orderStatus.toUpperCase() === 'DELIVERED' ? 'Completed' : 'Pending')}
+                                                                                                </span>
+                                                                                            </li>
+                                                                                            <li className="list-group-item d-flex justify-content-between align-items-center">
+                                                                                                <span>Delivered</span>
+                                                                                                <span className={`badge ${order.orderStatus.toUpperCase() === 'CANCELLED' ? 'bg-danger' : (order.orderStatus.toUpperCase() === 'DELIVERED' ? 'bg-success' : 'bg-secondary')}`}>
+                                                                                                    {order.orderStatus.toUpperCase() === 'CANCELLED' ? 'Cancelled' : (order.orderStatus.toUpperCase() === 'DELIVERED' ? 'Completed' : 'Pending')}
+                                                                                                </span>
+                                                                                            </li>
+                                                                                        </>
+                                                                                    ) : (
+                                                                                        <>
+                                                                                            <li className="list-group-item d-flex justify-content-between align-items-center">
+                                                                                                <span>Picked Up</span>
+                                                                                                <span className={`badge ${order.orderStatus.toUpperCase() === 'CANCELLED' ? 'bg-danger' : (['PENDING', 'IN PROGRESS', 'PREPARING', 'READY'].includes(order.orderStatus.toUpperCase()) ? 'bg-secondary' : 'bg-success')}`}>
+                                                                                                    {order.orderStatus.toUpperCase() === 'CANCELLED' ? 'Cancelled' : (['PENDING', 'IN PROGRESS', 'PREPARING', 'READY'].includes(order.orderStatus.toUpperCase()) ? 'Pending' : 'Completed')}
+                                                                                                </span>
+                                                                                            </li>
+                                                                                            <li className="list-group-item d-flex justify-content-between align-items-center">
+                                                                                                <span>Delivered</span>
+                                                                                                <span className={`badge ${order.orderStatus.toUpperCase() === 'CANCELLED' ? 'bg-danger' : (order.orderStatus.toUpperCase() === 'DELIVERED' ? 'bg-success' : 'bg-secondary')}`}>
+                                                                                                    {order.orderStatus.toUpperCase() === 'CANCELLED' ? 'Cancelled' : (order.orderStatus.toUpperCase() === 'DELIVERED' ? 'Completed' : 'Pending')}
+                                                                                                </span>
+                                                                                            </li>
+                                                                                        </>
+                                                                                    )}
+
                                                                                 </ul>
 
                                                                             </div>

@@ -10,6 +10,9 @@ import com.backend.delivery_backend.repository.CourierRestaurantRequestRepositor
 import com.backend.delivery_backend.repository.RestaurantOwnerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.backend.delivery_backend.ENUM.CourierStatus;
+import org.springframework.beans.factory.annotation.Autowired;
+
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -55,7 +58,8 @@ public class CourierRestaurantRequestService {
                         r.getStatus(),
                         r.getCreatedAt(),
                         r.getCourier().getEmail(),
-                        r.getCourier().getPhone()
+                        r.getCourier().getPhone(),
+                        r.getCourier().getStatus().toString() // Include courier status here
                 ))
                 .collect(Collectors.toList());
     }

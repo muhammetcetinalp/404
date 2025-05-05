@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faMotorcycle, faUserPlus, faCheckCircle, faTimesCircle, faSort, faUser, faPhone, faEnvelope, faIdCard, faCheck, faTimes, faTasks } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faMotorcycle, faUserPlus, faCheckCircle, faTimesCircle, faSort, faUser, faPhone, faEnvelope, faIdCard, faCheck, faTimes, faTasks, faToggleOn, faToggleOff } from '@fortawesome/free-solid-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
@@ -19,11 +19,15 @@ import CourierIntegration from './CourierIntegration';
 const RestaurantCourierManagementPage = () => {
     const [registeredCouriers, setRegisteredCouriers] = useState([]);
     const [pendingCouriers, setPendingCouriers] = useState([]);
+    const [availableCouriers, setAvailableCouriers] = useState([]);
+    const [unavailableCouriers, setUnavailableCouriers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredRegisteredCouriers, setFilteredRegisteredCouriers] = useState([]);
     const [filteredPendingCouriers, setFilteredPendingCouriers] = useState([]);
+    const [filteredAvailableCouriers, setFilteredAvailableCouriers] = useState([]);
+    const [filteredUnavailableCouriers, setFilteredUnavailableCouriers] = useState([]);
     const [accountStatus, setAccountStatus] = useState('ACTIVE');
     const [activeTab, setActiveTab] = useState('all');
     const navigate = useNavigate();
@@ -106,10 +110,19 @@ const RestaurantCourierManagementPage = () => {
                 const pending = response.data.filter(req => req.status === 'PENDING');
                 const registered = response.data.filter(req => req.status === 'ACCEPTED');
 
+                // Filter registered couriers by courier status
+                const available = registered.filter(req => req.courierStatus === 'AVAILABLE');
+                const unavailable = registered.filter(req => req.courierStatus === 'UNAVAILABLE');
+
                 setPendingCouriers(pending);
                 setRegisteredCouriers(registered);
+                setAvailableCouriers(available);
+                setUnavailableCouriers(unavailable);
+
                 setFilteredPendingCouriers(pending);
                 setFilteredRegisteredCouriers(registered);
+                setFilteredAvailableCouriers(available);
+                setFilteredUnavailableCouriers(unavailable);
             } else {
                 throw new Error('Invalid data format');
             }
@@ -217,33 +230,59 @@ const RestaurantCourierManagementPage = () => {
                 courier.phone?.includes(searchTerm)
             );
 
+            const filteredAvailable = availableCouriers.filter(courier =>
+                courier.courierName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                courier.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                courier.phone?.includes(searchTerm)
+            );
+
+            const filteredUnavailable = unavailableCouriers.filter(courier =>
+                courier.courierName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                courier.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                courier.phone?.includes(searchTerm)
+            );
+
             setFilteredRegisteredCouriers(filteredRegistered);
             setFilteredPendingCouriers(filteredPending);
+            setFilteredAvailableCouriers(filteredAvailable);
+            setFilteredUnavailableCouriers(filteredUnavailable);
         } else {
             setFilteredRegisteredCouriers(registeredCouriers);
             setFilteredPendingCouriers(pendingCouriers);
+            setFilteredAvailableCouriers(availableCouriers);
+            setFilteredUnavailableCouriers(unavailableCouriers);
         }
-    }, [searchTerm, registeredCouriers, pendingCouriers]);
+    }, [searchTerm, registeredCouriers, pendingCouriers, availableCouriers, unavailableCouriers]);
 
     // Get the current couriers to display based on active tab
     const getCurrentCouriers = () => {
-        if (activeTab === 'registered') {
-            return filteredRegisteredCouriers;
-        } else if (activeTab === 'pending') {
-            return filteredPendingCouriers;
-        } else {
-            return [...filteredRegisteredCouriers, ...filteredPendingCouriers];
+        switch (activeTab) {
+            case 'registered':
+                return filteredRegisteredCouriers;
+            case 'pending':
+                return filteredPendingCouriers;
+            case 'available':
+                return filteredAvailableCouriers;
+            case 'unavailable':
+                return filteredUnavailableCouriers;
+            default:
+                return [...filteredRegisteredCouriers, ...filteredPendingCouriers];
         }
     };
 
     // Get tab title based on active tab
     const getTabTitle = () => {
-        if (activeTab === 'registered') {
-            return 'Registered Couriers';
-        } else if (activeTab === 'pending') {
-            return 'Pending Courier Requests';
-        } else {
-            return 'All Couriers';
+        switch (activeTab) {
+            case 'registered':
+                return 'Registered Couriers';
+            case 'pending':
+                return 'Pending Courier Requests';
+            case 'available':
+                return 'Available Couriers';
+            case 'unavailable':
+                return 'Unavailable Couriers';
+            default:
+                return 'All Couriers';
         }
     };
 
@@ -335,6 +374,22 @@ const RestaurantCourierManagementPage = () => {
                                                 <span className="badge bg-success ms-2">{registeredCouriers.length}</span>
                                             </div>
                                             <div
+                                                className={`status-item flex-fill text-center p-3 cursor-pointer ${activeTab === 'available' ? 'active bg-light border-bottom border-warning' : ''}`}
+                                                onClick={() => setActiveTab('available')}
+                                            >
+                                                <FontAwesomeIcon icon={faToggleOn} className="me-2 text-info" />
+                                                Available
+                                                <span className="badge bg-info ms-2">{availableCouriers.length}</span>
+                                            </div>
+                                            <div
+                                                className={`status-item flex-fill text-center p-3 cursor-pointer ${activeTab === 'unavailable' ? 'active bg-light border-bottom border-warning' : ''}`}
+                                                onClick={() => setActiveTab('unavailable')}
+                                            >
+                                                <FontAwesomeIcon icon={faToggleOff} className="me-2 text-secondary" />
+                                                Unavailable
+                                                <span className="badge bg-secondary ms-2">{unavailableCouriers.length}</span>
+                                            </div>
+                                            <div
                                                 className={`status-item flex-fill text-center p-3 cursor-pointer ${activeTab === 'pending' ? 'active bg-light border-bottom border-warning' : ''}`}
                                                 onClick={() => setActiveTab('pending')}
                                             >
@@ -367,6 +422,124 @@ const RestaurantCourierManagementPage = () => {
                                             </div>
                                         ) : (
                                             <>
+                                                {/* Available Couriers */}
+                                                {activeTab === 'available' && (
+                                                    <>
+                                                        {filteredAvailableCouriers.length > 0 ? (
+                                                            <div className="table-responsive">
+                                                                <table className="table table-hover">
+                                                                    <thead className="table-light">
+                                                                        <tr>
+                                                                            <th scope="col" width="25%">Name</th>
+                                                                            <th scope="col" width="25%">Email</th>
+                                                                            <th scope="col" width="20%">Phone</th>
+                                                                            <th scope="col" width="10%">Status</th>
+                                                                            <th scope="col" width="20%" className="text-end">Actions</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {filteredAvailableCouriers.map(courier => (
+                                                                            <tr key={courier.requestId}>
+                                                                                <td className="align-middle">
+                                                                                    <div className="d-flex align-items-center">
+                                                                                        <div className="avatar-circle me-2 bg-info">
+                                                                                            <span className="avatar-text">{courier.courierName.charAt(0).toUpperCase()}</span>
+                                                                                        </div>
+                                                                                        {courier.courierName}
+                                                                                    </div>
+                                                                                </td>
+                                                                                <td className="align-middle">{courier.email || 'N/A'}</td>
+                                                                                <td className="align-middle">{courier.phone || 'N/A'}</td>
+                                                                                <td className="align-middle">
+                                                                                    <span className="badge bg-info">
+                                                                                        <FontAwesomeIcon icon={faToggleOn} className="me-1" />
+                                                                                        Available
+                                                                                    </span>
+                                                                                </td>
+                                                                                <td className="align-middle text-end">
+                                                                                    <button
+                                                                                        className="btn btn-outline-danger btn-sm"
+                                                                                        onClick={() => handleRemoveCourier(courier.requestId)}
+                                                                                        disabled={accountStatus === 'SUSPENDED'}
+                                                                                    >
+                                                                                        <FontAwesomeIcon icon={faTimes} className="me-1" />
+                                                                                        Remove
+                                                                                    </button>
+                                                                                </td>
+                                                                            </tr>
+                                                                        ))}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="text-center py-4">
+                                                                <FontAwesomeIcon icon={faToggleOn} size="3x" className="mb-3 text-muted" />
+                                                                <h5>No available couriers found</h5>
+                                                                <p>There are no couriers currently marked as available</p>
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                )}
+
+                                                {/* Unavailable Couriers */}
+                                                {activeTab === 'unavailable' && (
+                                                    <>
+                                                        {filteredUnavailableCouriers.length > 0 ? (
+                                                            <div className="table-responsive">
+                                                                <table className="table table-hover">
+                                                                    <thead className="table-light">
+                                                                        <tr>
+                                                                            <th scope="col" width="25%">Name</th>
+                                                                            <th scope="col" width="25%">Email</th>
+                                                                            <th scope="col" width="20%">Phone</th>
+                                                                            <th scope="col" width="10%">Status</th>
+                                                                            <th scope="col" width="20%" className="text-end">Actions</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {filteredUnavailableCouriers.map(courier => (
+                                                                            <tr key={courier.requestId}>
+                                                                                <td className="align-middle">
+                                                                                    <div className="d-flex align-items-center">
+                                                                                        <div className="avatar-circle me-2 bg-secondary">
+                                                                                            <span className="avatar-text">{courier.courierName.charAt(0).toUpperCase()}</span>
+                                                                                        </div>
+                                                                                        {courier.courierName}
+                                                                                    </div>
+                                                                                </td>
+                                                                                <td className="align-middle">{courier.email || 'N/A'}</td>
+                                                                                <td className="align-middle">{courier.phone || 'N/A'}</td>
+                                                                                <td className="align-middle">
+                                                                                    <span className="badge bg-secondary">
+                                                                                        <FontAwesomeIcon icon={faToggleOff} className="me-1" />
+                                                                                        Unavailable
+                                                                                    </span>
+                                                                                </td>
+                                                                                <td className="align-middle text-end">
+                                                                                    <button
+                                                                                        className="btn btn-outline-danger btn-sm"
+                                                                                        onClick={() => handleRemoveCourier(courier.requestId)}
+                                                                                        disabled={accountStatus === 'SUSPENDED'}
+                                                                                    >
+                                                                                        <FontAwesomeIcon icon={faTimes} className="me-1" />
+                                                                                        Remove
+                                                                                    </button>
+                                                                                </td>
+                                                                            </tr>
+                                                                        ))}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="text-center py-4">
+                                                                <FontAwesomeIcon icon={faToggleOff} size="3x" className="mb-3 text-muted" />
+                                                                <h5>No unavailable couriers found</h5>
+                                                                <p>There are no couriers currently marked as unavailable</p>
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                )}
+
                                                 {/* Registered Couriers */}
                                                 {activeTab === 'registered' && (
                                                     <>
@@ -396,7 +569,17 @@ const RestaurantCourierManagementPage = () => {
                                                                                 <td className="align-middle">{courier.email || 'N/A'}</td>
                                                                                 <td className="align-middle">{courier.phone || 'N/A'}</td>
                                                                                 <td className="align-middle">
-                                                                                    <span className="badge bg-success">Active</span>
+                                                                                    {courier.courierStatus === 'AVAILABLE' ? (
+                                                                                        <span className="badge bg-info">
+                                                                                            <FontAwesomeIcon icon={faToggleOn} className="me-1" />
+                                                                                            Available
+                                                                                        </span>
+                                                                                    ) : (
+                                                                                        <span className="badge bg-secondary">
+                                                                                            <FontAwesomeIcon icon={faToggleOff} className="me-1" />
+                                                                                            Unavailable
+                                                                                        </span>
+                                                                                    )}
                                                                                 </td>
                                                                                 <td className="align-middle text-end">
                                                                                     <button
@@ -517,7 +700,17 @@ const RestaurantCourierManagementPage = () => {
                                                                                 <td className="align-middle">{courier.email || 'N/A'}</td>
                                                                                 <td className="align-middle">{courier.phone || 'N/A'}</td>
                                                                                 <td className="align-middle">
-                                                                                    <span className="badge bg-success">Active</span>
+                                                                                    {courier.courierStatus === 'AVAILABLE' ? (
+                                                                                        <span className="badge bg-info">
+                                                                                            <FontAwesomeIcon icon={faToggleOn} className="me-1" />
+                                                                                            Available
+                                                                                        </span>
+                                                                                    ) : (
+                                                                                        <span className="badge bg-secondary">
+                                                                                            <FontAwesomeIcon icon={faToggleOff} className="me-1" />
+                                                                                            Unavailable
+                                                                                        </span>
+                                                                                    )}
                                                                                 </td>
                                                                                 <td className="align-middle text-end">
                                                                                     <button

@@ -16,11 +16,16 @@ public class CourierRestaurantRequestDTO {
     private String email;
     private String phone;
 
+
+
+    private String courierStatus; // New field
+
+
     // Constructor
     public CourierRestaurantRequestDTO(Long requestId, String courierName, String courierId,
                                        String restaurantName, String restaurantId,
                                        RequestStatus status, LocalDateTime createdAt,
-                                       String email, String phone) {
+                                       String email, String phone,String courierStatus) {
         this.requestId = requestId;
         this.courierName = courierName;
         this.courierId = courierId;
@@ -30,6 +35,8 @@ public class CourierRestaurantRequestDTO {
         this.createdAt = createdAt;
         this.email = email;
         this.phone = phone;
+        this.courierStatus = courierStatus;
+
     }
 
     // Getter - Setter
@@ -59,4 +66,12 @@ public class CourierRestaurantRequestDTO {
     
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
+
+    public String getCourierStatus() {
+        return courierStatus;
+    }
+
+    public void setCourierStatus(String courierStatus) {
+        this.courierStatus = courierStatus;
+    }
 }

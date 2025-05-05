@@ -15,6 +15,22 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.HashMap;
 import java.util.stream.Collectors;
+import com.backend.delivery_backend.DTO.CourierDTO;
+import com.backend.delivery_backend.ENUM.CourierStatus;
+import com.backend.delivery_backend.model.Courier;
+import com.backend.delivery_backend.repository.CourierRepository;
+import com.backend.delivery_backend.model.Courier;
+import com.backend.delivery_backend.DTO.CourierDTO;
+import com.backend.delivery_backend.ENUM.CourierStatus;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+
+import java.util.stream.Collectors;
+
+
+
+
 
 @RestController
 @RequestMapping("/api/restaurants")
@@ -22,6 +38,8 @@ public class RestaurantController {
 
     private final RestaurantOwnerService restaurantOwnerService;
     private final RestaurantOwnerRepository restaurantOwnerRepository;
+    @Autowired
+    private CourierRepository courierRepository;
 
     public RestaurantController(RestaurantOwnerService restaurantOwnerService,RestaurantOwnerRepository restaurantOwnerRepository ) {
         this.restaurantOwnerService = restaurantOwnerService;
@@ -59,6 +77,17 @@ public class RestaurantController {
         List<MenuItem> items = restaurantOwnerService.getMenuItemsByRestaurant(id);
         return ResponseEntity.ok(items);
     }
+
+    @GetMapping("/api/restaurants/{restaurantId}/available-couriers")
+    public List<CourierDTO> getAvailableCouriers(@PathVariable String restaurantId) {
+        List<Courier> couriers = courierRepository.findByRestaurantOwnerRestaurantId(restaurantId)
+                .stream()
+                .filter(c -> c.getStatus() == CourierStatus.AVAILABLE)
+                .toList();
+
+        return couriers.stream().map(CourierDTO::new).collect(Collectors.toList());
+    }
+
     @PatchMapping("/{id}/toggle-status")
     @PreAuthorize("hasRole('RESTAURANT_OWNER')")
     public ResponseEntity<?> toggleRestaurantStatus(@PathVariable String id) {

@@ -16,7 +16,9 @@ import {
     faArrowDownShortWide,
     faChevronDown,
     faChevronUp,
-    faClock
+    faClock,
+    faToggleOn,
+    faToggleOff
 } from '@fortawesome/free-solid-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -34,6 +36,8 @@ const CourierDashboard = () => {
     const [expandedOrderId, setExpandedOrderId] = useState(null);
     const [orderDetails, setOrderDetails] = useState({});
     const [processingOrders, setProcessingOrders] = useState(new Set());
+    const [courierStatus, setCourierStatus] = useState('UNAVAILABLE');
+    const [statusLoading, setStatusLoading] = useState(false);
     const navigate = useNavigate();
 
     const token = localStorage.getItem('token');
@@ -47,7 +51,106 @@ const CourierDashboard = () => {
         console.error("JWT decode error:", error);
     }
 
+    // Fetch courier profile to get current status
+    useEffect(() => {
+        if (!token) {
+            navigate('/login');
+            return;
+        }
+
+        const fetchCourierProfile = async () => {
+            try {
+                const response = await api.get('/profile');
+                if (response.data && response.data.status) {
+                    setCourierStatus(response.data.status);
+                }
+            } catch (err) {
+                console.error('Error fetching courier profile:', err);
+            }
+        };
+
+        fetchCourierProfile();
+    }, [token, navigate]);
+
+    // Toggle courier status (AVAILABLE/UNAVAILABLE)
+    const toggleCourierStatus = async () => {
+        try {
+            setStatusLoading(true);
+            const newStatus = courierStatus === 'AVAILABLE' ? 'UNAVAILABLE' : 'AVAILABLE';
+
+            // Call the API to update courier status
+            await api.patch(`/couriers/${courierId}/status`, { status: newStatus });
+
+            setCourierStatus(newStatus);
+
+            // If courier is now unavailable, clear pending orders
+            if (newStatus === 'UNAVAILABLE') {
+                setPendingOrders([]);
+            } else {
+                // If courier is now available, fetch available orders
+                fetchAvailableOrders();
+            }
+
+            setStatusLoading(false);
+        } catch (err) {
+            console.error('Error updating courier status:', err);
+            setError('Failed to update status. Please try again.');
+            setStatusLoading(false);
+        }
+    };
+
     // Fetch new incoming order requests that the courier can accept or reject
+    const fetchAvailableOrders = async () => {
+        try {
+            setLoading(true);
+
+            // Only fetch orders if courier is AVAILABLE
+            if (courierStatus === 'AVAILABLE') {
+                // Fetch all available orders
+                const response = await api.get('/courier/orders/available');
+
+                // Then fetch courier's assigned orders
+                const assignedResponse = await api.get('/courier/orders/assigned');
+
+                if (response.data && Array.isArray(response.data)) {
+                    console.log('Available Orders:', response.data);
+
+                    // If there are assigned orders
+                    if (assignedResponse.data && Array.isArray(assignedResponse.data)) {
+                        console.log('Assigned Orders:', assignedResponse.data);
+
+                        // Add assigned order IDs to a set
+                        const assignedOrderIds = new Set(
+                            assignedResponse.data.map(order => order.orderId)
+                        );
+
+                        // Filter out orders that are already assigned
+                        const availableOrdersOnly = response.data.filter(
+                            order => !assignedOrderIds.has(order.orderId)
+                        );
+
+                        setPendingOrders(availableOrdersOnly);
+                    } else {
+                        // If no assigned orders, show all available orders
+                        setPendingOrders(response.data);
+                    }
+                } else {
+                    setError('No orders available or unexpected data format');
+                }
+            } else {
+                // If courier is UNAVAILABLE, clear pending orders
+                setPendingOrders([]);
+            }
+
+            setLoading(false);
+        } catch (err) {
+            console.error('Error fetching available orders:', err);
+            setError(err.response?.data || 'Failed to load orders');
+            setLoading(false);
+        }
+    };
+
+    // Fetch orders when component mounts or when courier status changes
     useEffect(() => {
         if (!token) {
             navigate('/login');
@@ -59,52 +162,8 @@ const CourierDashboard = () => {
             return; // If BANNED, the checkAccountStatus function will handle redirection
         }
 
-        const fetchAvailableOrders = async () => {
-            try {
-                setLoading(true);
-
-                // Önce tüm mevcut siparişleri getir
-                const response = await api.get('/courier/orders/available');
-
-                // Sonra kuryenin kendisine atanmış siparişleri getir
-                const assignedResponse = await api.get('/courier/orders/assigned');
-
-                if (response.data && Array.isArray(response.data)) {
-                    console.log('Available Orders:', response.data);
-
-                    // Eğer atanmış siparişler de varsa
-                    if (assignedResponse.data && Array.isArray(assignedResponse.data)) {
-                        console.log('Assigned Orders:', assignedResponse.data);
-
-                        // Atanmış siparişlerin ID'lerini bir sete ekle
-                        const assignedOrderIds = new Set(
-                            assignedResponse.data.map(order => order.orderId)
-                        );
-
-                        // Mevcut siparişlerden, atanmış olanları filtrele
-                        const availableOrdersOnly = response.data.filter(
-                            order => !assignedOrderIds.has(order.orderId)
-                        );
-
-                        setPendingOrders(availableOrdersOnly);
-                    } else {
-                        // Atanmış sipariş yoksa, tüm mevcut siparişleri göster
-                        setPendingOrders(response.data);
-                    }
-                } else {
-                    setError('No orders available or unexpected data format');
-                }
-
-                setLoading(false);
-            } catch (err) {
-                console.error('Error fetching available orders:', err);
-                setError(err.response?.data || 'Failed to load orders');
-                setLoading(false);
-            }
-        };
-
         fetchAvailableOrders();
-    }, [token, navigate]);
+    }, [token, navigate, courierStatus]);
 
     // Apply sorting to orders
     useEffect(() => {
@@ -146,39 +205,39 @@ const CourierDashboard = () => {
 
     const handleAcceptOrder = async (orderId) => {
         try {
-            // Siparişin işlenmekte olduğunu belirt
+            // Mark order as processing
             setProcessingOrders(prev => new Set(prev).add(orderId));
 
-            // Önce siparişi UI'dan kaldır
+            // Remove order from UI first
             setPendingOrders(prevOrders =>
                 prevOrders.filter(order => order.orderId !== orderId)
             );
 
-            // API çağrısını yap
+            // Call API
             await api.patch(`/courier/orders/accept-available/${orderId}`);
 
-            // Başarılı mesajı göster
-            alert('Sipariş başarıyla kabul edildi!');
+            // Show success message
+            alert('Order accepted successfully!');
 
-            // Teslimatlar sayfasına yönlendir
+            // Redirect to deliveries page
             navigate('/my-deliveries');
         } catch (err) {
-            // Hata mesajını daha açıklayıcı hale getir
+            // Provide more descriptive error message
             if (err.response?.status === 400 && err.response?.data?.includes('already accepted')) {
-                alert('Bu sipariş zaten kabul edilmiş. Teslimatlar sayfanızı kontrol edin.');
+                alert('This order has already been accepted. Check your deliveries page.');
                 navigate('/my-deliveries');
             } else {
-                console.error('Sipariş kabul edilirken hata:', err);
-                setError('Sipariş kabul edilemedi. Lütfen tekrar deneyin.');
+                console.error('Error accepting order:', err);
+                setError('Failed to accept order. Please try again.');
 
-                // Hata durumunda siparişi listeye geri ekle
+                // Add the order back to the list if there was an error
                 const failedOrder = pendingOrders.find(o => o.orderId === orderId);
                 if (failedOrder) {
                     setPendingOrders(prev => [...prev, failedOrder]);
                 }
             }
         } finally {
-            // İşlem durumunu temizle
+            // Clear processing state
             setProcessingOrders(prev => {
                 const newSet = new Set(prev);
                 newSet.delete(orderId);
@@ -186,6 +245,7 @@ const CourierDashboard = () => {
             });
         }
     };
+
     const formatDateTime = (dateTimeStr) => {
         const date = new Date(dateTimeStr);
         return date.toLocaleString();
@@ -216,9 +276,35 @@ const CourierDashboard = () => {
                         </div>
                     )}
 
+                    {courierStatus === 'UNAVAILABLE' && (
+                        <div className="alert alert-warning" role="alert">
+                            <strong>You are currently marked as Unavailable!</strong> Change your status to Available to view and accept new orders.
+                        </div>
+                    )}
+
                     <div className="row">
                         {/* Left Sidebar - Sort Options */}
                         <div className="col-lg-3 col-md-4 col-sm-12 mb-4">
+                            <div className="bg-white p-4 dashboard-sidebar rounded shadow-sm mb-4">
+                                <div className="text-center">
+                                    <h5 className="mb-3">Courier Status</h5>
+                                    <button
+                                        className={`btn ${courierStatus === 'AVAILABLE' ? 'btn-success' : 'btn-secondary'} w-100`}
+                                        onClick={toggleCourierStatus}
+                                        disabled={statusLoading}
+                                    >
+                                        {statusLoading ? (
+                                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                        ) : (
+                                            <FontAwesomeIcon
+                                                icon={courierStatus === 'AVAILABLE' ? faToggleOn : faToggleOff}
+                                                className="me-2"
+                                            />
+                                        )}
+                                        {courierStatus === 'AVAILABLE' ? 'Available' : 'Unavailable'}
+                                    </button>
+                                </div>
+                            </div>
                             <div className="bg-white p-4 dashboard-sidebar rounded shadow-sm">
                                 <h5 className="mb-3">
                                     <FontAwesomeIcon icon={faSort} className="mr-2 me-1" /> Sort By
@@ -228,6 +314,7 @@ const CourierDashboard = () => {
                                     <button
                                         className={`list-group-item list-group-item-action ${sortOption === 'latest' ? 'active' : ''}`}
                                         onClick={() => setSortOption('latest')}
+                                        disabled={courierStatus === 'UNAVAILABLE'}
                                     >
                                         <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
                                             <FontAwesomeIcon icon={faArrowDownShortWide} />
@@ -237,6 +324,7 @@ const CourierDashboard = () => {
                                     <button
                                         className={`list-group-item list-group-item-action ${sortOption === 'oldest' ? 'active' : ''}`}
                                         onClick={() => setSortOption('oldest')}
+                                        disabled={courierStatus === 'UNAVAILABLE'}
                                     >
                                         <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
                                             <FontAwesomeIcon icon={faArrowUpShortWide} />
@@ -246,6 +334,7 @@ const CourierDashboard = () => {
                                     <button
                                         className={`list-group-item list-group-item-action ${sortOption === 'highestPrice' ? 'active' : ''}`}
                                         onClick={() => setSortOption('highestPrice')}
+                                        disabled={courierStatus === 'UNAVAILABLE'}
                                     >
                                         <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
                                             <FontAwesomeIcon icon={faArrowDown} />
@@ -255,6 +344,7 @@ const CourierDashboard = () => {
                                     <button
                                         className={`list-group-item list-group-item-action ${sortOption === 'lowestPrice' ? 'active' : ''}`}
                                         onClick={() => setSortOption('lowestPrice')}
+                                        disabled={courierStatus === 'UNAVAILABLE'}
                                     >
                                         <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
                                             <FontAwesomeIcon icon={faArrowUp} />
@@ -276,6 +366,12 @@ const CourierDashboard = () => {
                                             <span className="sr-only">Loading...</span>
                                         </div>
                                         <p className="mt-2">Loading order requests...</p>
+                                    </div>
+                                ) : courierStatus === 'UNAVAILABLE' ? (
+                                    <div className="text-center py-5">
+                                        <FontAwesomeIcon icon={faToggleOff} size="3x" className="text-muted mb-3" />
+                                        <h5>You are currently unavailable</h5>
+                                        <p>Toggle your status to 'Available' to view and accept new orders.</p>
                                     </div>
                                 ) : pendingOrders.length > 0 ? (
                                     <div className="order-list">
@@ -320,7 +416,7 @@ const CourierDashboard = () => {
                                                                 <button
                                                                     className="btn btn-success btn-sm mb-2 w-100"
                                                                     onClick={() => handleAcceptOrder(order.orderId)}
-                                                                    disabled={processingOrders.has(order.orderId)}
+                                                                    disabled={processingOrders.has(order.orderId) || courierStatus === 'UNAVAILABLE'}
                                                                 >
                                                                     {processingOrders.has(order.orderId) ? (
                                                                         <>
@@ -383,8 +479,6 @@ const CourierDashboard = () => {
                                                         </div>
                                                     )}
                                                 </div>
-
-
                                             </div>
                                         ))}
                                     </div>
@@ -393,7 +487,6 @@ const CourierDashboard = () => {
                                         <FontAwesomeIcon icon={faMotorcycle} size="3x" className="text-muted mb-3" />
                                         <h5>No new order requests</h5>
                                         <p>There are currently no new orders available for delivery.</p>
-
                                     </div>
                                 )}
                             </div>

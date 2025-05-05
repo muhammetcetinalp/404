@@ -58,10 +58,10 @@ const CustomerDashboard = () => {
     const navigate = useNavigate();
 
     const token = localStorage.getItem('token');
-    
+
     // Array of restaurant images
     const restaurantImageArray = [
-        image1, image2, image3, image4, image5, image6, image7, image8, image9, image10, 
+        image1, image2, image3, image4, image5, image6, image7, image8, image9, image10,
         image11, image12, image13, image14, image15, image16, image17, image18, image19, image20
     ];
 
@@ -71,16 +71,16 @@ const CustomerDashboard = () => {
         if (restaurantImages[restaurantId]) {
             return restaurantImages[restaurantId];
         }
-        
+
         // Otherwise, assign a random image and save it
         const randomIndex = Math.floor(Math.random() * restaurantImageArray.length);
         const selectedImage = restaurantImageArray[randomIndex];
-        
+
         setRestaurantImages(prev => ({
             ...prev,
             [restaurantId]: selectedImage
         }));
-        
+
         return selectedImage;
     };
 
@@ -464,7 +464,7 @@ const CustomerDashboard = () => {
                                             {filteredRestaurants.map(restaurant => (
                                                 <div className="restaurant-item mb-4" key={restaurant.restaurantId}>
                                                     <div className={`card shadow-sm restaurant-card ${!restaurant.open ? 'closed-restaurant' : ''}`}>
-                                                        <div className="row g-0 align-items-center" style={!restaurant.open ? {opacity: '0.8', filter: 'blur(0.5px)'} : {}}>
+                                                        <div className="row g-0 align-items-center" style={!restaurant.open ? { opacity: '0.8', filter: 'blur(0.5px)' } : {}}>
                                                             {/* Image */}
                                                             <div className="col-md-3 text-center p-2">
                                                                 <img
@@ -587,8 +587,8 @@ const CustomerDashboard = () => {
                     <div className="menu-modal">
                         <div className="menu-modal-header d-flex align-items-center justify-content-between">
                             <div className="d-flex align-items-center w-100">
-                                <img 
-                                    src={getRandomImage(selectedRestaurant.restaurantId)} 
+                                <img
+                                    src={getRandomImage(selectedRestaurant.restaurantId)}
                                     alt={selectedRestaurant.name}
                                     className="rounded me-3"
                                     style={{ width: '40px', height: '40px', objectFit: 'cover' }}

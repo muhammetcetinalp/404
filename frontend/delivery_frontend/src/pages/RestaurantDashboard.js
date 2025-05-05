@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faFilter, faUtensils, faCheckCircle, faTimesCircle, faClock, faChevronDown, faChevronUp, faStore, faToggleOn, faToggleOff, faShippingFast, faSort, faArrowDown, faArrowUp, faArrowUpShortWide, faArrowDownShortWide } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faFilter, faUtensils, faCheckCircle, faTimesCircle, faClock, faChevronDown, faChevronUp, faStore, faToggleOn, faToggleOff, faShippingFast, faSort, faArrowDown, faArrowUp, faArrowUpShortWide, faArrowDownShortWide, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import axios from 'axios';
@@ -91,8 +91,6 @@ const RestaurantDashboard = () => {
 
             if (response.data && response.data.accountStatus) {
                 setAccountStatus(response.data.accountStatus);
-
-
             }
         } catch (err) {
             console.error('Error fetching restaurant profile:', err);
@@ -195,6 +193,22 @@ const RestaurantDashboard = () => {
         setFilteredOrders(results);
     }, [searchTerm, sortOption, filterStatus, orders]);
 
+    // Check if an order belongs to this restaurant and is not in PENDING status
+    // Suspended restaurants can continue to process orders they've already accepted
+    const canUpdateOrderStatus = (order) => {
+        // If restaurant is not suspended, they can update any order
+        if (accountStatus !== 'SUSPENDED') {
+            return true;
+        }
+
+        // Get uppercase status for consistent comparison
+        const status = order.orderStatus.toUpperCase();
+
+        // If restaurant is suspended, they can only update orders that are not PENDING
+        // This allows them to complete orders they've already accepted
+        return status !== 'PENDING';
+    };
+
     const toggleRestaurantStatus = async () => {
         try {
             console.log("Toggling restaurant status for:", restaurantId);
@@ -242,19 +256,19 @@ const RestaurantDashboard = () => {
 
     const handleUpdateOrderStatus = async (orderId, newStatus) => {
         try {
-            // Askıya alınmış restoran sipariş durumunu değiştiremez
-            if (accountStatus === 'SUSPENDED') {
-                toast.error('Your restaurant is suspended. You cannot update order status.');
+            // Find the current order to check if we can update its status
+            const currentOrder = orders.find(order => order.orderId === orderId);
+
+            // Check if the restaurant can update this order
+            if (!canUpdateOrderStatus(currentOrder)) {
+                toast.error('Your restaurant is suspended. You cannot accept new orders.');
                 return;
             }
 
             console.log(`Updating order ${orderId} status to ${newStatus}`);
 
-            // Find the current order to check its delivery method
-            const currentOrder = orders.find(order => order.orderId === orderId);
-            let statusToSet = newStatus;
-
             // Special handling for PICKUP orders that are being marked as picked up
+            let statusToSet = newStatus;
             if (newStatus === 'PICKED_UP' &&
                 (currentOrder.deliveryMethod === 'PICKUP' || currentOrder.deliveryType === 'PICKUP')) {
                 // For pickup orders, when marked as picked up, they should go directly to DELIVERED
@@ -270,11 +284,15 @@ const RestaurantDashboard = () => {
 
             console.log("Order status update response:", response.data);
 
+            // Use the status from the response or fall back to our calculated status
+            const actualNewStatus = response.data?.orderStatus ||
+                (statusToSet === 'ACCEPTED' ? 'IN PROGRESS' : statusToSet);
+
             // Update local state after successful API call
             const updatedOrders = orders.map(order =>
                 order.orderId === orderId ? {
                     ...order,
-                    orderStatus: statusToSet === 'ACCEPTED' ? 'IN PROGRESS' : statusToSet
+                    orderStatus: actualNewStatus
                 } : order
             );
             setOrders(updatedOrders);
@@ -285,7 +303,7 @@ const RestaurantDashboard = () => {
                     ...orderDetails,
                     [orderId]: {
                         ...orderDetails[orderId],
-                        orderStatus: statusToSet === 'ACCEPTED' ? 'IN PROGRESS' : statusToSet
+                        orderStatus: actualNewStatus
                     }
                 });
             }
@@ -294,7 +312,7 @@ const RestaurantDashboard = () => {
             if (newStatus === 'PICKED_UP' && statusToSet === 'DELIVERED') {
                 toast.success(`Order has been picked up and marked as delivered`);
             } else {
-                toast.success(`Order status updated to ${statusToSet === 'ACCEPTED' ? 'IN PROGRESS' : statusToSet}`);
+                toast.success(`Order status updated to ${actualNewStatus}`);
             }
         } catch (err) {
             console.error('Error updating order status:', err);
@@ -428,8 +446,9 @@ const RestaurantDashboard = () => {
 
                     {accountStatus === 'SUSPENDED' && (
                         <div className="alert alert-warning" role="alert">
+                            <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
                             <strong>Your restaurant account has been suspended!</strong> You cannot accept new orders or change restaurant status.
-                            All pending orders have been automatically cancelled. Please contact support for assistance.
+                            However, you can still process and complete orders you've already accepted.
                         </div>
                     )}
 
@@ -609,53 +628,80 @@ const RestaurantDashboard = () => {
                                                                     )}
                                                                 </button>
 
-                                                                {order.orderStatus.toUpperCase() === 'PENDING' && (
-                                                                    <>
-                                                                        <button
-                                                                            className="btn btn-success btn-sm mb-2 w-100"
-                                                                            onClick={() => handleUpdateOrderStatus(order.orderId, 'ACCEPTED')}
-                                                                            disabled={accountStatus === 'SUSPENDED'}
-                                                                        >
-                                                                            Accept Order
-                                                                        </button>
-                                                                        <button
-                                                                            className="btn btn-danger btn-sm w-100"
-                                                                            onClick={() => handleUpdateOrderStatus(order.orderId, 'CANCELLED')}
-                                                                            disabled={accountStatus === 'SUSPENDED'}
-                                                                        >
-                                                                            Decline
-                                                                        </button>
-                                                                    </>
-                                                                )}
-                                                                {order.orderStatus.toUpperCase() === 'IN PROGRESS' && (
-                                                                    <button
-                                                                        className="btn btn-info btn-sm w-100"
-                                                                        onClick={() => handleUpdateOrderStatus(order.orderId, 'PREPARING')}
-                                                                        disabled={accountStatus === 'SUSPENDED'}
-                                                                    >
-                                                                        Start Preparing
-                                                                    </button>
-                                                                )}
+                                                                {/* Make sure to normalize the status before comparison */}
+                                                                {(() => {
+                                                                    // Normalize the status to handle case and formatting variations
+                                                                    const normalizedStatus = order.orderStatus.toUpperCase().replace(/[_\s]/g, '');
 
-                                                                {order.orderStatus.toUpperCase() === 'PREPARING' && (
-                                                                    <button
-                                                                        className="btn btn-success btn-sm w-100"
-                                                                        onClick={() => handleUpdateOrderStatus(order.orderId, 'READY')}
-                                                                        disabled={accountStatus === 'SUSPENDED'}
-                                                                    >
-                                                                        Ready for Pickup
-                                                                    </button>
-                                                                )}
-
-                                                                {order.orderStatus.toUpperCase() === 'READY' && (
-                                                                    <button
-                                                                        className="btn btn-primary btn-sm w-100"
-                                                                        onClick={() => handleUpdateOrderStatus(order.orderId, 'PICKED_UP')}
-                                                                        disabled={accountStatus === 'SUSPENDED'}
-                                                                    >
-                                                                        Mark as Picked Up
-                                                                    </button>
-                                                                )}
+                                                                    // Status-specific buttons
+                                                                    if (normalizedStatus === 'PENDING') {
+                                                                        return (
+                                                                            <>
+                                                                                <button
+                                                                                    className="btn btn-success btn-sm mb-2 w-100"
+                                                                                    onClick={() => handleUpdateOrderStatus(order.orderId, 'ACCEPTED')}
+                                                                                    disabled={!canUpdateOrderStatus(order)}
+                                                                                >
+                                                                                    Accept Order
+                                                                                </button>
+                                                                                <button
+                                                                                    className="btn btn-danger btn-sm w-100"
+                                                                                    onClick={() => handleUpdateOrderStatus(order.orderId, 'CANCELLED')}
+                                                                                    disabled={!canUpdateOrderStatus(order)}
+                                                                                >
+                                                                                    Decline
+                                                                                </button>
+                                                                            </>
+                                                                        );
+                                                                    } else if (normalizedStatus === 'INPROGRESS' || normalizedStatus === 'ACCEPTED') {
+                                                                        return (
+                                                                            <button
+                                                                                className="btn btn-info btn-sm w-100"
+                                                                                onClick={() => handleUpdateOrderStatus(order.orderId, 'PREPARING')}
+                                                                                disabled={!canUpdateOrderStatus(order)}
+                                                                            >
+                                                                                Start Preparing
+                                                                            </button>
+                                                                        );
+                                                                    } else if (normalizedStatus === 'PREPARING') {
+                                                                        return (
+                                                                            <button
+                                                                                className="btn btn-success btn-sm w-100"
+                                                                                onClick={() => handleUpdateOrderStatus(order.orderId, 'READY')}
+                                                                                disabled={!canUpdateOrderStatus(order)}
+                                                                            >
+                                                                                Ready for Pickup
+                                                                            </button>
+                                                                        );
+                                                                    } else if (normalizedStatus === 'READY') {
+                                                                        return (
+                                                                            <button
+                                                                                className="btn btn-primary btn-sm w-100"
+                                                                                onClick={() => handleUpdateOrderStatus(order.orderId, 'PICKED_UP')}
+                                                                                disabled={!canUpdateOrderStatus(order)}
+                                                                            >
+                                                                                Mark as Picked Up
+                                                                            </button>
+                                                                        );
+                                                                    } else if (normalizedStatus === 'PICKEDUP' &&
+                                                                        (order.deliveryMethod !== 'PICKUP' && order.deliveryType !== 'PICKUP')) {
+                                                                        return (
+                                                                            <button
+                                                                                className="btn btn-success btn-sm w-100"
+                                                                                onClick={() => handleUpdateOrderStatus(order.orderId, 'DELIVERED')}
+                                                                                disabled={!canUpdateOrderStatus(order)}
+                                                                            >
+                                                                                Mark as Delivered
+                                                                            </button>
+                                                                        );
+                                                                    } else if (normalizedStatus === 'DELIVERED' || normalizedStatus === 'CANCELLED') {
+                                                                        return (
+                                                                            <div className="text-muted small text-center">
+                                                                                No actions available
+                                                                            </div>
+                                                                        );
+                                                                    }
+                                                                })()}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -779,9 +825,7 @@ const RestaurantDashboard = () => {
                                                                                             </li>
                                                                                         </>
                                                                                     )}
-
                                                                                 </ul>
-
                                                                             </div>
                                                                         </div>
                                                                     </div>

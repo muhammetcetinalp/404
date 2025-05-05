@@ -100,6 +100,9 @@ const CourierDashboard = () => {
     };
 
     // Fetch new incoming order requests that the courier can accept or reject
+    // In CourierDashboard.js
+    // Modify the fetchAvailableOrders function to filter out pickup orders
+
     const fetchAvailableOrders = async () => {
         try {
             setLoading(true);
@@ -115,6 +118,12 @@ const CourierDashboard = () => {
                 if (response.data && Array.isArray(response.data)) {
                     console.log('Available Orders:', response.data);
 
+                    // Filter out pickup orders - only show DELIVERY orders
+                    const deliveryOrdersOnly = response.data.filter(
+                        order => order.deliveryMethod === 'DELIVERY' ||
+                            order.deliveryType === 'DELIVERY'
+                    );
+
                     // If there are assigned orders
                     if (assignedResponse.data && Array.isArray(assignedResponse.data)) {
                         console.log('Assigned Orders:', assignedResponse.data);
@@ -125,14 +134,14 @@ const CourierDashboard = () => {
                         );
 
                         // Filter out orders that are already assigned
-                        const availableOrdersOnly = response.data.filter(
+                        const availableOrdersOnly = deliveryOrdersOnly.filter(
                             order => !assignedOrderIds.has(order.orderId)
                         );
 
                         setPendingOrders(availableOrdersOnly);
                     } else {
-                        // If no assigned orders, show all available orders
-                        setPendingOrders(response.data);
+                        // If no assigned orders, show all DELIVERY available orders
+                        setPendingOrders(deliveryOrdersOnly);
                     }
                 } else {
                     setError('No orders available or unexpected data format');

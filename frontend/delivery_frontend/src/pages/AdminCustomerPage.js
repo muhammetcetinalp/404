@@ -120,6 +120,9 @@ const AdminCustomerPage = () => {
     }, []);
 
     // Modified delete handler to use confirmAlert
+    // ... (other code in AdminCustomerPage.js) ...
+
+    // Modified delete handler to use confirmAlert
     const handleDelete = async (email) => {
         confirmAlert({
             customUI: ({ onClose }) => {
@@ -137,18 +140,24 @@ const AdminCustomerPage = () => {
                             >
                                 Cancel
                             </button>
+                            {/* THIS IS THE BUTTON YOU NEED TO MODIFY */}
                             <button
                                 className="btn-delete"
-                                onClick={async () => {
+                                onClick={async () => { // <<< START OF MODIFICATION
                                     try {
                                         await api.delete(`/admin/delete-user/${email}`);
+                                        // Use toast for success message
+                                        toast.success('Customer deleted successfully!');
                                         fetchCustomers(); // Refresh the list after deletion
                                         onClose();
                                     } catch (err) {
-                                        console.error("Failed to delete customer", err);
+                                        // Display the error message from the backend using toast
+                                        const errorMessage = err.response?.data || "Failed to delete customer. Please try again.";
+                                        toast.error(errorMessage);
+                                        console.error("Failed to delete customer", err.response || err); // Log detailed error
                                         onClose();
                                     }
-                                }}
+                                }} // <<< END OF MODIFICATION
                             >
                                 Delete
                             </button>
@@ -158,6 +167,8 @@ const AdminCustomerPage = () => {
             }
         });
     };
+
+    // ... (rest of the code in AdminCustomerPage.js) ...
 
     const handleStatusChange = async (email, newStatus) => {
         try {

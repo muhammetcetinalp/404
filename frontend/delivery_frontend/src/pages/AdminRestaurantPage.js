@@ -169,10 +169,13 @@ const AdminRestaurantPage = () => {
                                 onClick={async () => {
                                     try {
                                         await api.delete(`/admin/delete-user/${email}`);
-                                        fetchRestaurants(); // Refresh the list after deletion
+                                        toast.success('Restaurant owner deleted successfully!');
+                                        fetchRestaurants();
                                         onClose();
                                     } catch (err) {
-                                        console.error("Failed to delete restaurant", err);
+                                        const errorMessage = err.response?.data || "Failed to delete restaurant owner. Please try again.";
+                                        toast.error(errorMessage);
+                                        console.error("Failed to delete restaurant owner", err.response || err);
                                         onClose();
                                     }
                                 }}

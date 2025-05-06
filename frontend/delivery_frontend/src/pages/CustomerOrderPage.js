@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faSpinner, faTruck, faTasks, faChevronDown, faChevronUp,
     faCheck, faClock, faShippingFast, faExclamationTriangle,
-    faUtensils, faBoxOpen
+    faUtensils, faBoxOpen, faTimes // Added faTimes for cancel icon
 } from '@fortawesome/free-solid-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -20,6 +20,7 @@ const OrderPage = () => {
     const [expandedOrders, setExpandedOrders] = useState({});
     const [activeStatus, setActiveStatus] = useState('all');
     const navigate = useNavigate();
+
     const CustomCloseButton = ({ closeToast }) => (
         <button
             onClick={closeToast}
@@ -41,6 +42,7 @@ const OrderPage = () => {
             ×
         </button>
     );
+
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -56,7 +58,6 @@ const OrderPage = () => {
             const res = await api.get('/orders/history');
             setOrders(res.data);
 
-            // Debug: Log all unique statuses to console
             if (res.data && res.data.length > 0) {
                 const uniqueStatuses = [...new Set(res.data.map(order => order.orderStatus))];
                 console.log("All order statuses in system:", uniqueStatuses);
@@ -73,8 +74,37 @@ const OrderPage = () => {
         setExpandedOrders(prev => ({ ...prev, [id]: !prev[id] }));
     };
 
+    const handleCancelOrder = async (orderId, event) => {
+        event.stopPropagation(); // Prevent order row click event, which toggles expansion
+
+        // Confirmation dialog
+        if (window.confirm('Are you sure you want to cancel this order?')) {
+            try {
+                // Make API call to cancel/delete order
+                // Ensure your backend has an endpoint like DELETE /orders/{orderId}/cancel or /orders/{orderId}
+                await api.delete(`/orders/${orderId}/cancel`);
+                toast.success('Order cancelled successfully!');
+                // Refresh the orders list to reflect the change
+                fetchPastOrders();
+                // Optionally, you can also remove the order from the local state
+                // setOrders(prevOrders => prevOrders.filter(order => order.orderId !== orderId));
+                // And close the expanded view if it was open
+                // setExpandedOrders(prev => {
+                //     const newExpanded = { ...prev };
+                //     delete newExpanded[orderId];
+                //     return newExpanded;
+                // });
+            } catch (err) {
+                console.error('Error cancelling order:', err);
+                const errorMessage = err.response?.data?.message || 'Failed to cancel order. The order might have already been processed.';
+                toast.error(errorMessage);
+            }
+        }
+    };
+
+
     const getStatusBadge = (status) => {
-        const lowerStatus = status.toLowerCase();
+        const lowerStatus = status ? status.toLowerCase() : '';
 
         if (lowerStatus.includes('deliver')) {
             return <span className="badge bg-success">DELIVERED</span>;
@@ -91,7 +121,7 @@ const OrderPage = () => {
         } else if (lowerStatus.includes('cancel')) {
             return <span className="badge bg-danger">CANCELLED</span>;
         } else {
-            return <span className="badge bg-secondary">{status}</span>;
+            return <span className="badge bg-secondary">{status || 'UNKNOWN'}</span>;
         }
     };
 
@@ -105,6 +135,8 @@ const OrderPage = () => {
             if (activeStatus === 'preparing') return status.includes('prepar');
             if (activeStatus === 'ready') return status === 'ready';
             if (activeStatus === 'pickedUp') return status.includes('pick');
+            // Add a filter for cancelled if you add such a status filter button
+            // if (activeStatus === 'cancelled') return status.includes('cancel');
             return true;
         });
 
@@ -117,6 +149,7 @@ const OrderPage = () => {
             if (statusType === 'preparing') return status.includes('prepar');
             if (statusType === 'ready') return status === 'ready';
             if (statusType === 'pickedUp') return status.includes('pick');
+            // if (statusType === 'cancelled') return status.includes('cancel');
             return false;
         }).length;
     };
@@ -269,27 +302,40 @@ const OrderPage = () => {
                                                         <th>Items</th>
                                                         <th>Total</th>
                                                         <th>Status</th>
-                                                        <th></th>
+                                                        <th></th> {/* For expand icon */}
+                                                        <th>Actions</th> {/* New column for cancel button */}
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {filteredOrders.map(order => (
                                                         <React.Fragment key={order.orderId}>
-                                                            <tr className="cursor-pointer align-middle" onClick={() => toggleOrder(order.orderId)}>
-                                                                <td>{order.orderId}</td>
-                                                                <td>{new Date(order.orderDate).toLocaleDateString()}</td>
-                                                                <td>{Object.keys(order.items).length} items</td>
-                                                                <td>{order.totalAmount.toFixed(2)} TL</td>
-                                                                <td>
+                                                            <tr className="align-middle"> {/* Removed cursor-pointer, click handled by specific elements */}
+                                                                <td onClick={() => toggleOrder(order.orderId)} className="cursor-pointer">{order.orderId}</td>
+                                                                <td onClick={() => toggleOrder(order.orderId)} className="cursor-pointer">{new Date(order.orderDate).toLocaleDateString()}</td>
+                                                                <td onClick={() => toggleOrder(order.orderId)} className="cursor-pointer">{Object.keys(order.items).length} items</td>
+                                                                <td onClick={() => toggleOrder(order.orderId)} className="cursor-pointer">{order.totalAmount.toFixed(2)} TL</td>
+                                                                <td onClick={() => toggleOrder(order.orderId)} className="cursor-pointer">
                                                                     {getStatusBadge(order.orderStatus)}
                                                                 </td>
-                                                                <td>
+                                                                <td onClick={() => toggleOrder(order.orderId)} className="cursor-pointer text-center">
                                                                     <FontAwesomeIcon icon={expandedOrders[order.orderId] ? faChevronUp : faChevronDown} className="text-secondary" />
+                                                                </td>
+                                                                <td className="text-center"> {/* Cell for cancel button */}
+                                                                    {(order.orderStatus?.toUpperCase() === 'PENDING' || order.orderStatus?.toUpperCase() === 'IN_PROGRESS') && (
+                                                                        <button
+                                                                            className="btn btn-danger btn-sm"
+                                                                            onClick={(e) => handleCancelOrder(order.orderId, e)}
+                                                                            title="Cancel Order"
+                                                                        >
+                                                                            <FontAwesomeIcon icon={faTimes} /> Cancel
+                                                                        </button>
+                                                                    )}
                                                                 </td>
                                                             </tr>
                                                             {expandedOrders[order.orderId] && (
                                                                 <tr className="bg-light">
-                                                                    <td colSpan="6" className="p-3">
+                                                                    {/* Adjusted colSpan to 7 to account for the new 'Actions' column */}
+                                                                    <td colSpan="7" className="p-3">
                                                                         <div className="order-details">
                                                                             <div className="mb-3">
                                                                                 <strong>Delivery Address:</strong> {order.deliveryAddress}
@@ -321,7 +367,7 @@ const OrderPage = () => {
 
                                                                             <div className="mt-3 order-timeline">
                                                                                 <div className="d-flex justify-content-between">
-                                                                                    <div className={`timeline-item ${['PENDING', 'IN_PROGRESS', 'PREPARING', 'READY', 'PICKED_UP', 'DELIVERED'].some(s =>
+                                                                                    <div className={`timeline-item ${['PENDING', 'IN_PROGRESS', 'PREPARING', 'READY', 'PICKED_UP', 'DELIVERED', 'CANCELLED'].some(s =>
                                                                                         order.orderStatus?.toUpperCase().includes(s)
                                                                                     ) ? 'active' : ''}`}>
                                                                                         <div className="timeline-icon">
@@ -331,7 +377,7 @@ const OrderPage = () => {
                                                                                     </div>
 
                                                                                     <div className={`timeline-item ${['IN_PROGRESS', 'PREPARING', 'READY', 'PICKED_UP', 'DELIVERED'].some(s =>
-                                                                                        order.orderStatus?.toUpperCase().includes(s)
+                                                                                        order.orderStatus?.toUpperCase().includes(s) && !order.orderStatus?.toUpperCase().includes('CANCELLED')
                                                                                     ) ? 'active' : ''}`}>
                                                                                         <div className="timeline-icon">
                                                                                             <FontAwesomeIcon icon={faShippingFast} />
@@ -340,7 +386,7 @@ const OrderPage = () => {
                                                                                     </div>
 
                                                                                     <div className={`timeline-item ${['PREPARING', 'READY', 'PICKED_UP', 'DELIVERED'].some(s =>
-                                                                                        order.orderStatus?.toUpperCase().includes(s)
+                                                                                        order.orderStatus?.toUpperCase().includes(s) && !order.orderStatus?.toUpperCase().includes('CANCELLED')
                                                                                     ) ? 'active' : ''}`}>
                                                                                         <div className="timeline-icon">
                                                                                             <FontAwesomeIcon icon={faUtensils} />
@@ -349,7 +395,7 @@ const OrderPage = () => {
                                                                                     </div>
 
                                                                                     <div className={`timeline-item ${['READY', 'PICKED_UP', 'DELIVERED'].some(s =>
-                                                                                        order.orderStatus?.toUpperCase().includes(s)
+                                                                                        order.orderStatus?.toUpperCase().includes(s) && !order.orderStatus?.toUpperCase().includes('CANCELLED')
                                                                                     ) ? 'active' : ''}`}>
                                                                                         <div className="timeline-icon">
                                                                                             <FontAwesomeIcon icon={faCheck} />
@@ -358,7 +404,7 @@ const OrderPage = () => {
                                                                                     </div>
 
                                                                                     <div className={`timeline-item ${['PICKED_UP', 'DELIVERED'].some(s =>
-                                                                                        order.orderStatus?.toUpperCase().includes(s)
+                                                                                        order.orderStatus?.toUpperCase().includes(s) && !order.orderStatus?.toUpperCase().includes('CANCELLED')
                                                                                     ) ? 'active' : ''}`}>
                                                                                         <div className="timeline-icon">
                                                                                             <FontAwesomeIcon icon={faBoxOpen} />
@@ -366,12 +412,21 @@ const OrderPage = () => {
                                                                                         <div className="timeline-text">Picked Up</div>
                                                                                     </div>
 
-                                                                                    <div className={`timeline-item ${order.orderStatus?.toUpperCase().includes('DELIVERED') ? 'active' : ''}`}>
+                                                                                    <div className={`timeline-item ${order.orderStatus?.toUpperCase().includes('DELIVERED') && !order.orderStatus?.toUpperCase().includes('CANCELLED') ? 'active' : ''}`}>
                                                                                         <div className="timeline-icon">
                                                                                             <FontAwesomeIcon icon={faTruck} />
                                                                                         </div>
                                                                                         <div className="timeline-text">Delivered</div>
                                                                                     </div>
+                                                                                    {/* Optional: Add a timeline item for Cancelled status */}
+                                                                                    {order.orderStatus?.toUpperCase().includes('CANCELLED') && (
+                                                                                        <div className="timeline-item active"> {/* Always active if cancelled */}
+                                                                                            <div className="timeline-icon" style={{ color: 'red' }}>
+                                                                                                <FontAwesomeIcon icon={faTimes} />
+                                                                                            </div>
+                                                                                            <div className="timeline-text">Cancelled</div>
+                                                                                        </div>
+                                                                                    )}
                                                                                 </div>
                                                                             </div>
                                                                         </div>

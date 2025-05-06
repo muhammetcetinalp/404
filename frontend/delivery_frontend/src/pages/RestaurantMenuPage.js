@@ -11,6 +11,9 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import '../styles/restaurant-dashboard.css';
 import '../styles/dashboard.css';
+import { toast, ToastContainer } from 'react-toastify'; // ToastContainer'ı import et
+import 'react-toastify/dist/ReactToastify.css'; // CSS'i de import et (zaten vardı ama emin olalım)
+
 
 const RestaurantMenuPage = () => {
     const [menuItems, setMenuItems] = useState([]);
@@ -192,9 +195,9 @@ const RestaurantMenuPage = () => {
     const handleUpdateMenuItem = async (e) => {
         e.preventDefault();
 
-        // Validate form
         if (!newMenuItem.name || !newMenuItem.description || !newMenuItem.price) {
-            setError('Please fill all required fields');
+            // setError('Please fill all required fields'); // setError yerine toast kullanabiliriz
+            toast.warn('Please fill all required fields for the menu item.');
             return;
         }
 
@@ -202,7 +205,7 @@ const RestaurantMenuPage = () => {
             console.log("Updating menu item:", editItemId);
             console.log("Updated data:", newMenuItem);
 
-            await axios.put(
+            const response = await axios.put( // response'u alalım
                 `http://localhost:8080/api/restaurants/${restaurantId}/menu/${editItemId}`,
                 {
                     name: newMenuItem.name,
@@ -213,15 +216,23 @@ const RestaurantMenuPage = () => {
                 { headers }
             );
 
-            // Refresh menu items
+            toast.success(response.data || 'Menu item updated successfully!'); // Backend'den gelen mesajı veya varsayılanı kullan
             await fetchMenuItems();
-
             resetForm();
-            setError('');
+            // setError(''); // Artık error state'i bu şekilde kullanılmıyor
         } catch (err) {
             console.error('Error updating menu item:', err);
-            console.error('Error details:', err.response?.data);
-            setError(`Failed to update menu item: ${err.response?.data || err.message}`);
+            let displayMessage = "Failed to update menu item. Please try again.";
+            if (err.response && err.response.data) {
+                if (typeof err.response.data === 'string' && err.response.data.trim() !== '') {
+                    displayMessage = err.response.data;
+                } else if (err.response.data.message) {
+                    displayMessage = err.response.data.message;
+                }
+            } else if (err.message) {
+                displayMessage = err.message;
+            }
+            toast.error(displayMessage);
         }
     };
 
@@ -250,11 +261,22 @@ const RestaurantMenuPage = () => {
                                             `http://localhost:8080/api/restaurants/${restaurantId}/menu/${id}`,
                                             { headers }
                                         );
+                                        toast.success('Menu item deleted successfully!'); // Başarı mesajı
                                         await fetchMenuItems();
                                         onClose();
                                     } catch (err) {
                                         console.error('Error deleting menu item:', err);
-                                        setError(`Failed to delete menu item: ${err.response?.data || err.message}`);
+                                        let displayMessage = "Failed to delete menu item. Please try again.";
+                                        if (err.response && err.response.data) {
+                                            if (typeof err.response.data === 'string' && err.response.data.trim() !== '') {
+                                                displayMessage = err.response.data;
+                                            } else if (err.response.data.message) {
+                                                displayMessage = err.response.data.message;
+                                            }
+                                        } else if (err.message) {
+                                            displayMessage = err.message;
+                                        }
+                                        toast.error(displayMessage);
                                         onClose();
                                     }
                                 }}
@@ -271,6 +293,18 @@ const RestaurantMenuPage = () => {
 
     return (
         <div className="d-flex flex-column min-vh-100">
+            <ToastContainer
+                position="top-right"
+                autoClose={5000} // Mesajın ne kadar süreyle görüneceği (ms)
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="colored" // veya "light", "dark"
+            />
 
             <div className="container-fluid dashboard-header">
                 <Header />

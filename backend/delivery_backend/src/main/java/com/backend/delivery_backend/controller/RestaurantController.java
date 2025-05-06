@@ -10,9 +10,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus; // HttpStatus ekle
+import com.backend.delivery_backend.service.RestaurantOwnerService.OperationBlockedException; // MenuItemInUseException yerine
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.http.HttpStatus;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 import com.backend.delivery_backend.DTO.CourierDTO;
@@ -121,7 +124,9 @@ public class RestaurantController {
                                             @RequestBody MenuItemDTO dto) {
         try {
             MenuItem updatedItem = restaurantOwnerService.updateMenuItem(restaurantId, itemId, dto);
-            return ResponseEntity.ok("Menu item updated: " + updatedItem.getName());
+            return ResponseEntity.ok("Menu item '" + updatedItem.getName() + "' updated successfully.");
+        } catch (OperationBlockedException e) { // Bu özel hatayı yakala
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
@@ -132,11 +137,14 @@ public class RestaurantController {
                                             @PathVariable Long itemId) {
         try {
             restaurantOwnerService.deleteMenuItem(restaurantId, itemId);
-            return ResponseEntity.ok("Menu item deleted.");
+            return ResponseEntity.ok("Menu item deleted successfully.");
+        } catch (OperationBlockedException e) { // Bu özel hatayı yakala
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getRestaurantDetails(@PathVariable String id) {

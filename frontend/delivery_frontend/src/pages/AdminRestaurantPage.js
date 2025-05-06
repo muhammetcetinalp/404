@@ -779,19 +779,7 @@ const AdminRestaurantPage = () => {
                                     />
                                     {formErrors.cuisineType && <div className="error-message">{formErrors.cuisineType}</div>}
                                 </div>
-                                <div className="form-group">
-                                    <label>Delivery Type</label>
-                                    <select
-                                        name="deliveryType"
-                                        value={addUserForm.deliveryType}
-                                        onChange={handleAddUserChange}
-                                        className="form-control"
-                                    >
-                                        <option value="DELIVERY">Delivery</option>
-                                        <option value="PICKUP">Pickup</option>
-                                        <option value="BOTH">Both</option>
-                                    </select>
-                                </div>
+
 
                                 {addUserError && <p className="error-message">{addUserError}</p>}
 

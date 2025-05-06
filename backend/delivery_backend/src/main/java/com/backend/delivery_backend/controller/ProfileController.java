@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import com.backend.delivery_backend.ENUM.DeliveryType; // Gerekliyse ekleyin
 
 import com.backend.delivery_backend.ENUM.OrderStatus;
 import org.slf4j.Logger;
@@ -108,6 +109,7 @@ public class ProfileController {
         if (updates.containsKey("businessHoursEnd")) ro.setBusinessHoursEnd((String) updates.get("businessHoursEnd"));
         // Add cuisineType and deliveryType if they are updatable from profile
         if (updates.containsKey("cuisineType")) ro.setCuisineType((String) updates.get("cuisineType"));
+        /**
         if (updates.containsKey("deliveryType") && updates.get("deliveryType") != null) {
             try {
                 ro.setDeliveryType(com.backend.delivery_backend.ENUM.DeliveryType.valueOf(((String)updates.get("deliveryType")).toUpperCase()));
@@ -115,6 +117,7 @@ public class ProfileController {
                 logger.warn("Invalid delivery type provided for update: {}", updates.get("deliveryType"));
             }
         }
+         **/
     }
 
     // FAVORITES

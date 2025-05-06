@@ -380,22 +380,7 @@ const ProfilePage = () => {
                         </select>
                     </div>
                 </div>
-                <div className="col-md-6"> {/* Added for delivery type */}
-                    <div className="form-group mb-3">
-                        <label className="text-white">Delivery Type</label>
-                        <select
-                            name="deliveryType"
-                            value={form.deliveryType || ''}
-                            onChange={handleChange}
-                            className="form-control bg-dark text-white"
-                        >
-                            <option value="">Select Delivery Type</option>
-                            <option value="DELIVERY">Delivery Only</option>
-                            <option value="PICKUP">Pickup Only</option>
-                            <option value="BOTH">Both Delivery and Pickup</option>
-                        </select>
-                    </div>
-                </div>
+
                 <div className="col-md-6">
                     <div className="form-group mb-3">
                         <label className="text-white">Opening Time</label>

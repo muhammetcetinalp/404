@@ -8,6 +8,7 @@ import com.backend.delivery_backend.repository.*;
 import com.backend.delivery_backend.service.UserDetailsServiceImpl; // Eğer UserDetailsServiceImpl kullanıyorsanız
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.backend.delivery_backend.ENUM.DeliveryType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -287,12 +288,14 @@ public class AdminController {
             if (updates.containsKey("businessHoursStart") && updates.get("businessHoursStart") instanceof String newStart && !newStart.equals(ro.getBusinessHoursStart())) { ro.setBusinessHoursStart(newStart); changed = true; }
             if (updates.containsKey("businessHoursEnd") && updates.get("businessHoursEnd") instanceof String newEnd && !newEnd.equals(ro.getBusinessHoursEnd())) { ro.setBusinessHoursEnd(newEnd); changed = true; }
             if (updates.containsKey("cuisineType") && updates.get("cuisineType") instanceof String newCuisine && !newCuisine.equals(ro.getCuisineType())) { ro.setCuisineType(newCuisine); changed = true; }
+           /**
             if (updates.containsKey("deliveryType") && updates.get("deliveryType") instanceof String newDelTypeStr) {
                 try {
                     com.backend.delivery_backend.ENUM.DeliveryType newDelType = com.backend.delivery_backend.ENUM.DeliveryType.valueOf(newDelTypeStr.toUpperCase());
                     if (ro.getDeliveryType() != newDelType) { ro.setDeliveryType(newDelType); changed = true; }
                 } catch (IllegalArgumentException e) { logger.warn("Invalid delivery type provided during update: {}", newDelTypeStr); }
             }
+            **/
             if (updates.containsKey("approved") && updates.get("approved") instanceof Boolean newApproved && newApproved != ro.isApproved()) {
                 ro.setApproved(newApproved); changed = true;
             }

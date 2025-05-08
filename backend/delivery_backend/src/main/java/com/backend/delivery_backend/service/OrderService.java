@@ -1,6 +1,8 @@
 package com.backend.delivery_backend.service;
 
 import com.backend.delivery_backend.ENUM.DeliveryType;
+import com.backend.delivery_backend.ENUM.OrderStatus;
+
 import com.backend.delivery_backend.model.*;
 import com.backend.delivery_backend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +48,7 @@ public class OrderService {
         order.setDeliveryAddress(deliveryAddress);
         order.setPaymentMethod(paymentMethod);
         order.setDeliveryType(deliveryType);
-        order.setOrderStatus("PENDING");
+        order.setOrderStatus(OrderStatus.PENDING.name()); // Enum kullanmak daha iyi
         order.setOrderDate(LocalDateTime.now());
 
         if (!cart.getItems().isEmpty()) {
@@ -134,8 +136,7 @@ public class OrderService {
         }
 
         // Update order status to CANCELLED
-        // If using an Enum: order.setOrderStatus(OrderStatus.CANCELLED_BY_USER.name());
-        order.setOrderStatus("CANCELLED"); // Matches frontend expectation of "CANCELLED" status
+        order.setOrderStatus(OrderStatus.CANCELLED_BY_CUSTOMER.name()); // <<--- DEĞİŞİKLİK BURADA
         orderRepository.save(order);
     }
 }

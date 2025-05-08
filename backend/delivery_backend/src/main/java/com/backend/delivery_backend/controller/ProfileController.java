@@ -17,6 +17,9 @@ import com.backend.delivery_backend.ENUM.OrderStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.stream.Collectors;
+import java.util.Arrays; // Bu importun olduğundan emin olun
+import java.util.List;  // Bu importun olduğundan emin olun
+import java.util.stream.Collectors; // Bu importun olduğundan emin olun
 
 @RestController
 @RequestMapping("/api/profile")
@@ -189,7 +192,9 @@ public class ProfileController {
 
         List<String> finalStatuses = Arrays.asList(
                 OrderStatus.DELIVERED.name(),
-                OrderStatus.CANCELLED.name()
+                OrderStatus.CANCELLED.name(),
+                OrderStatus.CANCELLED_BY_CUSTOMER.name() // <<--- BURAYA EKLENDİ
+
         );
 
         User userToDelete = null;

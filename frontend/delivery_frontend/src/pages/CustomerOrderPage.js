@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faSpinner, faTruck, faTasks, faChevronDown, faChevronUp,
     faCheck, faClock, faShippingFast, faExclamationTriangle,
-    faUtensils, faBoxOpen, faTimes // Added faTimes for cancel icon
+    faUtensils, faBoxOpen, faTimes, faUserSlash // <<--- faUserSlash EKLENDİ
 } from '@fortawesome/free-solid-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -58,10 +58,10 @@ const OrderPage = () => {
             const res = await api.get('/orders/history');
             setOrders(res.data);
 
-            if (res.data && res.data.length > 0) {
-                const uniqueStatuses = [...new Set(res.data.map(order => order.orderStatus))];
-                console.log("All order statuses in system:", uniqueStatuses);
-            }
+            // if (res.data && res.data.length > 0) {
+            //     const uniqueStatuses = [...new Set(res.data.map(order => order.orderStatus))];
+            //     console.log("All order statuses in system:", uniqueStatuses);
+            // }
         } catch (err) {
             console.error('Error fetching past orders:', err);
             setError('Failed to load past orders.');
@@ -75,25 +75,13 @@ const OrderPage = () => {
     };
 
     const handleCancelOrder = async (orderId, event) => {
-        event.stopPropagation(); // Prevent order row click event, which toggles expansion
+        event.stopPropagation();
 
-        // Confirmation dialog
         if (window.confirm('Are you sure you want to cancel this order?')) {
             try {
-                // Make API call to cancel/delete order
-                // Ensure your backend has an endpoint like DELETE /orders/{orderId}/cancel or /orders/{orderId}
                 await api.delete(`/orders/${orderId}/cancel`);
                 toast.success('Order cancelled successfully!');
-                // Refresh the orders list to reflect the change
                 fetchPastOrders();
-                // Optionally, you can also remove the order from the local state
-                // setOrders(prevOrders => prevOrders.filter(order => order.orderId !== orderId));
-                // And close the expanded view if it was open
-                // setExpandedOrders(prev => {
-                //     const newExpanded = { ...prev };
-                //     delete newExpanded[orderId];
-                //     return newExpanded;
-                // });
             } catch (err) {
                 console.error('Error cancelling order:', err);
                 const errorMessage = err.response?.data?.message || 'Failed to cancel order. The order might have already been processed.';
@@ -104,7 +92,7 @@ const OrderPage = () => {
 
 
     const getStatusBadge = (status) => {
-        const lowerStatus = status ? status.toLowerCase() : '';
+        const lowerStatus = status ? status.toLowerCase().replace(/_/g, '') : ''; // Alt çizgileri kaldır
 
         if (lowerStatus.includes('deliver')) {
             return <span className="badge bg-success">DELIVERED</span>;
@@ -118,7 +106,9 @@ const OrderPage = () => {
             return <span className="badge bg-primary">READY</span>;
         } else if (lowerStatus.includes('pick')) {
             return <span className="badge" style={{ backgroundColor: '#6f42c1', color: 'white' }}>PICKED UP</span>;
-        } else if (lowerStatus.includes('cancel')) {
+        } else if (lowerStatus === 'cancelledbycustomer') { // <<--- YENİ DURUM İÇİN KONTROL
+            return <span className="badge bg-danger">CANCELLED BY YOU</span>;
+        } else if (lowerStatus.includes('cancel')) { // Genel 'cancelled' durumu
             return <span className="badge bg-danger">CANCELLED</span>;
         } else {
             return <span className="badge bg-secondary">{status || 'UNKNOWN'}</span>;
@@ -128,31 +118,84 @@ const OrderPage = () => {
     const filteredOrders = activeStatus === 'all'
         ? orders
         : orders.filter(order => {
-            const status = order.orderStatus?.toLowerCase() || '';
+            const status = order.orderStatus?.toLowerCase().replace(/_/g, '') || '';
             if (activeStatus === 'delivered') return status.includes('deliver');
             if (activeStatus === 'pending') return status.includes('pending');
             if (activeStatus === 'inProgress') return status.includes('progress');
             if (activeStatus === 'preparing') return status.includes('prepar');
             if (activeStatus === 'ready') return status === 'ready';
             if (activeStatus === 'pickedUp') return status.includes('pick');
-            // Add a filter for cancelled if you add such a status filter button
-            // if (activeStatus === 'cancelled') return status.includes('cancel');
-            return true;
+            if (activeStatus === 'cancelledByCustomer') return status === 'cancelledbycustomer'; // <<--- YENİ FİLTRE
+            if (activeStatus === 'cancelled') return status.includes('cancel') && status !== 'cancelledbycustomer'; // Sadece diğer iptaller (opsiyonel)
+            return true; // 'all' durumu zaten yukarıda ele alındı
         });
 
     const getStatusCount = (statusType) => {
         return orders.filter(order => {
-            const status = order.orderStatus?.toLowerCase() || '';
+            const status = order.orderStatus?.toLowerCase().replace(/_/g, '') || '';
             if (statusType === 'delivered') return status.includes('deliver');
             if (statusType === 'pending') return status.includes('pending');
             if (statusType === 'inProgress') return status.includes('progress');
             if (statusType === 'preparing') return status.includes('prepar');
             if (statusType === 'ready') return status === 'ready';
             if (statusType === 'pickedUp') return status.includes('pick');
-            // if (statusType === 'cancelled') return status.includes('cancel');
+            if (statusType === 'cancelledByCustomer') return status === 'cancelledbycustomer'; // <<--- YENİ SAYIM
+            if (statusType === 'cancelled') return status.includes('cancel') && status !== 'cancelledbycustomer'; // Opsiyonel
             return false;
         }).length;
     };
+
+    const getTimelineIconAndText = (orderStatus, targetStatus, icon, text, activeColor = 'green', inactiveColor = 'grey') => {
+        const currentStatusNormalized = orderStatus?.toUpperCase().replace(/_/g, '');
+        const targetStatusNormalized = targetStatus.toUpperCase().replace(/_/g, '');
+        let isActive = false;
+        let iconColor = inactiveColor;
+
+        const statusOrder = [
+            "PENDING",
+            "INPROGRESS", // IN_PROGRESS
+            "PREPARING",
+            "READY",
+            "PICKEDUP", // PICKED_UP
+            "DELIVERED"
+        ];
+
+        const cancelledByCustomer = currentStatusNormalized === "CANCELLEDBYCUSTOMER";
+        const cancelledGeneric = currentStatusNormalized === "CANCELLED";
+
+        if (cancelledByCustomer || cancelledGeneric) {
+            if (targetStatusNormalized === "PENDING" || targetStatusNormalized === currentStatusNormalized) {
+                isActive = true; // Sipariş verildiyse ve iptal edildiyse, "Order Placed" aktif kalır.
+            }
+            if (targetStatusNormalized === "CANCELLEDBYCUSTOMER" && cancelledByCustomer) {
+                icon = faUserSlash; text = "Cancelled by You"; iconColor = "darkred"; isActive = true;
+            } else if (targetStatusNormalized === "CANCELLED" && cancelledGeneric) {
+                icon = faExclamationTriangle; text = "Cancelled"; iconColor = "red"; isActive = true;
+            }
+        } else {
+            const currentIndex = statusOrder.indexOf(currentStatusNormalized);
+            const targetIndex = statusOrder.indexOf(targetStatusNormalized);
+            if (currentIndex >= targetIndex && targetIndex !== -1) {
+                isActive = true;
+            }
+        }
+
+        if (isActive && !(cancelledByCustomer || cancelledGeneric)) iconColor = activeColor;
+        if (isActive && (targetStatusNormalized === "CANCELLEDBYCUSTOMER" || targetStatusNormalized === "CANCELLED")) {
+            // Bu renkler zaten yukarıda ayarlandı.
+        }
+
+
+        return (
+            <div className={`timeline-item ${isActive ? 'active' : ''}`}>
+                <div className="timeline-icon" style={{ color: iconColor }}>
+                    <FontAwesomeIcon icon={icon} />
+                </div>
+                <div className="timeline-text">{text}</div>
+            </div>
+        );
+    };
+
 
     return (
         <div className="page-container d-flex flex-column min-vh-100">
@@ -192,7 +235,6 @@ const OrderPage = () => {
                         </div>
                     )}
 
-                    {/* Status Filter Bar */}
                     <div className="row mb-4">
                         <div className="col-12">
                             <div className="card shadow-sm">
@@ -213,7 +255,6 @@ const OrderPage = () => {
                                         >
                                             <FontAwesomeIcon icon={faClock} className="me-1 me-md-2 text-warning" />
                                             <span className="d-none d-sm-inline">Pending</span>
-                                            <span className="d-inline d-sm-none">Pending</span>
                                             <span className="badge bg-warning ms-1 ms-md-2">{getStatusCount('pending')}</span>
                                         </div>
                                         <div
@@ -222,7 +263,6 @@ const OrderPage = () => {
                                         >
                                             <FontAwesomeIcon icon={faShippingFast} className="me-1 me-md-2 text-info" />
                                             <span className="d-none d-sm-inline">In Progress</span>
-                                            <span className="d-inline d-sm-none">In Prog</span>
                                             <span className="badge bg-info ms-1 ms-md-2">{getStatusCount('inProgress')}</span>
                                         </div>
                                         <div
@@ -231,7 +271,6 @@ const OrderPage = () => {
                                         >
                                             <FontAwesomeIcon icon={faUtensils} className="me-1 me-md-2 text-info" />
                                             <span className="d-none d-sm-inline">Preparing</span>
-                                            <span className="d-inline d-sm-none">Prep</span>
                                             <span className="badge bg-info ms-1 ms-md-2" style={{ backgroundColor: '#17a2b8' }}>{getStatusCount('preparing')}</span>
                                         </div>
                                         <div
@@ -240,7 +279,6 @@ const OrderPage = () => {
                                         >
                                             <FontAwesomeIcon icon={faCheck} className="me-1 me-md-2 text-primary" />
                                             <span className="d-none d-sm-inline">Ready</span>
-                                            <span className="d-inline d-sm-none">Ready</span>
                                             <span className="badge bg-primary ms-1 ms-md-2">{getStatusCount('ready')}</span>
                                         </div>
                                         <div
@@ -249,7 +287,6 @@ const OrderPage = () => {
                                         >
                                             <FontAwesomeIcon icon={faBoxOpen} className="me-1 me-md-2" style={{ color: '#6f42c1' }} />
                                             <span className="d-none d-sm-inline">Picked Up</span>
-                                            <span className="d-inline d-sm-none">Picked</span>
                                             <span className="badge ms-1 ms-md-2" style={{ backgroundColor: '#6f42c1', color: 'white' }}>{getStatusCount('pickedUp')}</span>
                                         </div>
                                         <div
@@ -258,8 +295,16 @@ const OrderPage = () => {
                                         >
                                             <FontAwesomeIcon icon={faTruck} className="me-1 me-md-2 text-success" />
                                             <span className="d-none d-sm-inline">Delivered</span>
-                                            <span className="d-inline d-sm-none">Deliv</span>
                                             <span className="badge bg-success ms-1 ms-md-2">{getStatusCount('delivered')}</span>
+                                        </div>
+                                        {/* Opsiyonel: "Cancelled By You" için filtre butonu */}
+                                        <div
+                                            className={`status-item flex-fill text-center p-2 p-md-3 cursor-pointer ${activeStatus === 'cancelledByCustomer' ? 'active bg-light border-bottom border-danger' : ''}`}
+                                            onClick={() => setActiveStatus('cancelledByCustomer')}
+                                        >
+                                            <FontAwesomeIcon icon={faUserSlash} className="me-1 me-md-2 text-danger" />
+                                            <span className="d-none d-sm-inline">My Cancellations</span>
+                                            <span className="badge bg-danger ms-1 ms-md-2">{getStatusCount('cancelledByCustomer')}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -277,7 +322,9 @@ const OrderPage = () => {
                                                 activeStatus === 'pending' ? 'Pending Orders' :
                                                     activeStatus === 'preparing' ? 'Preparing Orders' :
                                                         activeStatus === 'ready' ? 'Ready Orders' :
-                                                            activeStatus === 'pickedUp' ? 'Picked Up Orders' : 'In Progress Orders'}
+                                                            activeStatus === 'pickedUp' ? 'Picked Up Orders' :
+                                                                activeStatus === 'cancelledByCustomer' ? 'My Cancelled Orders' : // <<--- YENİ BAŞLIK
+                                                                    'In Progress Orders'}
                                     </h5>
                                 </div>
                                 <div className="card-body">
@@ -290,7 +337,9 @@ const OrderPage = () => {
                                         </div>
                                     ) : filteredOrders.length === 0 ? (
                                         <div className="text-center py-4">
-                                            <p>No {activeStatus !== 'all' ? activeStatus : ''} orders found.</p>
+                                            <p>No {activeStatus !== 'all' ?
+                                                (activeStatus === 'cancelledByCustomer' ? 'orders cancelled by you' : `${activeStatus} orders`)
+                                                : ''} found.</p>
                                         </div>
                                     ) : (
                                         <div className="table-responsive">
@@ -302,17 +351,20 @@ const OrderPage = () => {
                                                         <th>Items</th>
                                                         <th>Total</th>
                                                         <th>Status</th>
-                                                        <th></th> {/* For expand icon */}
-                                                        <th>Actions</th> {/* New column for cancel button */}
+                                                        <th></th>
+                                                        <th>Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {filteredOrders.map(order => (
                                                         <React.Fragment key={order.orderId}>
-                                                            <tr className="align-middle"> {/* Removed cursor-pointer, click handled by specific elements */}
+                                                            <tr className="align-middle">
                                                                 <td onClick={() => toggleOrder(order.orderId)} className="cursor-pointer">{order.orderId}</td>
                                                                 <td onClick={() => toggleOrder(order.orderId)} className="cursor-pointer">{new Date(order.orderDate).toLocaleDateString()}</td>
-                                                                <td onClick={() => toggleOrder(order.orderId)} className="cursor-pointer">{Object.keys(order.items).length} items</td>
+                                                                <td onClick={() => toggleOrder(order.orderId)} className="cursor-pointer">
+                                                                    {/* order.items bir obje ise Object.keys, array ise .length */}
+                                                                    {order.items && typeof order.items === 'object' ? Object.keys(order.items).length : (order.items ? order.items.length : 0)} items
+                                                                </td>
                                                                 <td onClick={() => toggleOrder(order.orderId)} className="cursor-pointer">{order.totalAmount.toFixed(2)} TL</td>
                                                                 <td onClick={() => toggleOrder(order.orderId)} className="cursor-pointer">
                                                                     {getStatusBadge(order.orderStatus)}
@@ -320,7 +372,7 @@ const OrderPage = () => {
                                                                 <td onClick={() => toggleOrder(order.orderId)} className="cursor-pointer text-center">
                                                                     <FontAwesomeIcon icon={expandedOrders[order.orderId] ? faChevronUp : faChevronDown} className="text-secondary" />
                                                                 </td>
-                                                                <td className="text-center"> {/* Cell for cancel button */}
+                                                                <td className="text-center">
                                                                     {(order.orderStatus?.toUpperCase() === 'PENDING' || order.orderStatus?.toUpperCase() === 'IN_PROGRESS') && (
                                                                         <button
                                                                             className="btn btn-danger btn-sm"
@@ -334,7 +386,6 @@ const OrderPage = () => {
                                                             </tr>
                                                             {expandedOrders[order.orderId] && (
                                                                 <tr className="bg-light">
-                                                                    {/* Adjusted colSpan to 7 to account for the new 'Actions' column */}
                                                                     <td colSpan="7" className="p-3">
                                                                         <div className="order-details">
                                                                             <div className="mb-3">
@@ -344,15 +395,26 @@ const OrderPage = () => {
                                                                             <div className="mb-3">
                                                                                 <strong>Order Items:</strong>
                                                                             </div>
+                                                                            {/* order.items bir obje ise Object.entries, array ise .map */}
+                                                                            {order.items && typeof order.items === 'object' ?
+                                                                                Object.entries(order.items).map(([key, item]) => (
+                                                                                    <div className="row mb-2" key={item.name + key}> {/* Benzersiz key için item.name + key */}
+                                                                                        <div className="col-md-6"><strong>{item.name}</strong></div>
+                                                                                        <div className="col-md-2">x{item.quantity}</div>
+                                                                                        <div className="col-md-2">{item.price.toFixed(2)} TL</div>
+                                                                                        <div className="col-md-2 text-end">{(item.price * item.quantity).toFixed(2)} TL</div>
+                                                                                    </div>
+                                                                                )) :
+                                                                                (order.items && Array.isArray(order.items) && order.items.map((item, index) => (
+                                                                                    <div className="row mb-2" key={item.name + index}>
+                                                                                        <div className="col-md-6"><strong>{item.name}</strong></div>
+                                                                                        <div className="col-md-2">x{item.quantity}</div>
+                                                                                        <div className="col-md-2">{item.price.toFixed(2)} TL</div>
+                                                                                        <div className="col-md-2 text-end">{(item.price * item.quantity).toFixed(2)} TL</div>
+                                                                                    </div>
+                                                                                )))
+                                                                            }
 
-                                                                            {Object.entries(order.items).map(([key, item]) => (
-                                                                                <div className="row mb-2" key={key}>
-                                                                                    <div className="col-md-6"><strong>{item.name}</strong></div>
-                                                                                    <div className="col-md-2">x{item.quantity}</div>
-                                                                                    <div className="col-md-2">{item.price.toFixed(2)} TL</div>
-                                                                                    <div className="col-md-2 text-end">{(item.price * item.quantity).toFixed(2)} TL</div>
-                                                                                </div>
-                                                                            ))}
 
                                                                             <div className="mt-3 pt-2 border-top">
                                                                                 <div className="row">
@@ -366,67 +428,26 @@ const OrderPage = () => {
                                                                             </div>
 
                                                                             <div className="mt-3 order-timeline">
-                                                                                <div className="d-flex justify-content-between">
-                                                                                    <div className={`timeline-item ${['PENDING', 'IN_PROGRESS', 'PREPARING', 'READY', 'PICKED_UP', 'DELIVERED', 'CANCELLED'].some(s =>
-                                                                                        order.orderStatus?.toUpperCase().includes(s)
-                                                                                    ) ? 'active' : ''}`}>
-                                                                                        <div className="timeline-icon">
-                                                                                            <FontAwesomeIcon icon={faClock} />
-                                                                                        </div>
-                                                                                        <div className="timeline-text">Order Placed</div>
-                                                                                    </div>
+                                                                                <div className="d-flex justify-content-between flex-wrap"> {/* flex-wrap eklendi */}
+                                                                                    {getTimelineIconAndText(order.orderStatus, "PENDING", faClock, "Order Placed")}
 
-                                                                                    <div className={`timeline-item ${['IN_PROGRESS', 'PREPARING', 'READY', 'PICKED_UP', 'DELIVERED'].some(s =>
-                                                                                        order.orderStatus?.toUpperCase().includes(s) && !order.orderStatus?.toUpperCase().includes('CANCELLED')
-                                                                                    ) ? 'active' : ''}`}>
-                                                                                        <div className="timeline-icon">
-                                                                                            <FontAwesomeIcon icon={faShippingFast} />
-                                                                                        </div>
-                                                                                        <div className="timeline-text">In Progress</div>
-                                                                                    </div>
+                                                                                    {order.orderStatus?.toUpperCase().replace(/_/g, '') !== "CANCELLEDBYCUSTOMER" &&
+                                                                                        order.orderStatus?.toUpperCase().replace(/_/g, '') !== "CANCELLED" && (
+                                                                                            <>
+                                                                                                {getTimelineIconAndText(order.orderStatus, "IN_PROGRESS", faShippingFast, "In Progress")}
+                                                                                                {getTimelineIconAndText(order.orderStatus, "PREPARING", faUtensils, "Preparing")}
+                                                                                                {getTimelineIconAndText(order.orderStatus, "READY", faCheck, "Ready")}
+                                                                                                {getTimelineIconAndText(order.orderStatus, "PICKED_UP", faBoxOpen, "Picked Up", '#6f42c1')}
+                                                                                                {getTimelineIconAndText(order.orderStatus, "DELIVERED", faTruck, "Delivered")}
+                                                                                            </>
+                                                                                        )}
 
-                                                                                    <div className={`timeline-item ${['PREPARING', 'READY', 'PICKED_UP', 'DELIVERED'].some(s =>
-                                                                                        order.orderStatus?.toUpperCase().includes(s) && !order.orderStatus?.toUpperCase().includes('CANCELLED')
-                                                                                    ) ? 'active' : ''}`}>
-                                                                                        <div className="timeline-icon">
-                                                                                            <FontAwesomeIcon icon={faUtensils} />
-                                                                                        </div>
-                                                                                        <div className="timeline-text">Preparing</div>
-                                                                                    </div>
-
-                                                                                    <div className={`timeline-item ${['READY', 'PICKED_UP', 'DELIVERED'].some(s =>
-                                                                                        order.orderStatus?.toUpperCase().includes(s) && !order.orderStatus?.toUpperCase().includes('CANCELLED')
-                                                                                    ) ? 'active' : ''}`}>
-                                                                                        <div className="timeline-icon">
-                                                                                            <FontAwesomeIcon icon={faCheck} />
-                                                                                        </div>
-                                                                                        <div className="timeline-text">Ready</div>
-                                                                                    </div>
-
-                                                                                    <div className={`timeline-item ${['PICKED_UP', 'DELIVERED'].some(s =>
-                                                                                        order.orderStatus?.toUpperCase().includes(s) && !order.orderStatus?.toUpperCase().includes('CANCELLED')
-                                                                                    ) ? 'active' : ''}`}>
-                                                                                        <div className="timeline-icon">
-                                                                                            <FontAwesomeIcon icon={faBoxOpen} />
-                                                                                        </div>
-                                                                                        <div className="timeline-text">Picked Up</div>
-                                                                                    </div>
-
-                                                                                    <div className={`timeline-item ${order.orderStatus?.toUpperCase().includes('DELIVERED') && !order.orderStatus?.toUpperCase().includes('CANCELLED') ? 'active' : ''}`}>
-                                                                                        <div className="timeline-icon">
-                                                                                            <FontAwesomeIcon icon={faTruck} />
-                                                                                        </div>
-                                                                                        <div className="timeline-text">Delivered</div>
-                                                                                    </div>
-                                                                                    {/* Optional: Add a timeline item for Cancelled status */}
-                                                                                    {order.orderStatus?.toUpperCase().includes('CANCELLED') && (
-                                                                                        <div className="timeline-item active"> {/* Always active if cancelled */}
-                                                                                            <div className="timeline-icon" style={{ color: 'red' }}>
-                                                                                                <FontAwesomeIcon icon={faTimes} />
-                                                                                            </div>
-                                                                                            <div className="timeline-text">Cancelled</div>
-                                                                                        </div>
-                                                                                    )}
+                                                                                    {order.orderStatus?.toUpperCase().replace(/_/g, '') === "CANCELLEDBYCUSTOMER" &&
+                                                                                        getTimelineIconAndText(order.orderStatus, "CANCELLED_BY_CUSTOMER", faUserSlash, "Cancelled by You", "darkred")
+                                                                                    }
+                                                                                    {order.orderStatus?.toUpperCase().replace(/_/g, '') === "CANCELLED" &&
+                                                                                        getTimelineIconAndText(order.orderStatus, "CANCELLED", faExclamationTriangle, "Cancelled", "red")
+                                                                                    }
                                                                                 </div>
                                                                             </div>
                                                                         </div>

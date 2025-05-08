@@ -19,6 +19,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import java.util.Arrays; // Bu importun olduğundan emin olun
+import java.util.List;  // Bu importun olduğundan emin olun
+import java.util.stream.Collectors; // Bu importun olduğundan emin olun
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -85,7 +88,9 @@ public class AdminController {
 
         List<String> finalStatuses = Arrays.asList(
                 OrderStatus.DELIVERED.name(),
-                OrderStatus.CANCELLED.name()
+                OrderStatus.CANCELLED.name(),
+                OrderStatus.CANCELLED_BY_CUSTOMER.name() // <<--- BURAYA EKLENDİ
+
         );
 
         // Aktif sipariş kontrolü

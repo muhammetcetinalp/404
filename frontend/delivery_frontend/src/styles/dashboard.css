@@ -152,8 +152,48 @@ body {
     }
 }
 
-.form-control {
-    margin-top: 0;
+/* Form Control Styles */
+.form-control-sm {
+    height: 30px !important;
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.875rem !important;
+    border-radius: 0.2rem !important;
+}
+
+.input-group-sm > .form-control,
+.input-group-sm > .input-group-text {
+    height: 30px !important;
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.875rem !important;
+}
+
+.input-group-text {
+    padding: 0.25rem 0.5rem !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+textarea.form-control-sm {
+    height: auto !important;
+    min-height: 50px !important;
+}
+
+.mb-2 {
+    margin-bottom: 0.5rem !important;
+}
+
+.small {
+    font-size: 0.875rem !important;
+}
+
+.mb-1 {
+    margin-bottom: 0.25rem !important;
+}
+
+/* Row gap reduction */
+.row.g-2 {
+    --bs-gutter-x: 0.5rem !important;
+    --bs-gutter-y: 0.5rem !important;
 }
 
 .search-container {
@@ -969,4 +1009,430 @@ body {
     background-color: #eb6825;
     color: white;
     opacity: 0.65;
+}
+
+/* Reviews Modal Styles */
+.review-modal {
+    max-width: 1200px;  /* Increased from 900px to 1200px */
+    width: 90%;        /* Make it responsive */
+    margin: 1.75rem auto;
+}
+
+.review-modal .modal-content {
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 100%; /* Added to ensure full width */
+}
+
+.review-modal .modal-body {
+    padding: 0;
+    flex: 1;
+    overflow: hidden;
+    width: 100%; /* Added to ensure full width */
+}
+
+.reviews-container {
+    height: 100%;
+    max-height: calc(80vh - 70px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0 24px; /* Changed padding to be equal on both sides */
+    width: 100%; /* Added to ensure full width */
+}
+
+.review-item {
+    transition: background-color 0.2s ease;
+    padding: 1.5rem;
+    border-bottom: 1px solid #eee;
+    margin-right: 0; /* Removed margin-right to use full width */
+    width: 100%; /* Added to ensure full width */
+}
+
+.review-item:last-child {
+    border-bottom: none;
+    margin-bottom: 16px;
+}
+
+.review-item:first-child {
+    margin-top: 16px;
+}
+
+.review-item:hover {
+    background-color: #f8f9fa;
+}
+
+.review-text {
+    color: #666;
+    line-height: 1.5;
+    white-space: pre-line;
+    font-size: 1rem; /* Slightly larger font size */
+}
+
+/* Custom scrollbar styles */
+.reviews-container::-webkit-scrollbar {
+    width: 8px;
+    margin-left: 8px;
+}
+
+.reviews-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+    margin: 4px 0;
+}
+
+.reviews-container::-webkit-scrollbar-thumb {
+    background: #eb6825;
+    border-radius: 4px;
+}
+
+.reviews-container::-webkit-scrollbar-thumb:hover {
+    background: #d45718;
+}
+
+/* Button hover effects */
+.btn-link:hover .text-secondary {
+    color: #eb6825 !important;
+    transform: scale(1.1);
+    transition: all 0.2s ease;
+}
+
+.review-modal .modal-header .btn-close {
+    background-color: #eb6825 !important;
+    border: none !important;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.3rem;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    opacity: 1 !important;
+    background-image: none !important;
+}
+
+.review-modal .modal-header .btn-close::before {
+    content: "×";
+    color: white;
+    line-height: 1;
+}
+
+.review-modal .modal-header .btn-close:hover {
+    background-color: #d45718 !important;
+    opacity: 1 !important;
+}
+
+/* Rating Modal Styles */
+.modal-content .modal-header .btn-close {
+    background-color: #eb6825 !important;
+    border: none !important;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.3rem;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    opacity: 1 !important;
+    background-image: none !important;
+}
+
+.modal-content .modal-header .btn-close::before {
+    content: "×";
+    color: white;
+    line-height: 1;
+}
+
+.modal-content .modal-header .btn-close:hover {
+    background-color: #d45718 !important;
+    opacity: 1 !important;
+}
+
+/* Rating Modal Button Styles */
+.modal-footer {
+    padding: 1rem;
+    gap: 10px;
+    flex-direction: column;
+}
+
+.modal-footer .btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 8px;
+    margin: 0;
+}
+
+.modal-footer .btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+}
+
+.modal-footer .btn-warning {
+    background-color: #eb6825;
+    color: white;
+    border: none;
+    margin-bottom: 10px;
+}
+
+/* Rating Stars Style */
+.star-rating {
+    margin: 20px 0;
+}
+
+.star-rating .star {
+    font-size: 2rem;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.star-rating .star:hover {
+    transform: scale(1.1);
+}
+
+/* Rating Text Area Style */
+.form-control {
+    border-radius: 8px;
+    padding: 12px;
+    min-height: 100px;
+    margin: 10px 0;
+}
+
+.form-control:focus {
+    border-color: #eb6825;
+    box-shadow: 0 0 0 0.2rem rgba(235, 104, 37, 0.25);
+}
+
+/* Rating Modal Form Labels */
+.modal-body .form-label {
+    color: #212529;
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* Profile Page Form Styles */
+.profile-form .form-control {
+    height: 32px !important;
+    padding: 4px 8px !important;
+    font-size: 14px !important;
+    line-height: 1.2 !important;
+    border-radius: 4px !important;
+    margin: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.profile-form .input-group {
+    display: flex !important;
+    align-items: stretch !important;
+    width: 100% !important;
+}
+
+.profile-form .input-group-text {
+    height: 32px !important;
+    padding: 4px 8px !important;
+    font-size: 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    border-radius: 4px 0 0 4px !important;
+    background-color: #343a40 !important;
+    border: 1px solid #6c757d !important;
+}
+
+.profile-form .input-group .form-control {
+    border-radius: 0 4px 4px 0 !important;
+    flex: 1 1 auto !important;
+    border: 1px solid #6c757d !important;
+}
+
+.profile-form textarea.form-control {
+    height: auto !important;
+    min-height: 60px !important;
+    resize: vertical !important;
+}
+
+.profile-form .form-group {
+    margin-bottom: 12px !important;
+}
+
+.profile-form label {
+    display: block !important;
+    font-size: 14px !important;
+    margin-bottom: 4px !important;
+    color: #ffffff !important;
+}
+
+.profile-form .mb-3 {
+    margin-bottom: 12px !important;
+}
+
+.profile-form .row {
+    margin: -6px !important;
+}
+
+.profile-form .col-md-6 {
+    padding: 6px !important;
+}
+
+/* Custom Form Styles */
+.custom-form-group {
+    margin-bottom: 16px;
+}
+
+.custom-label {
+    display: block;
+    color: #ffffff;
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+.custom-input {
+    width: 100%;
+    height: 38px;
+    padding: 8px 12px;
+    font-size: 14px;
+    background-color: #343a40;
+    border: 1px solid #6c757d;
+    border-radius: 4px;
+    color: #ffffff;
+}
+
+.custom-input:disabled {
+    background-color: #2b3035;
+    cursor: not-allowed;
+}
+
+.custom-input-group {
+    display: flex;
+    align-items: stretch;
+}
+
+.custom-input-group-text {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #ffffff;
+    background-color: #343a40;
+    border: 1px solid #6c757d;
+    border-right: none;
+    border-radius: 4px 0 0 4px;
+    height: 38px;
+}
+
+.custom-input-group .custom-input {
+    border-radius: 0 4px 4px 0;
+}
+
+.custom-textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 8px 12px;
+    font-size: 14px;
+    background-color: #343a40;
+    border: 1px solid #6c757d;
+    border-radius: 4px;
+    color: #ffffff;
+    resize: vertical;
+}
+
+.custom-row {
+    display: flex;
+    margin: 0 -5px;
+    flex-wrap: wrap;
+}
+
+.custom-col {
+    flex: 1;
+    padding: 0 5px;
+    min-width: 200px;
+}
+
+.custom-error {
+    color: #dc3545;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+/* Override any Bootstrap styles that might interfere */
+.custom-input,
+.custom-textarea,
+.custom-input-group-text {
+    box-shadow: none !important;
+    transition: none !important;
+}
+
+.custom-input:focus,
+.custom-textarea:focus {
+    border-color: #0d6efd;
+    outline: none;
+    box-shadow: none;
+}
+
+/* Custom Button Styles */
+.custom-button {
+    padding: 6px 16px;
+    font-size: 13px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    min-width: 90px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    white-space: nowrap;
+}
+
+.custom-button i {
+    font-size: 12px;
+}
+
+.custom-button.primary {
+    background-color: #eb6825;
+    color: white;
+}
+
+.custom-button.primary:hover {
+    background-color: #d45718;
+}
+
+.custom-button.danger {
+    background-color: #dc3545;
+    color: white;
+    min-width: 120px;
+}
+
+.custom-button.danger:hover {
+    background-color: #c82333;
+}
+
+.custom-button.secondary {
+    background-color: transparent;
+    border: 1px solid #6c757d;
+    color: #fff;
+    padding: 6px 12px;
+    min-width: 80px;
+}
+
+.custom-button.secondary:hover {
+    background-color: rgba(108, 117, 125, 0.2);
+}
+
+.gap-3 {
+    gap: 12px;
+}
+
+.flex-grow-0 {
+    flex-grow: 0;
 }

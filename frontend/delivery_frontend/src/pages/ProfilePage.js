@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 const ProfilePage = () => {
     const [form, setForm] = useState({});
     const [loading, setLoading] = useState(true);
-    const [message, setMessage] = useState('');
+    // const [message, setMessage] = useState(''); // Replaced by toast
     const [errors, setErrors] = useState({});
     const role = localStorage.getItem('role');
     const navigate = useNavigate();
@@ -42,30 +42,39 @@ const ProfilePage = () => {
         const fetchUser = async () => {
             try {
                 const res = await api.get('/profile');
-                setForm(res.data.profile || res.data);
+                // Ensure form is an object, res.data might be {profile: ...} or just the profile data
+                setForm(res.data.profile || res.data || {});
             } catch (err) {
                 console.error("Failed to fetch user info", err);
                 toast.error("An error occurred while loading data.");
+                if (err.response && err.response.status === 401) {
+                    // Unauthorized, token might be invalid
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('email');
+                    localStorage.removeItem('role');
+                    navigate('/login');
+                }
             } finally {
                 setLoading(false);
             }
         };
         fetchUser();
-    }, []);
+    }, [navigate]);
 
     const validateForm = () => {
         const newErrors = {};
 
         // Email validation
-        if (form.email && !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(form.email)) {
-            newErrors.email = "Please enter a valid email address";
-        }
+        // Email is disabled, so validation on change is not strictly necessary but good for completeness
+        // if (form.email && !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(form.email)) {
+        //     newErrors.email = "Please enter a valid email address";
+        // }
 
         // Phone validation for Turkish format
         if (form.phone) {
-            const phoneRegex = /^[0-9]{10}$/;
+            const phoneRegex = /^[0-9]{10}$/; // Assumes 5XXXXXXXXX format after +90
             if (!phoneRegex.test(form.phone)) {
-                newErrors.phone = "Phone number must be 10 digits (5XXXXXXXXX)";
+                newErrors.phone = "Phone number must be 10 digits (e.g., 5XXXXXXXXX)";
             }
         }
 
@@ -93,24 +102,17 @@ const ProfilePage = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
 
-        // For phone field, handle the formatting
         if (name === 'phone') {
-            // Remove any non-numeric characters
             const numericValue = value.replace(/\D/g, '');
-            // Limit to 10 digits
             const formattedValue = numericValue.slice(0, 10);
-            setForm({ ...form, [name]: formattedValue });
-
-            // Clear error when user types
+            setForm(prevForm => ({ ...prevForm, [name]: formattedValue }));
             if (errors.phone) {
-                setErrors({ ...errors, phone: null });
+                setErrors(prevErrors => ({ ...prevErrors, phone: null }));
             }
         } else {
-            setForm({ ...form, [name]: value });
-
-            // Clear the specific error when user makes changes
+            setForm(prevForm => ({ ...prevForm, [name]: value }));
             if (errors[name]) {
-                setErrors({ ...errors, [name]: null });
+                setErrors(prevErrors => ({ ...prevErrors, [name]: null }));
             }
         }
     };
@@ -121,23 +123,47 @@ const ProfilePage = () => {
                 await api.put('/profile/update', form);
                 toast.success("Information updated successfully.");
 
-                setTimeout(() => {
-                    if (role === 'customer') {
-                        navigate('/customer-dashboard');
-                    } else if (role === 'restaurant_owner') {
-                        navigate('/restaurant-dashboard');
-                    } else if (role === 'courier') {
-                        navigate('/courier-dashboard');
-                    }
-                }, 2000);
+                // setTimeout(() => {
+                //     if (role === 'customer') {
+                //         navigate('/customer-dashboard');
+                //     } else if (role === 'restaurant_owner') {
+                //         navigate('/restaurant-dashboard');
+                //     } else if (role === 'courier') {
+                //         navigate('/courier-dashboard');
+                //     }
+                // }, 2000);
 
             } catch (err) {
-                toast.error("Update failed.");
+                console.error("Update failed error:", err);
+                const errorMessage = err.response?.data?.message || err.response?.data || "Update failed. Please try again.";
+                toast.error(errorMessage);
             }
         } else {
             toast.error("Please correct the errors before saving.");
         }
     };
+
+    const handleDeleteAccount = async () => {
+        const confirmDelete = window.confirm("Are you sure you want to delete your account? This action cannot be undone.");
+        if (confirmDelete) {
+            try {
+                await api.delete('/profile/delete');
+                toast.success("Account deleted successfully.");
+                // Clear local storage and redirect
+                localStorage.removeItem('token');
+                localStorage.removeItem('email');
+                localStorage.removeItem('role');
+                setTimeout(() => {
+                    navigate('/'); // Redirect to home page or login
+                }, 2000);
+            } catch (err) {
+                const errorMessage = err.response?.data || "Failed to delete account. Please try again.";
+                toast.error(errorMessage);
+                console.error("Failed to delete account", err.response);
+            }
+        }
+    };
+
 
     const renderCustomerForm = () => (
         <>
@@ -150,23 +176,6 @@ const ProfilePage = () => {
                     className="form-control bg-dark text-white"
                 />
             </div>
-
-            <ToastContainer
-                position="top-right"
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="colored"
-                closeButton={<CustomCloseButton />}
-                toastClassName="custom-toast"
-                bodyClassName="custom-toast-body"
-                icon={true}
-            />
 
             <div className="form-group mb-3">
                 <label className="text-white">Phone</label>
@@ -188,11 +197,11 @@ const ProfilePage = () => {
                 <input
                     name="email"
                     value={form.email || ''}
-                    onChange={handleChange}
+                    onChange={handleChange} // Keep handleChange to allow internal state update if needed, though it's disabled
                     className={`form-control bg-dark text-white ${errors.email ? 'is-invalid' : ''}`}
-                    disabled
+                    disabled // Email should not be changed by user
                 />
-                {errors.email && <div className="invalid-feedback d-block">{errors.email}</div>}
+                {/* {errors.email && <div className="invalid-feedback d-block">{errors.email}</div>} */}
             </div>
 
             <h5 className="mt-4 mb-3 border-bottom pb-2 text-white">Delivery Address</h5>
@@ -268,7 +277,7 @@ const ProfilePage = () => {
                     className={`form-control bg-dark text-light ${errors.email ? 'is-invalid' : ''}`}
                     disabled
                 />
-                {errors.email && <div className="invalid-feedback d-block">{errors.email}</div>}
+                {/* {errors.email && <div className="invalid-feedback d-block">{errors.email}</div>} */}
             </div>
         </>
     );
@@ -308,7 +317,7 @@ const ProfilePage = () => {
                     className={`form-control bg-dark text-white ${errors.email ? 'is-invalid' : ''}`}
                     disabled
                 />
-                {errors.email && <div className="invalid-feedback d-block">{errors.email}</div>}
+                {/* {errors.email && <div className="invalid-feedback d-block">{errors.email}</div>} */}
             </div>
 
             <h5 className="mt-4 mb-3 border-bottom pb-2 text-white">Restaurant Address</h5>
@@ -349,7 +358,7 @@ const ProfilePage = () => {
 
             <h5 className="mt-4 mb-3 border-bottom pb-2 text-white">Business Details</h5>
             <div className="row">
-                <div className="col-md-6">
+                <div className="col-md-6"> {/* Adjusted to col-md-6 for better layout */}
                     <div className="form-group mb-3">
                         <label className="text-white">Cuisine Type</label>
                         <select
@@ -359,15 +368,19 @@ const ProfilePage = () => {
                             className="form-control bg-dark text-white"
                         >
                             <option value="">Select Cuisine Type</option>
-                            <option value="turkish">Turkish</option>
-                            <option value="italian">Italian</option>
-                            <option value="mexican">Mexican</option>
-                            <option value="american">American</option>
-                            <option value="asian">Asian</option>
-                            <option value="other">Other</option>
+                            <option value="Turkish">Turkish</option>
+                            <option value="Italian">Italian</option>
+                            <option value="Mexican">Mexican</option>
+                            <option value="American">American</option>
+                            <option value="Asian">Asian</option>
+                            <option value="Fast Food">Fast Food</option>
+                            <option value="Dessert">Dessert</option>
+                            <option value="Cafe">Cafe</option>
+                            <option value="Other">Other</option>
                         </select>
                     </div>
                 </div>
+
                 <div className="col-md-6">
                     <div className="form-group mb-3">
                         <label className="text-white">Opening Time</label>
@@ -400,6 +413,21 @@ const ProfilePage = () => {
 
     return (
         <div className="text-light">
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="colored"
+                closeButton={<CustomCloseButton />}
+                toastClassName="custom-toast" // You can define this in your CSS
+                bodyClassName="custom-toast-body" // You can define this in your CSS
+            />
             <div className="container-fluid dashboard-header bg-black">
                 <Header />
                 <div className="container dashboard-welcome-text">
@@ -432,33 +460,34 @@ const ProfilePage = () => {
                                     {role === 'restaurant_owner' && renderRestaurantForm()}
                                     {role === 'courier' && renderCourierForm()}
 
-                                    {message && (
-                                        <div
-                                            className={`alert ${message.includes("successfully") ? 'alert-success' : 'alert-danger'} mt-3`}
-                                            role="alert"
-                                        >
-                                            {message}
-                                        </div>
-                                    )}
+                                    {/* Message div removed, using toast instead */}
 
-                                    <div className="mt-4 d-flex justify-content-between">
+                                    <div className="mt-4 d-flex justify-content-between align-items-center">
                                         <button
                                             onClick={() => {
                                                 const homeLink = role === 'customer' ? '/customer-dashboard' :
                                                     role === 'restaurant_owner' ? '/restaurant-dashboard' :
                                                         role === 'courier' ? '/courier-dashboard' : '/';
-                                                window.location.href = homeLink;
+                                                navigate(homeLink); // Use navigate for SPA navigation
                                             }}
                                             className="btn btn-outline-secondary text-light"
                                         >
                                             Back to Dashboard
                                         </button>
-                                        <button
-                                            onClick={handleSave}
-                                            className="btn-orange btn btn-warning"
-                                        >
-                                            Save Changes
-                                        </button>
+                                        <div> {/* Wrapper for right-side buttons */}
+                                            <button
+                                                onClick={handleDeleteAccount}
+                                                className="btn btn-danger me-2" // Added margin to the right
+                                            >
+                                                Delete Account
+                                            </button>
+                                            <button
+                                                onClick={handleSave}
+                                                className="btn-orange btn btn-warning"
+                                            >
+                                                Save Changes
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             )}

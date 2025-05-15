@@ -49,7 +49,7 @@ public class CourierOrderController {
         String restaurantId = courier.getRestaurantOwner().getRestaurantId();
 
         List<Order> activeOrders = orderRepository.findByRestaurantId(restaurantId).stream()
-                .filter(order -> "PENDING".equals(order.getOrderStatus()))
+                .filter(order -> "READY".equals(order.getOrderStatus()))
                 .toList();
 
         return ResponseEntity.ok(activeOrders);
@@ -80,7 +80,6 @@ public class CourierOrderController {
 
         // Siparişi kabul et
         order.setCourier(courier);
-        order.setOrderStatus("IN_PROGRESS");
         orderRepository.save(order);
 
         return ResponseEntity.ok("Order accepted successfully.");
@@ -98,12 +97,13 @@ public class CourierOrderController {
 
         String restaurantId = courier.getRestaurantOwner().getRestaurantId();
 
-        // Bu restorana ait ve henüz kurye atanmamış PENDING siparişleri getir
-        List<Order> activeOrders = orderRepository.findByRestaurantId(restaurantId).stream()
-                .filter(order -> "IN_PROGRESS".equals(order.getOrderStatus()))
+
+        // Bu restorana ait PENDING, IN_PROGRESS, PREPARING veya READY durumundaki siparişleri getir
+        List<Order> availableOrders = orderRepository.findByRestaurantId(restaurantId).stream()
+                .filter(order -> "READY".equals(order.getOrderStatus()))
                 .toList();
 
-        return ResponseEntity.ok(activeOrders);
+        return ResponseEntity.ok(availableOrders);
     }
     @PatchMapping("/accept-available/{orderId}")
     public ResponseEntity<?> acceptAvailableOrder(@PathVariable String orderId, Authentication auth) {
@@ -129,7 +129,6 @@ public class CourierOrderController {
 
         // Siparişi kendine ata
         order.setCourier(courier);
-        order.setOrderStatus("IN_PROGRESS");
         orderRepository.save(order);
 
         return ResponseEntity.ok("Order accepted successfully.");

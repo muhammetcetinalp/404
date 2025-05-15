@@ -154,7 +154,7 @@ const CourierDeliveriesPage = () => {
     // Filter deliveries based on active tab
     const filteredDeliveries = deliveries.filter(delivery => {
         if (activeTab === 'CURRENT') {
-            return ['IN_PROGRESS', 'PICKED_UP'].includes(delivery.orderStatus);
+            return ['IN_PROGRESS', 'PICKED_UP', "READY"].includes(delivery.orderStatus);
         } else if (activeTab === 'COMPLETED') {
             return delivery.orderStatus === 'DELIVERED';
         }
@@ -180,7 +180,7 @@ const CourierDeliveriesPage = () => {
     // Render action button based on status
     const renderActionButton = (order) => {
         switch (order.orderStatus) {
-            case 'IN_PROGRESS':
+            case 'READY':
                 return (
                     <button
                         className="btn btn-orange btn-warning btn-sm w-100"

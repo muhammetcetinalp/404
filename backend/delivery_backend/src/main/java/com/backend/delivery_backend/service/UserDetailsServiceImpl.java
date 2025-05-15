@@ -17,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.backend.delivery_backend.ENUM.DeliveryType;
 
 import com.backend.delivery_backend.DTO.UserDTO;
 import com.backend.delivery_backend.model.PasswordResetToken;
@@ -95,7 +96,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 				r.setBusinessHoursStart(dto.getBusinessHoursStart());
 				r.setBusinessHoursEnd(dto.getBusinessHoursEnd());
 				r.setCuisineType(dto.getCuisineType());
-				r.setDeliveryType(DeliveryType.valueOf(dto.getDeliveryType().toUpperCase()));
+				r.setDeliveryType(DeliveryType.BOTH);
 				// Set default approval status to false (pending approval)
 				r.setApproved(false);
 				return restaurantOwnerRepository.save(r);

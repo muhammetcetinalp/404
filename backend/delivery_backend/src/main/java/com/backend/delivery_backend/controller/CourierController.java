@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import com.backend.delivery_backend.ENUM.CourierStatus;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.Authentication;
 import com.backend.delivery_backend.model.Courier;
@@ -75,17 +77,27 @@ public class CourierController {
     }
 
     @PatchMapping("/{courierId}/status")
-    public ResponseEntity<?> updateStatus(
-            @PathVariable Long courierId,
-            @RequestBody Map<String, String> requestBody) {
+    public ResponseEntity<?> updateCourierStatus(@PathVariable String courierId, @RequestBody Map<String, String> payload) {
         try {
-            String status = requestBody.get("status");
-            courierService.updateCourierStatus(String.valueOf(courierId), status);
-            return ResponseEntity.ok("Courier status updated to " + status);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            String status = payload.get("status");
+            Courier courier = courierRepository.findByCourierId(courierId);
+
+            if (courier == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Courier not found");
+            }
+
+            CourierStatus newStatus = CourierStatus.valueOf(status);
+            courier.setStatus(newStatus);
+            courierRepository.save(courier);
+
+            return ResponseEntity.ok("Status updated successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid status value");
         }
     }
+
+
+
 
     @GetMapping("/active")
     public ResponseEntity<?> getActiveOrdersForCourier(Authentication auth) {

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -247,7 +248,6 @@ const CourierRestaurantsPage = () => {
             setProcessingRegistration(null);
         }
     };
-
     const formatDate = (dateTimeStr) => {
         if (!dateTimeStr) return 'N/A';
         const date = new Date(dateTimeStr);

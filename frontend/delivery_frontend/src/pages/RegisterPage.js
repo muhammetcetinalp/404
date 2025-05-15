@@ -44,12 +44,12 @@ const RegisterPage = () => {
     if (name === 'phone') {
       // Strip any non-numeric characters
       newValue = value.replace(/[^0-9]/g, '');
-      
+
       // Restrict to 10 digits
       if (newValue.length > 10) {
         newValue = newValue.slice(0, 10);
       }
-      
+
       // Validate phone number
       if (newValue && !validatePhone(newValue)) {
         errors.phone = 'Phone number must be exactly 10 digits';
@@ -72,7 +72,7 @@ const RegisterPage = () => {
       } else {
         delete errors.password;
       }
-      
+
       if (form.confirmPassword && value !== form.confirmPassword) {
         errors.confirmPassword = 'Passwords do not match';
       } else if (form.confirmPassword) {
@@ -315,7 +315,7 @@ const RegisterPage = () => {
                         />
                       </div>
                     </div>
-                    
+
                     <div className="form-group">
                       <label htmlFor="cuisineType">Cuisine Type</label>
                       <input
@@ -330,21 +330,7 @@ const RegisterPage = () => {
                       />
                     </div>
 
-                    <div className="form-group">
-                      <label htmlFor="deliveryType">Delivery Type</label>
-                      <select
-                        id="deliveryType"
-                        name="deliveryType"
-                        value={form.deliveryType}
-                        onChange={handleChange}
-                        required
-                        className="form-control"
-                      >
-                        <option value="DELIVERY">Delivery</option>
-                        <option value="PICKUP">Pickup</option>
-                        <option value="BOTH">Both</option>
-                      </select>
-                    </div>
+
                   </div>
                 )}
 

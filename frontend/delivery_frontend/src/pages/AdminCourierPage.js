@@ -123,10 +123,13 @@ const AdminCourierPage = () => {
                                 onClick={async () => {
                                     try {
                                         await api.delete(`/admin/delete-user/${email}`);
-                                        fetchCouriers(); // Refresh the list after deletion
+                                        toast.success('Courier deleted successfully!');
+                                        fetchCouriers();
                                         onClose();
                                     } catch (err) {
-                                        console.error("Failed to delete courier", err);
+                                        const errorMessage = err.response?.data || "Failed to delete courier. Please try again.";
+                                        toast.error(errorMessage);
+                                        console.error("Failed to delete courier", err.response || err);
                                         onClose();
                                     }
                                 }}

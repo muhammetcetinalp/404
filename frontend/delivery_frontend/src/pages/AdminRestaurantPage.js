@@ -169,10 +169,13 @@ const AdminRestaurantPage = () => {
                                 onClick={async () => {
                                     try {
                                         await api.delete(`/admin/delete-user/${email}`);
-                                        fetchRestaurants(); // Refresh the list after deletion
+                                        toast.success('Restaurant owner deleted successfully!');
+                                        fetchRestaurants();
                                         onClose();
                                     } catch (err) {
-                                        console.error("Failed to delete restaurant", err);
+                                        const errorMessage = err.response?.data || "Failed to delete restaurant owner. Please try again.";
+                                        toast.error(errorMessage);
+                                        console.error("Failed to delete restaurant owner", err.response || err);
                                         onClose();
                                     }
                                 }}
@@ -776,19 +779,7 @@ const AdminRestaurantPage = () => {
                                     />
                                     {formErrors.cuisineType && <div className="error-message">{formErrors.cuisineType}</div>}
                                 </div>
-                                <div className="form-group">
-                                    <label>Delivery Type</label>
-                                    <select
-                                        name="deliveryType"
-                                        value={addUserForm.deliveryType}
-                                        onChange={handleAddUserChange}
-                                        className="form-control"
-                                    >
-                                        <option value="DELIVERY">Delivery</option>
-                                        <option value="PICKUP">Pickup</option>
-                                        <option value="BOTH">Both</option>
-                                    </select>
-                                </div>
+
 
                                 {addUserError && <p className="error-message">{addUserError}</p>}
 

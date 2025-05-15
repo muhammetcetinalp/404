@@ -5,6 +5,7 @@ import com.backend.delivery_backend.DTO.UserDTO;
 import com.backend.delivery_backend.ENUM.OrderStatus; // Önemli
 import com.backend.delivery_backend.model.*;
 import com.backend.delivery_backend.repository.*;
+import com.backend.delivery_backend.service.ComplaintService;
 import com.backend.delivery_backend.service.UserDetailsServiceImpl; // Eğer UserDetailsServiceImpl kullanıyorsanız
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +49,7 @@ public class AdminController {
     @Autowired private CourierRestaurantRequestRepository courierRestaurantRequestRepository;
     @Autowired private TokenRepository tokenRepository;
     @Autowired private UserDetailsServiceImpl userService; // Kullanıcı bulmak için eklendi
+    @Autowired private ComplaintService complaintService;
 
     @GetMapping("/all-users")
     public ResponseEntity<?> getAllUsers() {
@@ -458,6 +460,12 @@ public class AdminController {
                     .body("Error rejecting restaurant: " + e.getMessage());
         }
     }
+
+    @GetMapping("/admin/complaints")
+    public ResponseEntity<List<Complaint>> getAllComplaints() {
+        return ResponseEntity.ok(complaintService.getAllComplaints());
+    }
+
 
 
 }

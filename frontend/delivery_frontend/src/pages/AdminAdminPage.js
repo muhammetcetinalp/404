@@ -123,10 +123,13 @@ const AdminAdminPage = () => {
                                 onClick={async () => {
                                     try {
                                         await api.delete(`/admin/delete-user/${email}`);
-                                        fetchAdmins(); // Refresh the list after deletion
+                                        toast.success('Admin user action processed.'); // Backend will prevent actual deletion of other admins
+                                        fetchAdmins();
                                         onClose();
                                     } catch (err) {
-                                        console.error("Failed to delete admin", err);
+                                        const errorMessage = err.response?.data || "Failed to process admin deletion request.";
+                                        toast.error(errorMessage);
+                                        console.error("Failed to delete admin", err.response || err);
                                         onClose();
                                     }
                                 }}

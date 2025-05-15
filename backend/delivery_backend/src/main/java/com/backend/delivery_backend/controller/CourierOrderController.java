@@ -137,11 +137,11 @@ public class CourierOrderController {
     @PatchMapping("/update-status/{orderId}")
     public ResponseEntity<?> updateOrderStatus(@PathVariable String orderId, @RequestBody Map<String, String> requestBody) {
         String newStatus = requestBody.get("status");
-
+        
         if (newStatus == null) {
             return ResponseEntity.badRequest().body("Status field is required");
         }
-
+        
         // If it's a JSON object containing status, just use the raw string value
         if (newStatus.contains("{") || newStatus.contains(":")) {
             try {
@@ -152,18 +152,18 @@ public class CourierOrderController {
                 System.err.println("Error parsing status: " + e.getMessage());
             }
         }
-
+        
         // Standardize the status format
         newStatus = newStatus.replace("\"", "").toUpperCase().trim();
-
+        
         // Special case for "picked up" format
         if (newStatus.equals("PICKED UP")) {
             newStatus = "PICKED_UP";
         }
-
+        
         // Log the final status value for debugging
         System.out.println("Setting order status to: " + newStatus);
-
+        
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found."));
 

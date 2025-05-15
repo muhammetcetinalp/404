@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faFilter, faUtensils, faCheckCircle, faTimesCircle, faClock, faChevronDown, faChevronUp, faStore, faToggleOn, faToggleOff, faShippingFast, faSort, faArrowDown, faArrowUp, faArrowUpShortWide, faArrowDownShortWide } from '@fortawesome/free-solid-svg-icons';
+import {
+    faSearch, faFilter, faUtensils, faCheckCircle, faTimesCircle, faClock,
+    faChevronDown, faChevronUp, faStore, faToggleOn, faToggleOff,
+    faShippingFast, faSort, faArrowDown, faArrowUp, faArrowUpShortWide,
+    faArrowDownShortWide, faExclamationTriangle, faUserSlash
+} from '@fortawesome/free-solid-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import axios from 'axios';
@@ -77,7 +82,8 @@ const RestaurantDashboard = () => {
         { value: 'READY', label: 'Ready for Pickup' },
         { value: 'PICKED_UP', label: 'Picked Up' },
         { value: 'DELIVERED', label: 'Delivered' },
-        { value: 'CANCELLED', label: 'Cancelled' }
+        { value: 'CANCELLED', label: 'Cancelled (System/Restaurant)' },
+        { value: 'CANCELLED_BY_CUSTOMER', label: 'Cancelled by Customer' }
     ];
 
     // Fetch restaurant profile to check account status
@@ -91,8 +97,6 @@ const RestaurantDashboard = () => {
 
             if (response.data && response.data.accountStatus) {
                 setAccountStatus(response.data.accountStatus);
-
-
             }
         } catch (err) {
             console.error('Error fetching restaurant profile:', err);
@@ -195,6 +199,51 @@ const RestaurantDashboard = () => {
         setFilteredOrders(results);
     }, [searchTerm, sortOption, filterStatus, orders]);
 
+    // Function to get status badge class
+    const getStatusBadgeClass = (status) => {
+        if (!status) return 'bg-secondary'; // status undefined ise
+        const upperStatus = status.toUpperCase().replace(/_/g, ''); // Normalizasyon
+        switch (upperStatus) {
+            case 'PENDING': return 'bg-warning text-dark'; // Okunabilirlik için text-dark
+            case 'INPROGRESS': // IN_PROGRESS için (backend'den böyle gelebilir)
+            case 'ACCEPTED': return 'bg-primary'; // "Accepted" gösterilen "IN_PROGRESS" için
+            case 'PREPARING': return 'bg-info text-dark'; // Okunabilirlik için text-dark
+            case 'READY': return 'bg-success';
+            case 'PICKEDUP': return 'bg-primary';
+            case 'DELIVERED': return 'bg-success';
+            case 'CANCELLED': // Genel iptal
+            case 'CANCELLEDBYCUSTOMER': // Müşteri iptali için de aynı stil
+                return 'bg-danger';
+            default: return 'bg-secondary';
+        }
+    };
+
+    // Function to get display status for the user
+    const getDisplayStatus = (status) => {
+        if (!status) return 'Unknown';
+        const upperStatus = status.toUpperCase(); // Orijinal ENUM değeriyle karşılaştırma için
+        if (upperStatus === 'IN_PROGRESS') return 'Accepted';
+        if (upperStatus === 'CANCELLED_BY_CUSTOMER') return 'Cancelled by Customer';
+        // Diğer durumlar için genel formatlama
+        return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase().replace(/_/g, ' ');
+    };
+
+    // Check if an order belongs to this restaurant and is not in PENDING status
+    // Suspended restaurants can continue to process orders they've already accepted
+    const canUpdateOrderStatus = (order) => {
+        // If restaurant is not suspended, they can update any order
+        if (accountStatus !== 'SUSPENDED') {
+            return true;
+        }
+
+        // Get uppercase status for consistent comparison
+        const status = order.orderStatus.toUpperCase();
+
+        // If restaurant is suspended, they can only update orders that are not PENDING
+        // This allows them to complete orders they've already accepted
+        return status !== 'PENDING';
+    };
+
     const toggleRestaurantStatus = async () => {
         try {
             console.log("Toggling restaurant status for:", restaurantId);
@@ -242,25 +291,44 @@ const RestaurantDashboard = () => {
 
     const handleUpdateOrderStatus = async (orderId, newStatus) => {
         try {
-            // Askıya alınmış restoran sipariş durumunu değiştiremez
-            if (accountStatus === 'SUSPENDED') {
-                toast.error('Your restaurant is suspended. You cannot update order status.');
+            // Find the current order to check if we can update its status
+            const currentOrder = orders.find(order => order.orderId === orderId);
+
+            // Check if the restaurant can update this order
+            if (!canUpdateOrderStatus(currentOrder)) {
+                toast.error('Your restaurant is suspended. You cannot accept new orders.');
                 return;
             }
 
             console.log(`Updating order ${orderId} status to ${newStatus}`);
 
+            // Special handling for PICKUP orders that are being marked as picked up
+            let statusToSet = newStatus;
+            if (newStatus === 'PICKED_UP' &&
+                (currentOrder.deliveryMethod === 'PICKUP' || currentOrder.deliveryType === 'PICKUP')) {
+                // For pickup orders, when marked as picked up, they should go directly to DELIVERED
+                statusToSet = 'DELIVERED';
+                console.log(`This is a PICKUP order, setting status directly to ${statusToSet}`);
+            }
+
             const response = await axios.patch(
                 `http://localhost:8080/api/orders/status/${orderId}`,
-                { status: newStatus },
+                { status: statusToSet },
                 { headers }
             );
 
             console.log("Order status update response:", response.data);
 
+            // Use the status from the response or fall back to our calculated status
+            const actualNewStatus = response.data?.orderStatus ||
+                (statusToSet === 'ACCEPTED' ? 'IN PROGRESS' : statusToSet);
+
             // Update local state after successful API call
             const updatedOrders = orders.map(order =>
-                order.orderId === orderId ? { ...order, orderStatus: newStatus === 'ACCEPTED' ? 'IN PROGRESS' : newStatus } : order
+                order.orderId === orderId ? {
+                    ...order,
+                    orderStatus: actualNewStatus
+                } : order
             );
             setOrders(updatedOrders);
 
@@ -268,11 +336,19 @@ const RestaurantDashboard = () => {
             if (expandedOrderId === orderId) {
                 setOrderDetails({
                     ...orderDetails,
-                    [orderId]: { ...orderDetails[orderId], orderStatus: newStatus === 'ACCEPTED' ? 'IN PROGRESS' : newStatus }
+                    [orderId]: {
+                        ...orderDetails[orderId],
+                        orderStatus: actualNewStatus
+                    }
                 });
             }
 
-            toast.success(`Order status updated to ${newStatus === 'ACCEPTED' ? 'IN PROGRESS' : newStatus}`);
+            // Show appropriate success message
+            if (newStatus === 'PICKED_UP' && statusToSet === 'DELIVERED') {
+                toast.success(`Order has been picked up and marked as delivered`);
+            } else {
+                toast.success(`Order status updated to ${actualNewStatus}`);
+            }
         } catch (err) {
             console.error('Error updating order status:', err);
             const errorMessage = err.response?.data || 'Failed to update order status. Please try again.';
@@ -292,27 +368,12 @@ const RestaurantDashboard = () => {
         return new Date(dateTimeString).toLocaleDateString('en-US', options);
     };
 
-    // Function to get status badge class
-    const getStatusBadgeClass = (status) => {
-        const upperStatus = status.toUpperCase();
-        switch (upperStatus) {
-            case 'PENDING': return 'bg-warning';
-            case 'IN PROGRESS': return 'bg-primary';
-            case 'ACCEPTED': return 'bg-primary';
-            case 'PREPARING': return 'bg-info';
-            case 'READY': return 'bg-success';
-            case 'PICKED_UP': return 'bg-primary';
-            case 'DELIVERED': return 'bg-success';
-            case 'CANCELLED': return 'bg-danger';
-            default: return 'bg-secondary';
-        }
-    };
-
     // Calculate estimated delivery time
     const getEstimatedDeliveryTime = (order) => {
-        const status = order.orderStatus.toUpperCase();
+        if (!order || !order.orderStatus) return 'Unknown'; // order veya orderStatus yoksa
+        const status = order.orderStatus.toUpperCase().replace(/_/g, ''); // Normalizasyon
         if (status === 'DELIVERED') return 'Delivered';
-        if (status === 'CANCELLED') return 'Cancelled';
+        if (status === 'CANCELLED' || status === 'CANCELLEDBYCUSTOMER') return 'Cancelled';
 
         // Basic calculation - adjust based on your business logic
         const orderTime = new Date(order.orderDate);
@@ -322,14 +383,14 @@ const RestaurantDashboard = () => {
         switch (status) {
             case 'PENDING':
                 return '30-45 min';
-            case 'IN PROGRESS':
+            case 'INPROGRESS':
             case 'ACCEPTED':
                 return '25-35 min';
             case 'PREPARING':
                 return '15-25 min';
             case 'READY':
                 return '5-10 min';
-            case 'PICKED_UP':
+            case 'PICKEDUP':
                 return '5-15 min';
             default:
                 return 'Unknown';
@@ -405,8 +466,9 @@ const RestaurantDashboard = () => {
 
                     {accountStatus === 'SUSPENDED' && (
                         <div className="alert alert-warning" role="alert">
+                            <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
                             <strong>Your restaurant account has been suspended!</strong> You cannot accept new orders or change restaurant status.
-                            All pending orders have been automatically cancelled. Please contact support for assistance.
+                            However, you can still process and complete orders you've already accepted.
                         </div>
                     )}
 
@@ -515,6 +577,7 @@ const RestaurantDashboard = () => {
                                                     {option.value === 'PICKED_UP' && <FontAwesomeIcon icon={faShippingFast} />}
                                                     {option.value === 'DELIVERED' && <FontAwesomeIcon icon={faCheckCircle} />}
                                                     {option.value === 'CANCELLED' && <FontAwesomeIcon icon={faTimesCircle} />}
+                                                    {option.value === 'CANCELLED_BY_CUSTOMER' && <FontAwesomeIcon icon={faUserSlash} />}
                                                 </span>
                                                 <span className="ml-2">{option.label}</span>
                                             </button>
@@ -550,7 +613,7 @@ const RestaurantDashboard = () => {
                                                                         <strong>Time:</strong> {formatDateTime(order.orderDate)}
                                                                     </p>
                                                                     <span className={`badge ${getStatusBadgeClass(order.orderStatus)}`}>
-                                                                        {order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1).toLowerCase().replace('_', ' ')}
+                                                                        {getDisplayStatus(order.orderStatus)}
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -586,53 +649,79 @@ const RestaurantDashboard = () => {
                                                                     )}
                                                                 </button>
 
-                                                                {order.orderStatus.toUpperCase() === 'PENDING' && (
-                                                                    <>
-                                                                        <button
-                                                                            className="btn btn-success btn-sm mb-2 w-100"
-                                                                            onClick={() => handleUpdateOrderStatus(order.orderId, 'ACCEPTED')}
-                                                                            disabled={accountStatus === 'SUSPENDED'}
-                                                                        >
-                                                                            Accept Order
-                                                                        </button>
-                                                                        <button
-                                                                            className="btn btn-danger btn-sm w-100"
-                                                                            onClick={() => handleUpdateOrderStatus(order.orderId, 'CANCELLED')}
-                                                                            disabled={accountStatus === 'SUSPENDED'}
-                                                                        >
-                                                                            Decline
-                                                                        </button>
-                                                                    </>
-                                                                )}
-                                                                {order.orderStatus.toUpperCase() === 'IN PROGRESS' && (
-                                                                    <button
-                                                                        className="btn btn-info btn-sm w-100"
-                                                                        onClick={() => handleUpdateOrderStatus(order.orderId, 'PREPARING')}
-                                                                        disabled={accountStatus === 'SUSPENDED'}
-                                                                    >
-                                                                        Start Preparing
-                                                                    </button>
-                                                                )}
+                                                                {(() => {
+                                                                    // Normalize the status to handle case and formatting variations
+                                                                    const normalizedStatus = (order.orderStatus || '').toUpperCase().replace(/[_\s]/g, '');
 
-                                                                {order.orderStatus.toUpperCase() === 'PREPARING' && (
-                                                                    <button
-                                                                        className="btn btn-success btn-sm w-100"
-                                                                        onClick={() => handleUpdateOrderStatus(order.orderId, 'READY')}
-                                                                        disabled={accountStatus === 'SUSPENDED'}
-                                                                    >
-                                                                        Ready for Pickup
-                                                                    </button>
-                                                                )}
-
-                                                                {order.orderStatus.toUpperCase() === 'READY' && (
-                                                                    <button
-                                                                        className="btn btn-primary btn-sm w-100"
-                                                                        onClick={() => handleUpdateOrderStatus(order.orderId, 'PICKED_UP')}
-                                                                        disabled={accountStatus === 'SUSPENDED'}
-                                                                    >
-                                                                        Mark as Picked Up
-                                                                    </button>
-                                                                )}
+                                                                    // Status-specific buttons
+                                                                    if (normalizedStatus === 'PENDING') {
+                                                                        return (
+                                                                            <>
+                                                                                <button
+                                                                                    className="btn btn-success btn-sm mb-2 w-100"
+                                                                                    onClick={() => handleUpdateOrderStatus(order.orderId, 'ACCEPTED')}
+                                                                                    disabled={!canUpdateOrderStatus(order)}
+                                                                                >
+                                                                                    Accept Order
+                                                                                </button>
+                                                                                <button
+                                                                                    className="btn btn-danger btn-sm w-100"
+                                                                                    onClick={() => handleUpdateOrderStatus(order.orderId, 'CANCELLED')}
+                                                                                    disabled={!canUpdateOrderStatus(order)}
+                                                                                >
+                                                                                    Decline
+                                                                                </button>
+                                                                            </>
+                                                                        );
+                                                                    } else if (normalizedStatus === 'INPROGRESS' || normalizedStatus === 'ACCEPTED') {
+                                                                        return (
+                                                                            <button
+                                                                                className="btn btn-info btn-sm w-100"
+                                                                                onClick={() => handleUpdateOrderStatus(order.orderId, 'PREPARING')}
+                                                                                disabled={!canUpdateOrderStatus(order)}
+                                                                            >
+                                                                                Start Preparing
+                                                                            </button>
+                                                                        );
+                                                                    } else if (normalizedStatus === 'PREPARING') {
+                                                                        return (
+                                                                            <button
+                                                                                className="btn btn-success btn-sm w-100"
+                                                                                onClick={() => handleUpdateOrderStatus(order.orderId, 'READY')}
+                                                                                disabled={!canUpdateOrderStatus(order)}
+                                                                            >
+                                                                                Ready for Pickup
+                                                                            </button>
+                                                                        );
+                                                                    } else if (normalizedStatus === 'READY') {
+                                                                        return (
+                                                                            <button
+                                                                                className="btn btn-primary btn-sm w-100"
+                                                                                onClick={() => handleUpdateOrderStatus(order.orderId, 'PICKED_UP')}
+                                                                                disabled={!canUpdateOrderStatus(order)}
+                                                                            >
+                                                                                Mark as Picked Up
+                                                                            </button>
+                                                                        );
+                                                                    } else if (normalizedStatus === 'PICKEDUP' &&
+                                                                        (order.deliveryMethod !== 'PICKUP' && order.deliveryType !== 'PICKUP')) {
+                                                                        return (
+                                                                            <button
+                                                                                className="btn btn-success btn-sm w-100"
+                                                                                onClick={() => handleUpdateOrderStatus(order.orderId, 'DELIVERED')}
+                                                                                disabled={!canUpdateOrderStatus(order)}
+                                                                            >
+                                                                                Mark as Delivered
+                                                                            </button>
+                                                                        );
+                                                                    } else if (normalizedStatus === 'DELIVERED' || normalizedStatus === 'CANCELLED' || normalizedStatus === 'CANCELLEDBYCUSTOMER') {
+                                                                        return (
+                                                                            <div className="text-muted small text-center mt-2 fst-italic">
+                                                                                No actions available
+                                                                            </div>
+                                                                        );
+                                                                    }
+                                                                })()}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -701,44 +790,48 @@ const RestaurantDashboard = () => {
                                                                             <h6>Order Status Timeline</h6>
                                                                             <div className="card p-3">
                                                                                 <ul className="list-group list-group-flush">
-                                                                                    <li className="list-group-item d-flex justify-content-between align-items-center">
-                                                                                        <span>Order Placed</span>
-                                                                                        <span className={`badge ${order.orderStatus.toUpperCase() === 'CANCELLED' ? 'bg-danger' : 'bg-success'}`}>
-                                                                                            {order.orderStatus.toUpperCase() === 'CANCELLED' ? 'Cancelled' : 'Completed'}
-                                                                                        </span>
-                                                                                    </li>
-                                                                                    <li className="list-group-item d-flex justify-content-between align-items-center">
-                                                                                        <span>Order Accepted</span>
-                                                                                        <span className={`badge ${order.orderStatus.toUpperCase() === 'CANCELLED' ? 'bg-danger' : (order.orderStatus.toUpperCase() === 'PENDING' ? 'bg-secondary' : 'bg-success')}`}>
-                                                                                            {order.orderStatus.toUpperCase() === 'CANCELLED' ? 'Cancelled' : (order.orderStatus.toUpperCase() === 'PENDING' ? 'Pending' : 'Completed')}
-                                                                                        </span>
-                                                                                    </li>
-                                                                                    <li className="list-group-item d-flex justify-content-between align-items-center">
-                                                                                        <span>Preparing</span>
-                                                                                        <span className={`badge ${order.orderStatus.toUpperCase() === 'CANCELLED' ? 'bg-danger' : (['PENDING', 'IN PROGRESS'].includes(order.orderStatus.toUpperCase()) ? 'bg-secondary' : 'bg-success')}`}>
-                                                                                            {order.orderStatus.toUpperCase() === 'CANCELLED' ? 'Cancelled' : (['PENDING', 'IN PROGRESS'].includes(order.orderStatus.toUpperCase()) ? 'Pending' : 'Completed')}
-                                                                                        </span>
-                                                                                    </li>
-                                                                                    <li className="list-group-item d-flex justify-content-between align-items-center">
-                                                                                        <span>Ready for Pickup</span>
-                                                                                        <span className={`badge ${order.orderStatus.toUpperCase() === 'CANCELLED' ? 'bg-danger' : (['PENDING', 'IN PROGRESS', 'PREPARING'].includes(order.orderStatus.toUpperCase()) ? 'bg-secondary' : 'bg-success')}`}>
-                                                                                            {order.orderStatus.toUpperCase() === 'CANCELLED' ? 'Cancelled' : (['PENDING', 'IN PROGRESS', 'PREPARING'].includes(order.orderStatus.toUpperCase()) ? 'Pending' : 'Completed')}
-                                                                                        </span>
-                                                                                    </li>
-                                                                                    <li className="list-group-item d-flex justify-content-between align-items-center">
-                                                                                        <span>Picked Up</span>
-                                                                                        <span className={`badge ${order.orderStatus.toUpperCase() === 'CANCELLED' ? 'bg-danger' : (['PENDING', 'IN PROGRESS', 'PREPARING', 'READY'].includes(order.orderStatus.toUpperCase()) ? 'bg-secondary' : 'bg-success')}`}>
-                                                                                            {order.orderStatus.toUpperCase() === 'CANCELLED' ? 'Cancelled' : (['PENDING', 'IN PROGRESS', 'PREPARING', 'READY'].includes(order.orderStatus.toUpperCase()) ? 'Pending' : 'Completed')}
-                                                                                        </span>
-                                                                                    </li>
-                                                                                    <li className="list-group-item d-flex justify-content-between align-items-center">
-                                                                                        <span>Delivered</span>
-                                                                                        <span className={`badge ${order.orderStatus.toUpperCase() === 'CANCELLED' ? 'bg-danger' : (order.orderStatus.toUpperCase() === 'DELIVERED' ? 'bg-success' : 'bg-secondary')}`}>
-                                                                                            {order.orderStatus.toUpperCase() === 'CANCELLED' ? 'Cancelled' : (order.orderStatus.toUpperCase() === 'DELIVERED' ? 'Completed' : 'Pending')}
-                                                                                        </span>
-                                                                                    </li>
-                                                                                </ul>
+                                                                                    <li className="list-group-item"><strong>Placed:</strong> {formatDateTime(order.orderDate)}</li>
 
+                                                                                    {/* Diğer aktif durumlar (eğer iptal edilmediyse) */}
+                                                                                    {order.orderStatus && !order.orderStatus.toUpperCase().includes('CANCELLED') && (
+                                                                                        <>
+                                                                                            {(order.orderStatus.toUpperCase() === 'IN_PROGRESS' || order.orderStatus.toUpperCase() === 'PREPARING' || order.orderStatus.toUpperCase() === 'READY' || order.orderStatus.toUpperCase() === 'PICKED_UP' || order.orderStatus.toUpperCase() === 'DELIVERED') &&
+                                                                                                <li className="list-group-item"><strong>Accepted:</strong> <FontAwesomeIcon icon={faCheckCircle} className="text-success" /></li>
+                                                                                            }
+                                                                                            {(order.orderStatus.toUpperCase() === 'PREPARING' || order.orderStatus.toUpperCase() === 'READY' || order.orderStatus.toUpperCase() === 'PICKED_UP' || order.orderStatus.toUpperCase() === 'DELIVERED') &&
+                                                                                                <li className="list-group-item"><strong>Preparing:</strong> <FontAwesomeIcon icon={faCheckCircle} className="text-success" /></li>
+                                                                                            }
+                                                                                            {(order.orderStatus.toUpperCase() === 'READY' || order.orderStatus.toUpperCase() === 'PICKED_UP' || order.orderStatus.toUpperCase() === 'DELIVERED') &&
+                                                                                                <li className="list-group-item"><strong>Ready:</strong> <FontAwesomeIcon icon={faCheckCircle} className="text-success" /></li>
+                                                                                            }
+                                                                                            {(order.orderStatus.toUpperCase() === 'PICKED_UP' || order.orderStatus.toUpperCase() === 'DELIVERED') &&
+                                                                                                <li className="list-group-item"><strong>Picked Up:</strong> <FontAwesomeIcon icon={faCheckCircle} className="text-success" /></li>
+                                                                                            }
+                                                                                        </>
+                                                                                    )}
+
+                                                                                    {/* İptal Durumları */}
+                                                                                    {order.orderStatus && order.orderStatus.toUpperCase() === 'CANCELLED_BY_CUSTOMER' &&
+                                                                                        <li className="list-group-item text-danger">
+                                                                                            <FontAwesomeIcon icon={faUserSlash} className="me-2" />
+                                                                                            <strong>Cancelled by Customer</strong>
+                                                                                        </li>
+                                                                                    }
+                                                                                    {order.orderStatus && order.orderStatus.toUpperCase() === 'CANCELLED' &&
+                                                                                        <li className="list-group-item text-danger">
+                                                                                            <FontAwesomeIcon icon={faTimesCircle} className="me-2" />
+                                                                                            <strong>Cancelled (Restaurant/System)</strong>
+                                                                                        </li>
+                                                                                    }
+
+                                                                                    {/* Teslim Edildi Durumu */}
+                                                                                    {order.orderStatus && order.orderStatus.toUpperCase() === 'DELIVERED' &&
+                                                                                        <li className="list-group-item text-success">
+                                                                                            <FontAwesomeIcon icon={faCheckCircle} className="me-2" />
+                                                                                            <strong>Delivered</strong>
+                                                                                        </li>
+                                                                                    }
+                                                                                </ul>
                                                                             </div>
                                                                         </div>
                                                                     </div>

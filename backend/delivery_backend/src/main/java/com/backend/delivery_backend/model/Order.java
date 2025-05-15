@@ -17,6 +17,7 @@ public class Order {
     private Customer customer;
 
     @ManyToOne
+    @JoinColumn(name = "courier_id") // Default is nullable = true
     private Courier courier;
 
     private String deliveryAddress;

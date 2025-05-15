@@ -11,6 +11,17 @@ import org.springframework.http.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import com.backend.delivery_backend.service.OrderService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.List; // For getOrderHistory if you add it here
+import com.backend.delivery_backend.model.Order;
 
 import java.util.*;
 
@@ -97,6 +108,28 @@ public class OrderController {
                 "total", order.getTotalAmount(),
                 "tip", order.getTipAmount()
         ));
+    }
+
+    @DeleteMapping("/{orderId}/cancel")
+    @PreAuthorize("hasRole('CUSTOMER')") // Ensure only authenticated users with CUSTOMER role can access
+    public ResponseEntity<?> cancelCustomerOrder(@PathVariable String orderId) {
+        Map<String, String> response = new HashMap<>();
+        try {
+            orderService.cancelOrder(orderId);
+            response.put("message", "Order cancelled successfully.");
+            return ResponseEntity.ok(response);
+        } catch (SecurityException e) {
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+        } catch (Exception e) {
+            response.put("message", e.getMessage());
+            if (e.getMessage().contains("Order not found")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            } else if (e.getMessage().contains("Order cannot be cancelled")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")

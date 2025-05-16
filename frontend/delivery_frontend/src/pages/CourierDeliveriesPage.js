@@ -151,6 +151,28 @@ const CourierDeliveriesPage = () => {
         });
     };
 
+    // Calculate total price of items
+    const calculateItemsTotal = (items) => {
+        if (!items || typeof items !== 'object') return 0;
+        return Object.entries(items).reduce((total, [itemKey, quantity]) => {
+            try {
+                const item = JSON.parse(itemKey);
+                return total + (item.price * quantity);
+            } catch (e) {
+                console.error('Error parsing item in total calculation:', e);
+                return total;
+            }
+        }, 0);
+    };
+
+    // Calculate courier's earnings from the order
+    const calculateCourierEarnings = (order) => {
+        if (!order) return 0;
+        const deliveryFee = (order.deliveryMethod === 'DELIVERY' || order.deliveryType === 'DELIVERY') ? 60 : 0;
+        const tipAmount = order.tipAmount || 0;
+        return deliveryFee + tipAmount;
+    };
+
     // Filter deliveries based on active tab
     const filteredDeliveries = deliveries.filter(delivery => {
         if (activeTab === 'CURRENT') {
@@ -323,9 +345,10 @@ const CourierDeliveriesPage = () => {
                                                 </div>
                                                 <div className="col-md-3">
                                                     <p className="mb-1">
-                                                        <strong>Total Amount:</strong>
+                                                        <strong>Total Earning:</strong>
                                                     </p>
-                                                    <h5 className="text-orange">₺{order.totalAmount?.toFixed(2)}</h5>
+                                                    <h5 className="text-orange">₺{calculateCourierEarnings(order).toFixed(2)}</h5>
+                                                    
                                                 </div>
                                                 <div className="col-md-2 text-right">
                                                     {renderActionButton(order)}
@@ -345,37 +368,78 @@ const CourierDeliveriesPage = () => {
 
                                         {expandedOrderId === order.orderId && (
                                             <div className="card-footer order-details-section p-3">
-                                                <h6 className="mb-3">Order Items</h6>
-                                                <div className="table-responsive">
-                                                    <table className="table table-sm">
-                                                        <thead className="thead-light">
-                                                            <tr>
-                                                                <th>Item</th>
-                                                                <th className="text-center">Qty</th>
-                                                                <th className="text-end">Price</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {order.items && Object.entries(order.items).map(([item, qty], idx) => {
-                                                                try {
-                                                                    const parsedItem = JSON.parse(item);
-                                                                    return (
-                                                                        <tr key={idx}>
-                                                                            <td>{parsedItem.name}</td>
-                                                                            <td className="text-center">{qty}</td>
-                                                                            <td className="text-end">₺{(parsedItem.price * qty).toFixed(2)}</td>
-                                                                        </tr>
-                                                                    );
-                                                                } catch (e) {
-                                                                    return null;
-                                                                }
-                                                            })}
-                                                            <tr className="table-warning">
-                                                                <td colSpan="2"><strong>Total</strong></td>
-                                                                <td className="text-end"><strong>₺{order.totalAmount?.toFixed(2)}</strong></td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
+                                                <h6 className="mb-3">Order Details</h6>
+                                                <div className="row mb-3">
+                                                    <div className="col-md-6">
+                                                        <h6>Items</h6>
+                                                        <table className="table table-sm">
+                                                            <thead className="thead-light">
+                                                                <tr>
+                                                                    <th>Item</th>
+                                                                    <th>Qty</th>
+                                                                    <th>Price</th>
+                                                                    <th>Total</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {order.items && Object.entries(order.items).map(([itemKey, quantity], index) => {
+                                                                    try {
+                                                                        const item = JSON.parse(itemKey);
+                                                                        return (
+                                                                            <tr key={index}>
+                                                                                <td>{item.name}</td>
+                                                                                <td>{quantity}</td>
+                                                                                <td>{item.price.toFixed(2)} TL</td>
+                                                                                <td>{(quantity * item.price).toFixed(2)} TL</td>
+                                                                            </tr>
+                                                                        );
+                                                                    } catch (e) {
+                                                                        console.error('Error parsing item:', e);
+                                                                        return null;
+                                                                    }
+                                                                })}
+                                                            </tbody>
+                                                            <tfoot>
+                                                                <tr>
+                                                                    <td colSpan="3" className="text-right"><strong>Items Total:</strong></td>
+                                                                    <td>{calculateItemsTotal(order.items).toFixed(2)} TL</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td colSpan="3" className="text-right"><strong>Customer Tip:</strong></td>
+                                                                    <td>{(order.tipAmount || 0).toFixed(2)} TL</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td colSpan="3" className="text-right"><strong>Delivery Fee:</strong></td>
+                                                                    <td>{(order.deliveryMethod === 'DELIVERY' || order.deliveryType === 'DELIVERY') ? '60.00' : '0.00'} TL</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td colSpan="3" className="text-right"><strong>My Total Earnings:</strong></td>
+                                                                    <td><strong>{calculateCourierEarnings(order).toFixed(2)} TL</strong></td>
+                                                                </tr>
+                                                            </tfoot>
+                                                        </table>
+                                                    </div>
+                                                    <div className="col-md-6">
+                                                        <h6>Delivery Information</h6>
+                                                        <div className="card p-3">
+                                                            <ul className="list-group list-group-flush">
+                                                                <li className="list-group-item">
+                                                                    <strong>Restaurant:</strong><br />
+                                                                    {order.restaurant?.name || 'Restaurant Name'}<br />
+                                                                    <small className="text-muted">{order.restaurant?.address || 'Restaurant Address'}</small>
+                                                                </li>
+                                                                <li className="list-group-item">
+                                                                    <strong>Customer:</strong><br />
+                                                                    {order.customer?.name || 'Customer Name'}<br />
+                                                                    <small className="text-muted">{order.deliveryAddress || 'Delivery Address'}</small>
+                                                                </li>
+                                                                <li className="list-group-item">
+                                                                    <strong>Order Time:</strong><br />
+                                                                    {formatDateTime(order.orderDate)}
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}

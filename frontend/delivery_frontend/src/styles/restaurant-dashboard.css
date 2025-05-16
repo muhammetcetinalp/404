@@ -266,3 +266,157 @@
 .restorant-card-text {
     padding-left: 0px !important;
 }
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .dashboard-sidebar {
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 992px) {
+    .col-lg-2, .col-lg-7 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+
+    .order-item .row {
+        margin: 0;
+    }
+
+    .order-info-column {
+        margin-bottom: 15px;
+    }
+
+    .card-body .row > div {
+        margin-bottom: 15px;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+@media (max-width: 768px) {
+    .order-item .card-body {
+        padding: 15px;
+    }
+
+    .order-item .row > div {
+        padding: 10px;
+    }
+
+    .order-details-section .row > div {
+        margin-bottom: 20px;
+    }
+
+    .table-responsive {
+        margin: 0 -15px;
+    }
+
+    .table-responsive table {
+        margin-bottom: 0;
+    }
+
+    .text-right {
+        text-align: left !important;
+    }
+
+    .btn {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
+
+@media (max-width: 576px) {
+    .dashboard-header {
+        padding: 10px;
+    }
+
+    .dashboard-welcome-text {
+        padding: 10px;
+    }
+
+    .order-item {
+        margin-bottom: 15px;
+    }
+
+    .card-body {
+        padding: 10px;
+    }
+
+    .badge {
+        display: inline-block;
+        margin-bottom: 5px;
+    }
+
+    .truncate-text {
+        white-space: normal;
+        overflow: visible;
+    }
+}
+
+/* Helper Classes */
+.table-responsive {
+    width: 100%;
+    margin-bottom: 1rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.truncate-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.order-info-column {
+    word-break: break-word;
+}
+
+/* Fix for nested rows */
+.row .row {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* Fix for card spacing */
+.card {
+    margin-bottom: 1rem;
+}
+
+/* Fix for button alignment */
+.btn-group-vertical {
+    width: 100%;
+}
+
+/* Fix for table overflow */
+.table {
+    min-width: 500px; /* Minimum width to ensure readability */
+}
+
+/* Fix for long content */
+.card-body {
+    word-wrap: break-word;
+}
+
+/* Spacing fixes */
+.mb-2 {
+    margin-bottom: 0.5rem !important;
+}
+
+.mb-3 {
+    margin-bottom: 1rem !important;
+}
+
+.p-3 {
+    padding: 1rem !important;
+}
+
+/* Fix for status badges */
+.badge {
+    white-space: normal;
+    text-align: center;
+}

@@ -28,11 +28,11 @@ const ComplaintModal = ({ show, onClose }) => {
                 toast.error('Please login first');
                 return;
             }
-            
+
             const decodedToken = jwtDecode(token);
             const customerId = decodedToken.id;
 
-            const response = await api.post('/complaints/submit', { 
+            const response = await api.post('/complaints/submit', {
                 customerId: customerId,
                 message: complaint.trim()
             });
@@ -73,27 +73,22 @@ const ComplaintModal = ({ show, onClose }) => {
                         <textarea
                             className="form-control"
                             id="complaint"
-                            rows="4"
+                            rows="8"
                             value={complaint}
                             onChange={handleComplaintChange}
                             placeholder="Please share your feedback, suggestions, or report any issues you've experienced..."
                             maxLength={MAX_LENGTH}
+                            style={{ minHeight: '200px', resize: 'none' }}
                         />
                         <small className="text-muted d-block text-end mt-1">
                             {complaint.length}/{MAX_LENGTH} characters
                         </small>
                     </div>
                     <div className="text-end">
-                        <button 
-                            type="button" 
-                            className="btn btn-secondary me-2" 
-                            onClick={onClose}
-                        >
-                            Cancel
-                        </button>
-                        <button 
-                            type="submit" 
-                            className="btn btn-orange" 
+
+                        <button
+                            type="submit"
+                            className="btn btn-orange"
                             disabled={submitting || !complaint.trim()}
                         >
                             {submitting ? 'Submitting...' : 'Submit Complaint'}

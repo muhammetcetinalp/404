@@ -5,6 +5,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import '../styles/admin.css';
 import AdminLayout from './AdminLayout';
+import { ToastContainer } from 'react-toastify';
 
 const AdminUserListPage = () => {
     const [data, setData] = useState({
@@ -56,7 +57,27 @@ const AdminUserListPage = () => {
         setUserToDelete(user);
         setShowDeleteModal(true);
     };
-
+    const CustomCloseButton = ({ closeToast }) => (
+        <button
+            onClick={closeToast}
+            style={{
+                background: 'transparent',
+                border: 'none',
+                fontSize: '16px',
+                color: 'white',
+                cursor: 'pointer',
+                padding: '4px',
+                margin: '0',
+                width: '35px',
+                height: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
+            ×
+        </button>
+    );
     const handleDelete = async () => {
         try {
             await api.delete(`/admin/delete-user/${userToDelete.email}`);
@@ -249,7 +270,22 @@ const AdminUserListPage = () => {
             <Header />
             <div className="admin-dashboard">
                 <AdminLayout active="users"></AdminLayout>
-
+                <ToastContainer
+                    position="top-right"
+                    autoClose={3000}
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                    theme="colored"
+                    closeButton={<CustomCloseButton />}
+                    toastClassName="custom-toast"
+                    bodyClassName="custom-toast-body"
+                    icon={true}
+                />
                 <div className="admin-content">
                     <div className="page-header">
                         <div className="header-actions">

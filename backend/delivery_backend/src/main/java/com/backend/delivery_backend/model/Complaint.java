@@ -15,6 +15,7 @@ public class Complaint {
     @ManyToOne
     private Customer customer;
 
+    @Column(length = 1000)
     private String message;
 
     private String status;

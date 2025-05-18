@@ -295,23 +295,42 @@ const CourierDashboard = () => {
                         {/* Left Sidebar - Sort Options */}
                         <div className="col-lg-3 col-md-4 col-sm-12 mb-4">
                             <div className="bg-white p-4 dashboard-sidebar rounded shadow-sm mb-4">
-                                <div className="text-center">
-                                    <h5 className="mb-3">Courier Status</h5>
-                                    <button
-                                        className={`btn ${courierStatus === 'AVAILABLE' ? 'btn-success' : 'btn-secondary'} w-100`}
-                                        onClick={toggleCourierStatus}
-                                        disabled={statusLoading}
-                                    >
-                                        {statusLoading ? (
-                                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                        ) : (
-                                            <FontAwesomeIcon
-                                                icon={courierStatus === 'AVAILABLE' ? faToggleOn : faToggleOff}
-                                                className="me-2"
-                                            />
-                                        )}
-                                        {courierStatus === 'AVAILABLE' ? 'Available' : 'Unavailable'}
-                                    </button>
+                                {/* Courier Status Toggle */}
+                                <div>
+                                    <h5 className="mb-4" style={{ fontSize: '1.1rem' }}>
+                                        <FontAwesomeIcon icon={faMotorcycle} className="me-2" />
+                                        Courier Status
+                                    </h5>
+                                    <div className="d-flex align-items-center justify-content-between p-4" style={{ background: '#f8f9fa', borderRadius: '8px' }}>
+                                        <div>
+                                            <div className="font-weight-bold mb-1" style={{ fontSize: '1.1rem' }}>
+                                                {courierStatus === 'AVAILABLE' ? 'Available' : 'Unavailable'}
+                                            </div>
+                                            <div className="text-muted" style={{ fontSize: '0.9rem' }}>
+                                                {courierStatus === 'AVAILABLE' ? 'Ready for deliveries' : 'Not accepting deliveries'}
+                                            </div>
+                                        </div>
+                                        <button
+                                            className={`btn ${courierStatus === 'AVAILABLE' ? 'btn-primary' : 'btn-secondary'}`}
+                                            onClick={toggleCourierStatus}
+                                            style={{ 
+                                                width: '80px',
+                                                backgroundColor: courierStatus === 'AVAILABLE' ? '#eb6825' : '#6c757d',
+                                                border: 'none',
+                                                marginLeft: '24px'
+                                            }}
+                                            disabled={statusLoading}
+                                        >
+                                            {statusLoading ? (
+                                                <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                            ) : (
+                                                <div className="text-white d-flex align-items-center justify-content-center">
+                                                    <FontAwesomeIcon icon={courierStatus === 'AVAILABLE' ? faToggleOn : faToggleOff} className="me-1" />
+                                                    {courierStatus === 'AVAILABLE' ? 'On' : 'Off'}
+                                                </div>
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <div className="bg-white p-4 dashboard-sidebar rounded shadow-sm">

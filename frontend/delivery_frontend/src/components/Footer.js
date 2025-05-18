@@ -66,7 +66,7 @@ class Footer extends React.Component {
 
                     {/* Copyright */}
                     <div className="text-center">
-                        <p className="mb-0 text-secondary">©️ 2025 Mealmate. All rights reserved. Powered by <span style={{ color: "#eb6825", fontWeight: 700 }}>404 Team</span></p>
+                        <p className="mb-0 text-secondary">© 2025 Mealmate. All rights reserved. Powered by <span style={{ color: "#eb6825", fontWeight: 700 }}>404 Team</span></p>
                     </div>
 
                 </div>

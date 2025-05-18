@@ -17,5 +17,7 @@ public class Complaint {
 
     private String message;
 
+    private String status;
+
     private LocalDateTime createdAt = LocalDateTime.now();
 }

@@ -5,7 +5,6 @@ import com.backend.delivery_backend.DTO.UserDTO;
 import com.backend.delivery_backend.ENUM.OrderStatus; // Önemli
 import com.backend.delivery_backend.model.*;
 import com.backend.delivery_backend.repository.*;
-import com.backend.delivery_backend.service.ComplaintService;
 import com.backend.delivery_backend.service.UserDetailsServiceImpl; // Eğer UserDetailsServiceImpl kullanıyorsanız
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.Arrays; // Bu importun olduğundan emin olun
 import java.util.List;  // Bu importun olduğundan emin olun
 import java.util.stream.Collectors; // Bu importun olduğundan emin olun
+import com.backend.delivery_backend.service.ComplaintService;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -50,6 +50,7 @@ public class AdminController {
     @Autowired private TokenRepository tokenRepository;
     @Autowired private UserDetailsServiceImpl userService; // Kullanıcı bulmak için eklendi
     @Autowired private ComplaintService complaintService;
+
 
     @GetMapping("/all-users")
     public ResponseEntity<?> getAllUsers() {
@@ -295,14 +296,14 @@ public class AdminController {
             if (updates.containsKey("businessHoursStart") && updates.get("businessHoursStart") instanceof String newStart && !newStart.equals(ro.getBusinessHoursStart())) { ro.setBusinessHoursStart(newStart); changed = true; }
             if (updates.containsKey("businessHoursEnd") && updates.get("businessHoursEnd") instanceof String newEnd && !newEnd.equals(ro.getBusinessHoursEnd())) { ro.setBusinessHoursEnd(newEnd); changed = true; }
             if (updates.containsKey("cuisineType") && updates.get("cuisineType") instanceof String newCuisine && !newCuisine.equals(ro.getCuisineType())) { ro.setCuisineType(newCuisine); changed = true; }
-           /**
-            if (updates.containsKey("deliveryType") && updates.get("deliveryType") instanceof String newDelTypeStr) {
-                try {
-                    com.backend.delivery_backend.ENUM.DeliveryType newDelType = com.backend.delivery_backend.ENUM.DeliveryType.valueOf(newDelTypeStr.toUpperCase());
-                    if (ro.getDeliveryType() != newDelType) { ro.setDeliveryType(newDelType); changed = true; }
-                } catch (IllegalArgumentException e) { logger.warn("Invalid delivery type provided during update: {}", newDelTypeStr); }
-            }
-            **/
+            /**
+             if (updates.containsKey("deliveryType") && updates.get("deliveryType") instanceof String newDelTypeStr) {
+             try {
+             com.backend.delivery_backend.ENUM.DeliveryType newDelType = com.backend.delivery_backend.ENUM.DeliveryType.valueOf(newDelTypeStr.toUpperCase());
+             if (ro.getDeliveryType() != newDelType) { ro.setDeliveryType(newDelType); changed = true; }
+             } catch (IllegalArgumentException e) { logger.warn("Invalid delivery type provided during update: {}", newDelTypeStr); }
+             }
+             **/
             if (updates.containsKey("approved") && updates.get("approved") instanceof Boolean newApproved && newApproved != ro.isApproved()) {
                 ro.setApproved(newApproved); changed = true;
             }
@@ -465,7 +466,6 @@ public class AdminController {
     public ResponseEntity<List<Complaint>> getAllComplaints() {
         return ResponseEntity.ok(complaintService.getAllComplaints());
     }
-
 
 
 }

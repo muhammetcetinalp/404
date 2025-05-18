@@ -6,6 +6,7 @@ import com.backend.delivery_backend.model.Customer;
 import com.backend.delivery_backend.repository.ComplaintRepository;
 import com.backend.delivery_backend.repository.CustomerRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -26,11 +27,27 @@ public class ComplaintService {
         Complaint complaint = new Complaint();
         complaint.setCustomer(customer);
         complaint.setMessage(dto.getMessage());
+        complaint.setStatus("PENDING");
         complaintRepository.save(complaint);
     }
 
     public List<Complaint> getAllComplaints() {
         return complaintRepository.findAllByOrderByCreatedAtDesc();
     }
-}
 
+    @Transactional
+    public void resolveComplaint(Long complaintId) {
+        Complaint complaint = complaintRepository.findById(complaintId)
+                .orElseThrow(() -> new RuntimeException("Complaint not found"));
+        complaint.setStatus("RESOLVED");
+        complaintRepository.save(complaint);
+    }
+
+    @Transactional
+    public void dismissComplaint(Long complaintId) {
+        Complaint complaint = complaintRepository.findById(complaintId)
+                .orElseThrow(() -> new RuntimeException("Complaint not found"));
+        complaint.setStatus("DISMISSED");
+        complaintRepository.save(complaint);
+    }
+}

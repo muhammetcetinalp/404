@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -331,21 +330,40 @@ const CourierRestaurantsPage = () => {
                 <div className="container dashboard-welcome-text">
                     <div className="row justify-content-center">
                         <div className="col-lg-5 col-md-10 col-sm-12">
-
-                            <div className="search-container mb-4">
-                                <div className="input-group" style={{ borderRadius: '25px', overflow: 'hidden' }}>
+                            <div className="search-container mb-4 d-flex justify-content-center">
+                                <div style={{
+                                    width: '100%',
+                                    display: 'flex',
+                                    borderRadius: '25px',
+                                    overflow: 'hidden',
+                                    boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                                }}>
                                     <input
                                         type="text"
-                                        className="form-control border-0 py-2"
                                         placeholder="Search for restaurants..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        style={{ height: '50px' }}
+                                        style={{
+                                            flex: 1,
+                                            height: '50px',
+                                            border: 'none',
+                                            paddingLeft: '20px',
+                                            fontSize: '16px',
+                                            outline: 'none'
+                                        }}
                                     />
                                     <button
-                                        className="btn btn-orange btn-warning border-0"
-                                        type="button"
-                                        style={{ height: '50px', width: '60px' }}
+                                        style={{
+                                            width: '60px',
+                                            height: '50px',
+                                            backgroundColor: '#eb6825',
+                                            border: 'none',
+                                            color: 'white',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            cursor: 'pointer'
+                                        }}
                                     >
                                         <FontAwesomeIcon icon={faSearch} />
                                     </button>

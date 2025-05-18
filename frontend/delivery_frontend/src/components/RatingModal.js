@@ -18,6 +18,7 @@ const RatingModal = ({ show, onClose, onSubmit, restaurantName, existingRating, 
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        if (review.length < 50) return;
         onSubmit({ rating, review });
         setRating(0);
         setReview('');
@@ -62,19 +63,28 @@ const RatingModal = ({ show, onClose, onSubmit, restaurantName, existingRating, 
                         </div>
                     </div>
                     <div className="mb-4">
-                        <label htmlFor="review" className="form-label h5">Review (Optional)</label>
-                        <textarea
-                            className="form-control"
-                            id="review"
-                            rows="8"
-                            value={review}
-                            onChange={(e) => setReview(e.target.value)}
-                            placeholder="Share your experience..."
-                            style={{ resize: 'none', fontSize: '1rem', lineHeight: '1.5' }}
-                        />
+                        <label htmlFor="review" className="form-label h5">Review</label>
+                        <div className="position-relative">
+                            <textarea
+                                className="form-control"
+                                id="review"
+                                rows="8"
+                                value={review}
+                                onChange={(e) => setReview(e.target.value)}
+                                placeholder="Share your experience... (Minimum 50 characters required)"
+                                style={{ resize: 'none', fontSize: '1rem', lineHeight: '1.5' }}
+                            />
+                            <small className={`d-block text-end mt-2 ${review.length < 50 ? 'text-danger' : 'text-success'}`}>
+                                {review.length}/50 characters {review.length < 50 ? 'required' : ''}
+                            </small>
+                        </div>
                     </div>
                     <div className="text-end mt-4">
-                        <button type="submit" className="btn-orange btn btn-warning me-2 mr-1 mb-1 d-flex justify-content-center align-items-center" disabled={!rating}>
+                        <button 
+                            type="submit" 
+                            className="btn-orange btn btn-warning me-2 mr-1 mb-1 d-flex justify-content-center align-items-center" 
+                            disabled={!rating || review.length < 50}
+                        >
                             {existingRating ? 'Update Rating' : 'Submit Rating'}
                         </button>
                     </div>

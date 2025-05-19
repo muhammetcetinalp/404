@@ -13,6 +13,7 @@ import api from '../api';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../styles/order.css';
+import { confirmAlert } from 'react-confirm-alert';
 
 const OrderPage = () => {
     const [orders, setOrders] = useState([]);
@@ -117,17 +118,46 @@ const OrderPage = () => {
     const handleCancelOrder = async (orderId, event) => {
         event.stopPropagation();
 
-        if (window.confirm('Are you sure you want to cancel this order?')) {
-            try {
-                await api.delete(`/orders/${orderId}/cancel`);
-                toast.success('Order cancelled successfully!');
-                fetchPastOrders();
-            } catch (err) {
-                console.error('Error cancelling order:', err);
-                const errorMessage = err.response?.data?.message || 'Failed to cancel order. The order might have already been processed.';
-                toast.error(errorMessage);
+        confirmAlert({
+            customUI: ({ onClose }) => {
+                return (
+                    <div className="custom-ui">
+                        <div className="custom-ui-icon">
+                            <FontAwesomeIcon icon={faTimes} />
+                        </div>
+                        <div className="me-2">
+                            <h2>Cancel Order</h2>
+                            <p2 className="d-block mb-4">Are you sure you want to cancel this order?</p2>
+                        </div>
+                        <div className="custom-ui-buttons">
+                            <button
+                                className="btn-cancel"
+                                onClick={onClose}
+                            >
+                                No
+                            </button>
+                            <button
+                                className="btn-delete"
+                                onClick={async () => {
+                                    try {
+                                        await api.delete(`/orders/${orderId}/cancel`);
+                                        toast.success('Order cancelled successfully!');
+                                        fetchPastOrders();
+                                        onClose();
+                                    } catch (err) {
+                                        const errorMessage = err.response?.data?.message || 'Failed to cancel order. The order might have already been processed.';
+                                        toast.error(errorMessage);
+                                        onClose();
+                                    }
+                                }}
+                            >
+                                Yes, Cancel
+                            </button>
+                        </div>
+                    </div>
+                );
             }
-        }
+        });
     };
 
     const handleRateOrder = (order) => {

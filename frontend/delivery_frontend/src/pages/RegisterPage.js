@@ -286,8 +286,8 @@ const RegisterPage = () => {
                   <div className="business-section">
                     <h3 className="section-title">Business Hours</h3>
 
-                    <div className="form-row">
-                      <div className="form-group half">
+                    <div className="form-row business-hours-row">
+                      <div className="form-group business-time-group">
                         <label htmlFor="businessHoursStart">Opening Time</label>
                         <input
                           type="time"
@@ -297,11 +297,11 @@ const RegisterPage = () => {
                           onChange={handleChange}
                           required
                           placeholder="Opening Hour (e.g. 09:00)"
-                          className="form-control"
+                          className="business-time-input"
                         />
                       </div>
 
-                      <div className="form-group half">
+                      <div className="form-group business-time-group">
                         <label htmlFor="businessHoursEnd">Closing Time</label>
                         <input
                           type="time"
@@ -311,12 +311,12 @@ const RegisterPage = () => {
                           onChange={handleChange}
                           required
                           placeholder="Closing Hour (e.g. 22:00)"
-                          className="form-control"
+                          className="business-time-input"
                         />
                       </div>
                     </div>
 
-                    <div className="form-group">
+                    <div className="form-group cuisine-type-group">
                       <label htmlFor="cuisineType">Cuisine Type</label>
                       <input
                         type="text"
@@ -326,7 +326,7 @@ const RegisterPage = () => {
                         onChange={handleChange}
                         required
                         placeholder="e.g. Italian, Turkish"
-                        className="form-control"
+                        className="cuisine-type-input"
                       />
                     </div>
 

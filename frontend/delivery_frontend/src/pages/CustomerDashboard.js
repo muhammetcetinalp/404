@@ -57,7 +57,11 @@ const CustomerDashboard = () => {
     const [cartError, setCartError] = useState('');
     const [addingToFavorite, setAddingToFavorite] = useState(false);
     const [accountStatus, setAccountStatus] = useState('ACTIVE');
-    const [restaurantImages, setRestaurantImages] = useState({});
+    const [restaurantImages, setRestaurantImages] = useState(() => {
+        // Try to load saved image assignments from localStorage
+        const savedImages = localStorage.getItem('restaurantImages');
+        return savedImages ? JSON.parse(savedImages) : {};
+    });
     const [showReviewsModal, setShowReviewsModal] = useState(false);
     const [selectedRestaurantForReviews, setSelectedRestaurantForReviews] = useState(null);
     const [showComplaintModal, setShowComplaintModal] = useState(false);
@@ -78,14 +82,32 @@ const CustomerDashboard = () => {
             return restaurantImages[restaurantId];
         }
 
-        // Otherwise, assign a random image and save it
-        const randomIndex = Math.floor(Math.random() * restaurantImageArray.length);
-        const selectedImage = restaurantImageArray[randomIndex];
+        // Get all currently used images
+        const usedImages = Object.values(restaurantImages);
+        
+        // Find unused images
+        const unusedImages = restaurantImageArray.filter(img => !usedImages.includes(img));
 
-        setRestaurantImages(prev => ({
-            ...prev,
+        let selectedImage;
+        if (unusedImages.length > 0) {
+            // If there are unused images, pick one randomly from unused images
+            const randomIndex = Math.floor(Math.random() * unusedImages.length);
+            selectedImage = unusedImages[randomIndex];
+        } else {
+            // If all images are used, pick one randomly from all images
+            const randomIndex = Math.floor(Math.random() * restaurantImageArray.length);
+            selectedImage = restaurantImageArray[randomIndex];
+        }
+
+        // Update state with new image assignment
+        const newRestaurantImages = {
+            ...restaurantImages,
             [restaurantId]: selectedImage
-        }));
+        };
+        
+        // Save to localStorage and update state
+        localStorage.setItem('restaurantImages', JSON.stringify(newRestaurantImages));
+        setRestaurantImages(newRestaurantImages);
 
         return selectedImage;
     };

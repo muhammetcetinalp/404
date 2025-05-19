@@ -18,7 +18,7 @@ const RatingModal = ({ show, onClose, onSubmit, restaurantName, existingRating, 
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (review.length < 50) return;
+        if (review.length < 50 || review.length > 125) return;
         onSubmit({ rating, review });
         setRating(0);
         setReview('');
@@ -74,7 +74,7 @@ const RatingModal = ({ show, onClose, onSubmit, restaurantName, existingRating, 
                                 placeholder="Share your experience... (Minimum 50 characters required)"
                                 style={{ resize: 'none', fontSize: '1rem', lineHeight: '1.5' }}
                             />
-                            <small className={`d-block text-end mt-2 ${review.length < 50 ? 'text-danger' : 'text-success'}`}>
+                            <small className={`d-block text-end mt-2 ${review.length < 50 || review.length > 125 ? 'text-danger' : 'text-success'}`}>
                                 {review.length}/50 characters {review.length < 50 ? 'required' : ''}
                             </small>
                         </div>
@@ -83,7 +83,7 @@ const RatingModal = ({ show, onClose, onSubmit, restaurantName, existingRating, 
                         <button 
                             type="submit" 
                             className="btn-orange btn btn-warning me-2 mr-1 mb-1 d-flex justify-content-center align-items-center" 
-                            disabled={!rating || review.length < 50}
+                            disabled={!rating || review.length < 50 || review.length > 125}
                         >
                             {existingRating ? 'Update Rating' : 'Submit Rating'}
                         </button>

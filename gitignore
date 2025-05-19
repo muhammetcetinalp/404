@@ -1,0 +1,9 @@
+.DS_Store
+node_modules/
+
+### IntelliJ IDEA ###
+.idea/.gitignore
+.idea/404.iml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml

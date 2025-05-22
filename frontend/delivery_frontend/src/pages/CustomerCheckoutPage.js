@@ -364,7 +364,7 @@ const CheckoutPage = () => {
                                             <div className="form-group mb-3">
                                                 <input
                                                     type="text"
-                                                    className="form-control"
+                                                    className="form-control custom-card-input"
                                                     placeholder="1234 5678 9012 3456"
                                                     maxLength={19}
                                                     value={cardNumber}
@@ -381,12 +381,12 @@ const CheckoutPage = () => {
                                                 />
 
                                             </div>
-                                            <div className="row">
-                                                <div className="col-md-6">
+                                            <div className="row g-3">
+                                                <div className="col-6 pe-2">
                                                     <div className="form-group">
                                                         <input
                                                             type="text"
-                                                            className="form-control"
+                                                            className="form-control custom-card-input"
                                                             placeholder="MM/YY"
                                                             value={cardExpiry}
                                                             onChange={e => {
@@ -401,11 +401,11 @@ const CheckoutPage = () => {
                                                         />
                                                     </div>
                                                 </div>
-                                                <div className="col-md-6">
+                                                <div className="col-6 ps-2">
                                                     <div className="form-group">
                                                         <input
                                                             type="text"
-                                                            className="form-control"
+                                                            className="form-control custom-card-input"
                                                             placeholder="CVV"
                                                             value={cardCVV}
                                                             onChange={e => setCardCVV(e.target.value.replace(/\D/g, '').slice(0, 3))}
@@ -439,7 +439,7 @@ const CheckoutPage = () => {
                                         </div>
                                         <input
                                             type="text"
-                                            className="form-control"
+                                            className="form-control custom-card-input"
                                             placeholder="Enter custom amount"
                                             value={customTip}
                                             onChange={(e) => {

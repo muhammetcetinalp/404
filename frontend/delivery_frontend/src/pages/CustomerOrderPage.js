@@ -222,6 +222,23 @@ const OrderPage = () => {
         }
     };
 
+    const handleCancelOrder = async (orderId, event) => {
+        event.stopPropagation();
+
+        if (window.confirm('Are you sure you want to cancel this order?')) {
+            try {
+                await api.delete(`/orders/${orderId}/cancel`);
+                toast.success('Order cancelled successfully!');
+                fetchPastOrders();
+            } catch (err) {
+                console.error('Error cancelling order:', err);
+                const errorMessage = err.response?.data?.message || 'Failed to cancel order. The order might have already been processed.';
+                toast.error(errorMessage);
+            }
+        }
+    };
+
+
     const getStatusBadge = (status) => {
         const lowerStatus = status ? status.toLowerCase().replace(/_/g, '') : ''; // Alt çizgileri kaldır
 

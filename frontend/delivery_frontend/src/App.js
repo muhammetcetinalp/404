@@ -69,6 +69,8 @@ const App = () => {
 
         <Route path="/profile" element={<PrivateRoute> <ProfilePage /> </PrivateRoute>} />
 
+        <Route path="/profile" element={<PrivateRoute> <ProfilePage /> </PrivateRoute>} />
+
         <Route path="/my-deliveries" element={<PrivateRoute allowedRoles={['courier']}> <CourierDeliveriesPage /> </PrivateRoute>} />
         <Route path="/courier-restaurant" element={<PrivateRoute allowedRoles={['courier']}> <CourierRestaurantsPage /> </PrivateRoute>} />
 

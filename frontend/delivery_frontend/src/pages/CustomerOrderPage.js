@@ -216,6 +216,47 @@ const OrderPage = () => {
         }
     };
 
+    const handleCancelOrder = async (orderId, event) => {
+        event.stopPropagation();
+
+        if (window.confirm('Are you sure you want to cancel this order?')) {
+            try {
+                await api.delete(`/orders/${orderId}/cancel`);
+                toast.success('Order cancelled successfully!');
+                fetchPastOrders();
+            } catch (err) {
+                console.error('Error cancelling order:', err);
+                const errorMessage = err.response?.data?.message || 'Failed to cancel order. The order might have already been processed.';
+                toast.error(errorMessage);
+            }
+        }
+    };
+
+
+    const getStatusBadge = (status) => {
+        const lowerStatus = status ? status.toLowerCase().replace(/_/g, '') : ''; // Alt çizgileri kaldır
+
+        if (lowerStatus.includes('deliver')) {
+            return <span className="badge bg-success">DELIVERED</span>;
+        } else if (lowerStatus === 'pending') {
+            return <span className="badge bg-warning">PENDING</span>;
+        } else if (lowerStatus.includes('progress')) {
+            return <span className="badge bg-info">IN PROGRESS</span>;
+        } else if (lowerStatus.includes('prepar')) {
+            return <span className="badge bg-info" style={{ backgroundColor: '#17a2b8' }}>PREPARING</span>;
+        } else if (lowerStatus === 'ready') {
+            return <span className="badge bg-primary">READY</span>;
+        } else if (lowerStatus.includes('pick')) {
+            return <span className="badge" style={{ backgroundColor: '#6f42c1', color: 'white' }}>PICKED UP</span>;
+        } else if (lowerStatus === 'cancelledbycustomer') { // <<--- YENİ DURUM İÇİN KONTROL
+            return <span className="badge bg-danger">CANCELLED BY YOU</span>;
+        } else if (lowerStatus.includes('cancel')) { // Genel 'cancelled' durumu
+            return <span className="badge bg-danger">CANCELLED</span>;
+        } else {
+            return <span className="badge bg-secondary">{status || 'UNKNOWN'}</span>;
+        }
+    };
+
     const filteredOrders = activeStatus === 'all'
         ? orders
         : orders.filter(order => {

@@ -201,6 +201,7 @@ const ProfilePage = () => {
                     className="custom-input"
                     disabled
                 />
+                {/* {errors.email && <div className="invalid-feedback d-block">{errors.email}</div>} */}
             </div>
 
             <h5 className="mt-3 mb-2 border-bottom pb-2 text-white">Delivery Address</h5>
@@ -317,6 +318,7 @@ const ProfilePage = () => {
                     className="custom-input"
                     disabled
                 />
+                {/* {errors.email && <div className="invalid-feedback d-block">{errors.email}</div>} */}
             </div>
 
             <h5 className="mt-3 mb-2 border-bottom pb-2 text-white">Restaurant Address</h5>

@@ -379,6 +379,7 @@ const CheckoutPage = () => {
                                                     }}
                                                     disabled={accountStatus === 'SUSPENDED' || accountStatus === 'BANNED'}
                                                 />
+
                                             </div>
                                             <div className="row g-3">
                                                 <div className="col-6 pe-2">

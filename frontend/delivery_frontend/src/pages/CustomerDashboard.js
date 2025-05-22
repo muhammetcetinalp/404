@@ -4,15 +4,18 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faSearch, faStar, faFilter, faSortAmountDown, faFont,
     faThumbsUp, faChevronDown, faChevronUp, faHeart as faHeartSolid,
-    faPlus, faShoppingCart, faTimes, faSort, faExclamationTriangle
+    faPlus, faShoppingCart, faTimes, faSort, faExclamationTriangle,
+    faComments
 } from '@fortawesome/free-solid-svg-icons';
 import { faHeart as faHeartRegular } from '@fortawesome/free-regular-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import ReviewsModal from '../components/ReviewsModal';
 import api from '../api';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../styles/dashboard.css';
+import ComplaintModal from '../components/ComplaintModal';
 
 // Import restaurant images
 import image1 from '../assets/images/exampleRestaurants/image1.png';
@@ -54,7 +57,14 @@ const CustomerDashboard = () => {
     const [cartError, setCartError] = useState('');
     const [addingToFavorite, setAddingToFavorite] = useState(false);
     const [accountStatus, setAccountStatus] = useState('ACTIVE');
-    const [restaurantImages, setRestaurantImages] = useState({});
+    const [restaurantImages, setRestaurantImages] = useState(() => {
+        // Try to load saved image assignments from localStorage
+        const savedImages = localStorage.getItem('restaurantImages');
+        return savedImages ? JSON.parse(savedImages) : {};
+    });
+    const [showReviewsModal, setShowReviewsModal] = useState(false);
+    const [selectedRestaurantForReviews, setSelectedRestaurantForReviews] = useState(null);
+    const [showComplaintModal, setShowComplaintModal] = useState(false);
     const navigate = useNavigate();
 
     const token = localStorage.getItem('token');
@@ -72,14 +82,32 @@ const CustomerDashboard = () => {
             return restaurantImages[restaurantId];
         }
 
-        // Otherwise, assign a random image and save it
-        const randomIndex = Math.floor(Math.random() * restaurantImageArray.length);
-        const selectedImage = restaurantImageArray[randomIndex];
+        // Get all currently used images
+        const usedImages = Object.values(restaurantImages);
+        
+        // Find unused images
+        const unusedImages = restaurantImageArray.filter(img => !usedImages.includes(img));
 
-        setRestaurantImages(prev => ({
-            ...prev,
+        let selectedImage;
+        if (unusedImages.length > 0) {
+            // If there are unused images, pick one randomly from unused images
+            const randomIndex = Math.floor(Math.random() * unusedImages.length);
+            selectedImage = unusedImages[randomIndex];
+        } else {
+            // If all images are used, pick one randomly from all images
+            const randomIndex = Math.floor(Math.random() * restaurantImageArray.length);
+            selectedImage = restaurantImageArray[randomIndex];
+        }
+
+        // Update state with new image assignment
+        const newRestaurantImages = {
+            ...restaurantImages,
             [restaurantId]: selectedImage
-        }));
+        };
+        
+        // Save to localStorage and update state
+        localStorage.setItem('restaurantImages', JSON.stringify(newRestaurantImages));
+        setRestaurantImages(newRestaurantImages);
 
         return selectedImage;
     };
@@ -345,6 +373,12 @@ const CustomerDashboard = () => {
         }
     };
 
+    const handleViewReviews = (restaurant, event) => {
+        event.stopPropagation();
+        setSelectedRestaurantForReviews(restaurant);
+        setShowReviewsModal(true);
+    };
+
     return (
         <div className="d-flex flex-column min-vh-100">
             <div className="container-fluid dashboard-header">
@@ -509,26 +543,32 @@ const CustomerDashboard = () => {
                                                                 </p>
                                                             </div>
 
-                                                            {/* Button Column - Add position-relative here */}
+                                                            {/* Button Column - Update the buttons section */}
                                                             <div className="col-md-3 text-end p-3 d-flex flex-column align-items-end position-relative">
-                                                                {/* Moved Favorite Button back inside col-md-3 */}
-                                                                <button
-                                                                    className="btn btn-link p-0 d-inline-flex justify-content-end"
-                                                                    onClick={(e) => handleToggleFavorite(restaurant.restaurantId, e)}
-                                                                    title={favoriteRestaurants.includes(restaurant.restaurantId) ? "Remove from favorites" : "Add to favorites"}
-                                                                    style={{
-                                                                        position: 'absolute',
-                                                                        top: '0.75rem',
-                                                                        right: '1rem',
-                                                                        zIndex: 1
-                                                                    }}
-                                                                >
-                                                                    <FontAwesomeIcon
-                                                                        icon={favoriteRestaurants.includes(restaurant.restaurantId) ? faHeartSolid : faHeartRegular}
-                                                                        className={favoriteRestaurants.includes(restaurant.restaurantId) ? "text-danger" : "text-secondary"}
-                                                                        size="lg"
-                                                                    />
-                                                                </button>
+                                                                <div className="d-flex gap-2 position-absolute" style={{ top: '0.75rem', right: '1rem' }}>
+                                                                    <button
+                                                                        className="btn btn-link p-0"
+                                                                        onClick={(e) => handleViewReviews(restaurant, e)}
+                                                                        title="View Reviews"
+                                                                    >
+                                                                        <FontAwesomeIcon
+                                                                            icon={faComments}
+                                                                            className="text-secondary"
+                                                                            size="lg"
+                                                                        />
+                                                                    </button>
+                                                                    <button
+                                                                        className="btn btn-link p-0"
+                                                                        onClick={(e) => handleToggleFavorite(restaurant.restaurantId, e)}
+                                                                        title={favoriteRestaurants.includes(restaurant.restaurantId) ? "Remove from favorites" : "Add to favorites"}
+                                                                    >
+                                                                        <FontAwesomeIcon
+                                                                            icon={favoriteRestaurants.includes(restaurant.restaurantId) ? faHeartSolid : faHeartRegular}
+                                                                            className={favoriteRestaurants.includes(restaurant.restaurantId) ? "text-danger" : "text-secondary"}
+                                                                            size="lg"
+                                                                        />
+                                                                    </button>
+                                                                </div>
 
                                                                 {/* View Menus Button - Add margin-top */}
                                                                 <button
@@ -559,7 +599,7 @@ const CustomerDashboard = () => {
                             </div>
 
                             <div className="col-lg-3 col-md-3 col-sm-12 mb-4">
-                                <div className="bg-white p-4 dashboard-sidebar" style={{ minHeight: "250px" }}>
+                                <div className="bg-white p-4 dashboard-sidebar" >
                                     <h5 className="mb-3"><FontAwesomeIcon icon={faFilter} className="mr-2 me-1" />Categories</h5>
                                     <div className="category-list">
                                         {categories.map(category => (
@@ -574,7 +614,25 @@ const CustomerDashboard = () => {
                                     </div>
                                 </div>
 
-
+                                {/* New Complaints Section */}
+                                <div className="bg-white p-4 dashboard-sidebar mt-4">
+                                    <div className="d-flex justify-content-between align-items-center">
+                                        <h5 className="mb-0">
+                                            <FontAwesomeIcon icon={faExclamationTriangle} className="mr-2 me-2" />
+                                            Complaints
+                                        </h5>
+                                        <button
+                                            className="btn btn-orange rounded-circle d-flex align-items-center justify-content-center"
+                                            style={{ width: '32px', height: '32px', padding: '0' }}
+                                            onClick={() => setShowComplaintModal(true)}
+                                        >
+                                            <FontAwesomeIcon icon={faPlus} />
+                                        </button>
+                                    </div>
+                                    <p className="text-muted small mt-2 mb-0" style={{ textAlign: 'justify' }}>
+                                        Share your feedback, suggestions, or report issues to help us improve our service.
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -596,10 +654,27 @@ const CustomerDashboard = () => {
                                 <h4 className="mb-0 text-truncate" style={{ maxWidth: '85%' }}>
                                     {selectedRestaurant.name}
                                 </h4>
-
                             </div>
-                            <button className="btn-close ms-3" onClick={handleCloseModal}>
-                                <FontAwesomeIcon icon={faTimes} />
+                            <button 
+                                className="btn-close" 
+                                onClick={handleCloseModal}
+                                style={{
+                                    backgroundColor: '#eb6825',
+                                    border: 'none',
+                                    fontSize: '1.2rem',
+                                    cursor: 'pointer',
+                                    padding: '0.3rem',
+                                    borderRadius: '4px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: '24px',
+                                    height: '24px',
+                                    opacity: 1,
+                                    backgroundImage: 'none'
+                                }}
+                            >
+                                <span style={{ color: 'white', lineHeight: 1 }}>×</span>
                             </button>
                         </div>
                         {cartError && (
@@ -607,7 +682,7 @@ const CustomerDashboard = () => {
                                 {cartError}
                             </div>
                         )}
-                        <div className="menu-modal-body">
+                        <div className="menu-modal-body reviews-container" style={{ height: 'calc(80vh - 120px)' }}>
                             {loadingMenu ? (
                                 <div className="text-center py-3">
                                     <div className="spinner-border spinner-border-sm text-orange" role="status" />
@@ -620,14 +695,11 @@ const CustomerDashboard = () => {
                                             style={!selectedRestaurant.open ? { opacity: 0.5, pointerEvents: 'none' } : {}}
                                         >
                                             <div className="d-flex justify-content-between align-items-center w-100">
-                                                {/* Sol kısım: yemek bilgileri */}
                                                 <div>
                                                     <h6 className="mb-1">{item.name}</h6>
                                                     <p className="mb-1 small text-muted">{item.description}</p>
                                                     <span className="text-orange font-weight-bold">{item.price.toFixed(2)} TL</span>
                                                 </div>
-
-                                                {/* Sağ kısım: buton */}
                                                 <div>
                                                     <button
                                                         className="btn btn-outline-orange add-to-cart-btn"
@@ -644,10 +716,8 @@ const CustomerDashboard = () => {
                                                 </div>
                                             </div>
                                         </div>
-
                                     ))}
                                 </div>
-
                             ) : (
                                 <p className="text-center text-muted">No menu items available</p>
                             ))}
@@ -655,6 +725,24 @@ const CustomerDashboard = () => {
                     </div>
                 </div>
             )}
+
+            {/* Add the ReviewsModal */}
+            <ReviewsModal
+                show={showReviewsModal}
+                onClose={() => {
+                    setShowReviewsModal(false);
+                    setSelectedRestaurantForReviews(null);
+                }}
+                restaurantId={selectedRestaurantForReviews?.restaurantId}
+                restaurantName={selectedRestaurantForReviews?.name}
+            />
+
+            {/* Add ComplaintModal */}
+            <ComplaintModal
+                show={showComplaintModal}
+                onClose={() => setShowComplaintModal(false)}
+            />
+
             <Footer />
         </div>
     );

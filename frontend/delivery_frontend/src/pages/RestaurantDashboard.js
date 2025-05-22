@@ -5,7 +5,7 @@ import {
     faSearch, faFilter, faUtensils, faCheckCircle, faTimesCircle, faClock,
     faChevronDown, faChevronUp, faStore, faToggleOn, faToggleOff,
     faShippingFast, faSort, faArrowDown, faArrowUp, faArrowUpShortWide,
-    faArrowDownShortWide, faExclamationTriangle, faUserSlash
+    faArrowDownShortWide, faExclamationTriangle, faUserSlash, faComments
 } from '@fortawesome/free-solid-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -16,6 +16,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
 import '../styles/restaurant-dashboard.css';
 import '../styles/dashboard.css';
+import ReviewsModal from '../components/ReviewsModal';
 
 const RestaurantDashboard = () => {
     const [orders, setOrders] = useState([]);
@@ -30,6 +31,7 @@ const RestaurantDashboard = () => {
     const [loadingOrderDetails, setLoadingOrderDetails] = useState(false);
     const [restaurantOpen, setRestaurantOpen] = useState();
     const [accountStatus, setAccountStatus] = useState('ACTIVE');
+    const [showReviewsModal, setShowReviewsModal] = useState(false);
     const navigate = useNavigate();
     const CustomCloseButton = ({ closeToast }) => (
         <button
@@ -417,22 +419,45 @@ const RestaurantDashboard = () => {
             <div className="container-fluid dashboard-header">
                 <Header />
                 <div className="container dashboard-welcome-text">
-                    <div className="row justify-content-center">
-                        <div className="col-lg-5 col-md-10 col-sm-12">
-                            <div className="search-container mb-4">
-                                <div className="input-group" style={{ borderRadius: '25px', overflow: 'hidden' }}>
-                                    <input
-                                        type="text"
-                                        className="form-control border-0 py-2"
-                                        placeholder="Search orders by customer name or order ID..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        style={{ height: '50px' }}
-                                    />
-                                    <button className="btn btn-orange border-0" style={{ height: '50px', width: '60px' }}>
-                                        <FontAwesomeIcon icon={faSearch} />
-                                    </button>
-                                </div>
+                    <div className="row">
+                        <div className="col-12 d-flex justify-content-center">
+                            <div style={{
+                                width: '500px',
+                                maxWidth: '100%',
+                                display: 'flex',
+                                borderRadius: '25px',
+                                overflow: 'hidden',
+                                boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                            }}>
+                                <input
+                                    type="text"
+                                    placeholder="Search by customer name or order ID..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    style={{
+                                        flex: 1,
+                                        height: '50px',
+                                        border: 'none',
+                                        paddingLeft: '20px',
+                                        fontSize: '16px',
+                                        outline: 'none'
+                                    }}
+                                />
+                                <button
+                                    style={{
+                                        width: '60px',
+                                        height: '50px',
+                                        backgroundColor: '#eb6825',
+                                        border: 'none',
+                                        color: 'white',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    <FontAwesomeIcon icon={faSearch} />
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -457,7 +482,7 @@ const RestaurantDashboard = () => {
             />
 
             <div className="container-fluid py-4" style={{ background: "#EBEDF3" }}>
-                <div className="container">
+                <div className="container-fluid px-5">
                     {error && (
                         <div className="alert alert-danger" role="alert">
                             {error}
@@ -474,7 +499,7 @@ const RestaurantDashboard = () => {
 
                     <div className="row">
                         {/* Left Sidebar */}
-                        <div className="col-lg-3 col-md-4 col-sm-12 mb-4">
+                        <div className="col-lg-2 col-md-4 col-sm-12 mb-4" style={{ flex: '0 0 20.83333%', maxWidth: '20.83333%' }}>
                             <div className="bg-white p-4 dashboard-sidebar">
                                 {/* Restaurant Status Toggle */}
                                 <div className="mb-4">
@@ -508,87 +533,30 @@ const RestaurantDashboard = () => {
                                     </div>
                                 </div>
 
-                                <h5 className="mb-3">
-                                    <FontAwesomeIcon icon={faSort} className="mr-2 me-2" />
-                                    Sort By
-                                </h5>
+                                <hr className="my-4" style={{ borderColor: '#6c757d' }} />
 
-                                <div className="ml-2 mb-4">
-                                    <div className="list-group">
+                                {/* Restaurant Comments Section */}
+                                <div className="mb-4">
+                                    <div className="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 className="mb-0">
+                                            <FontAwesomeIcon icon={faComments} className="mr-2 me-1" />
+                                            Restaurant Comments
+                                        </h5>
                                         <button
-                                            className={`list-group-item list-group-item-action ${sortOption === 'newest' ? 'active' : ''}`}
-                                            onClick={() => setSortOption('newest')}
+                                            className="btn btn-orange rounded-circle d-flex align-items-center justify-content-center"
+                                            style={{ width: '32px', height: '32px', padding: '0' }}
+                                            onClick={() => setShowReviewsModal(true)}
                                         >
-                                            <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
-                                                <FontAwesomeIcon icon={faArrowDownShortWide} />
-                                            </span>
-                                            <span className="ml-2">Newest First</span>
-                                        </button>
-                                        <button
-                                            className={`list-group-item list-group-item-action ${sortOption === 'oldest' ? 'active' : ''}`}
-                                            onClick={() => setSortOption('oldest')}
-                                        >
-                                            <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
-                                                <FontAwesomeIcon icon={faArrowUpShortWide} />
-                                            </span>
-                                            <span className="ml-2">Oldest First</span>
-                                        </button>
-                                        <button
-                                            className={`list-group-item list-group-item-action ${sortOption === 'highestAmount' ? 'active' : ''}`}
-                                            onClick={() => setSortOption('highestAmount')}
-                                        >
-                                            <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
-                                                <FontAwesomeIcon icon={faArrowUp} />
-                                            </span>
-                                            <span className="ml-2">Price (Low to High)</span>
-                                        </button>
-                                        <button
-                                            className={`list-group-item list-group-item-action ${sortOption === 'lowestAmount' ? 'active' : ''}`}
-                                            onClick={() => setSortOption('lowestAmount')}
-                                        >
-                                            <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
-                                                <FontAwesomeIcon icon={faArrowDown} />
-                                            </span>
-                                            <span className="ml-2">Price (High to Low)</span>
+                                            <FontAwesomeIcon icon={faComments} />
                                         </button>
                                     </div>
-                                </div>
 
-                                <h5 className="mb-3">
-                                    <FontAwesomeIcon icon={faFilter} className="mr-2 me-1" />
-                                    Filter By Status
-                                </h5>
-
-                                <div className="ml-2">
-                                    <div className="list-group">
-                                        {statusOptions.map(option => (
-                                            <button
-                                                key={option.value}
-                                                className={`list-group-item list-group-item-action ${filterStatus === option.value ? 'active' : ''}`}
-                                                onClick={() => setFilterStatus(option.value)}
-                                            >
-                                                <span className="icon-container" style={{ width: '25px', display: 'inline-block' }}>
-                                                    {option.value === 'all' && <FontAwesomeIcon icon={faUtensils} />}
-                                                    {option.value === 'PENDING' && <FontAwesomeIcon icon={faClock} />}
-                                                    {option.value === 'IN PROGRESS' && <FontAwesomeIcon icon={faCheckCircle} />}
-                                                    {option.value === 'ACCEPTED' && <FontAwesomeIcon icon={faCheckCircle} />}
-                                                    {option.value === 'PREPARING' && <FontAwesomeIcon icon={faUtensils} />}
-                                                    {option.value === 'READY' && <FontAwesomeIcon icon={faShippingFast} />}
-                                                    {option.value === 'PICKED_UP' && <FontAwesomeIcon icon={faShippingFast} />}
-                                                    {option.value === 'DELIVERED' && <FontAwesomeIcon icon={faCheckCircle} />}
-                                                    {option.value === 'CANCELLED' && <FontAwesomeIcon icon={faTimesCircle} />}
-                                                    {option.value === 'CANCELLED_BY_CUSTOMER' && <FontAwesomeIcon icon={faUserSlash} />}
-                                                </span>
-                                                <span className="ml-2">{option.label}</span>
-                                            </button>
-                                        ))}
-                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Main Content - Order Requests */}
-                        <div className="col-lg-9 col-md-8 col-sm-12">
+                        <div className="col-lg-7 col-md-8 col-sm-12" style={{ flex: '0 0 58.33333%', maxWidth: '58.33333%' }}>
                             <div className="bg-white p-4 mb-4">
                                 <h4 className="mb-4">Order Requests</h4>
 
@@ -630,7 +598,7 @@ const RestaurantDashboard = () => {
                                                             </div>
                                                             <div className="col-md-3">
                                                                 <p className="mb-1">
-                                                                    <strong>Total Amount:</strong>
+                                                                    <strong>Total Earning:</strong>
                                                                 </p>
                                                                 <h5 className="text-warning text-orange">{calculateItemsTotal(order.items).toFixed(2)} TL</h5>
                                                                 <p className="mb-0 small">
@@ -658,14 +626,14 @@ const RestaurantDashboard = () => {
                                                                         return (
                                                                             <>
                                                                                 <button
-                                                                                    className="btn btn-success btn-sm mb-2 w-100"
+                                                                                    className="btn btn-success btn-sm mb-2 w-100 d-flex justify-content-center align-items-center"
                                                                                     onClick={() => handleUpdateOrderStatus(order.orderId, 'ACCEPTED')}
                                                                                     disabled={!canUpdateOrderStatus(order)}
                                                                                 >
-                                                                                    Accept Order
+                                                                                    Accept
                                                                                 </button>
                                                                                 <button
-                                                                                    className="btn btn-danger btn-sm w-100"
+                                                                                    className="btn btn-danger btn-sm w-100 d-flex justify-content-center align-items-center"
                                                                                     onClick={() => handleUpdateOrderStatus(order.orderId, 'CANCELLED')}
                                                                                     disabled={!canUpdateOrderStatus(order)}
                                                                                 >
@@ -743,48 +711,50 @@ const RestaurantDashboard = () => {
                                                                     <div className="row mb-3">
                                                                         <div className="col-md-6">
                                                                             <h6>Items</h6>
-                                                                            <table className="table table-sm">
-                                                                                <thead className="thead-light">
-                                                                                    <tr>
-                                                                                        <th>Item</th>
-                                                                                        <th>Qty</th>
-                                                                                        <th>Price</th>
-                                                                                        <th>Total</th>
-                                                                                    </tr>
-                                                                                </thead>
-                                                                                <tbody>
-                                                                                    {order.items && order.items.map((item, index) => (
-                                                                                        <tr key={index}>
-                                                                                            <td>{item.name}</td>
-                                                                                            <td>{item.quantity}</td>
-                                                                                            <td>{item.price.toFixed(2)} TL</td>
-                                                                                            <td>{(item.quantity * item.price).toFixed(2)} TL</td>
+                                                                            <div className="table-responsive">
+                                                                                <table className="table table-sm">
+                                                                                    <thead className="thead-light">
+                                                                                        <tr>
+                                                                                            <th>Item</th>
+                                                                                            <th>Qty</th>
+                                                                                            <th>Price</th>
+                                                                                            <th>Total</th>
                                                                                         </tr>
-                                                                                    ))}
-                                                                                </tbody>
-                                                                                <tfoot>
-                                                                                    <tr>
-                                                                                        <td colSpan="3" className="text-right"><strong>Items Total:</strong></td>
-                                                                                        <td>{calculateItemsTotal(order.items).toFixed(2)} TL</td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <td colSpan="3" className="text-right"><strong>Tip Amount:</strong></td>
-                                                                                        <td>{calculateTipAmount(order).toFixed(2)} TL</td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <td colSpan="3" className="text-right"><strong>Tax:</strong></td>
-                                                                                        <td>5.00 TL</td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <td colSpan="3" className="text-right"><strong>Delivery Fee:</strong></td>
-                                                                                        <td>{(order.deliveryMethod === 'DELIVERY' || order.deliveryType === 'DELIVERY') ? '60.00' : '0.00'} TL</td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <td colSpan="3" className="text-right"><strong>Total:</strong></td>
-                                                                                        <td><strong>{(order.totalAmount + 5 + ((order.deliveryMethod === 'DELIVERY' || order.deliveryType === 'DELIVERY') ? 60 : 0)).toFixed(2)} TL</strong></td>
-                                                                                    </tr>
-                                                                                </tfoot>
-                                                                            </table>
+                                                                                    </thead>
+                                                                                    <tbody>
+                                                                                        {order.items && order.items.map((item, index) => (
+                                                                                            <tr key={index}>
+                                                                                                <td>{item.name}</td>
+                                                                                                <td>{item.quantity}</td>
+                                                                                                <td>{item.price.toFixed(2)} TL</td>
+                                                                                                <td>{(item.quantity * item.price).toFixed(2)} TL</td>
+                                                                                            </tr>
+                                                                                        ))}
+                                                                                    </tbody>
+                                                                                    <tfoot>
+                                                                                        <tr>
+                                                                                            <td colSpan="3" className="text-right"><strong>Items Total:</strong></td>
+                                                                                            <td>{calculateItemsTotal(order.items).toFixed(2)} TL</td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td colSpan="3" className="text-right"><strong>Tip Amount:</strong></td>
+                                                                                            <td>{calculateTipAmount(order).toFixed(2)} TL</td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td colSpan="3" className="text-right"><strong>Tax:</strong></td>
+                                                                                            <td>5.00 TL</td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td colSpan="3" className="text-right"><strong>Delivery Fee:</strong></td>
+                                                                                            <td>{(order.deliveryMethod === 'DELIVERY' || order.deliveryType === 'DELIVERY') ? '60.00' : '0.00'} TL</td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td colSpan="3" className="text-right"><strong>Total:</strong></td>
+                                                                                            <td><strong>{(order.totalAmount + 5 + ((order.deliveryMethod === 'DELIVERY' || order.deliveryType === 'DELIVERY') ? 60 : 0)).toFixed(2)} TL</strong></td>
+                                                                                        </tr>
+                                                                                    </tfoot>
+                                                                                </table>
+                                                                            </div>
                                                                         </div>
                                                                         <div className="col-md-6">
                                                                             <h6>Order Status Timeline</h6>
@@ -835,16 +805,6 @@ const RestaurantDashboard = () => {
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                    <div className="row mt-3">
-                                                                        <div className="col-12">
-                                                                            <div className="card bg-light p-3">
-                                                                                <h6>Customer Note</h6>
-                                                                                <p className="mb-0">
-                                                                                    {order.note ? order.note : 'No note provided.'}
-                                                                                </p>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
                                                                 </>
                                                             )}
                                                         </div>
@@ -862,9 +822,89 @@ const RestaurantDashboard = () => {
                                 )}
                             </div>
                         </div>
+
+                        {/* Right Sidebar - Sort and Filter Options */}
+                        <div className="col-lg-2 col-md-12 col-sm-12" style={{ flex: '0 0 20.83333%', maxWidth: '20.83333%' }}>
+                            {/* Sort Options */}
+                            <div className="bg-white p-3 mb-4 dashboard-sidebar">
+                                <h5 className="mb-3">
+                                    <FontAwesomeIcon icon={faSort} className="mr-2 me-2" />
+                                    Sort By
+                                </h5>
+                                <div className="list-group list-group-flush">
+                                    <button
+                                        className={`list-group-item list-group-item-action py-2 px-2 ${sortOption === 'newest' ? 'active' : ''}`}
+                                        onClick={() => setSortOption('newest')}
+                                    >
+                                        <FontAwesomeIcon icon={faArrowDownShortWide} className="me-2" />
+                                        Newest First
+                                    </button>
+                                    <button
+                                        className={`list-group-item list-group-item-action py-2 px-2 ${sortOption === 'oldest' ? 'active' : ''}`}
+                                        onClick={() => setSortOption('oldest')}
+                                    >
+                                        <FontAwesomeIcon icon={faArrowUpShortWide} className="me-2" />
+                                        Oldest First
+                                    </button>
+                                    <button
+                                        className={`list-group-item list-group-item-action py-2 px-2 ${sortOption === 'highestAmount' ? 'active' : ''}`}
+                                        onClick={() => setSortOption('highestAmount')}
+                                    >
+                                        <FontAwesomeIcon icon={faArrowUp} className="me-2" />
+                                        Price (Low to High)
+                                    </button>
+                                    <button
+                                        className={`list-group-item list-group-item-action py-2 px-2 ${sortOption === 'lowestAmount' ? 'active' : ''}`}
+                                        onClick={() => setSortOption('lowestAmount')}
+                                    >
+                                        <FontAwesomeIcon icon={faArrowDown} className="me-2" />
+                                        Price (High to Low)
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Filter Options */}
+                            <div className="bg-white p-3 dashboard-sidebar">
+                                <h5 className="mb-3">
+                                    <FontAwesomeIcon icon={faFilter} className="mr-2 me-1" />
+                                    Filter By Status
+                                </h5>
+                                <div className="list-group list-group-flush">
+                                    {statusOptions.map(option => (
+                                        <button
+                                            key={option.value}
+                                            className={`list-group-item list-group-item-action py-2 px-2 ${filterStatus === option.value ? 'active' : ''}`}
+                                            onClick={() => setFilterStatus(option.value)}
+                                        >
+                                            <span className="d-inline-block" style={{ width: '20px' }}>
+                                                {option.value === 'all' && <FontAwesomeIcon icon={faUtensils} />}
+                                                {option.value === 'PENDING' && <FontAwesomeIcon icon={faClock} />}
+                                                {option.value === 'IN PROGRESS' && <FontAwesomeIcon icon={faCheckCircle} />}
+                                                {option.value === 'ACCEPTED' && <FontAwesomeIcon icon={faCheckCircle} />}
+                                                {option.value === 'PREPARING' && <FontAwesomeIcon icon={faUtensils} />}
+                                                {option.value === 'READY' && <FontAwesomeIcon icon={faShippingFast} />}
+                                                {option.value === 'PICKED_UP' && <FontAwesomeIcon icon={faShippingFast} />}
+                                                {option.value === 'DELIVERED' && <FontAwesomeIcon icon={faCheckCircle} />}
+                                                {option.value === 'CANCELLED' && <FontAwesomeIcon icon={faTimesCircle} />}
+                                                {option.value === 'CANCELLED_BY_CUSTOMER' && <FontAwesomeIcon icon={faUserSlash} />}
+                                            </span>
+                                            <span className="ms-2">{option.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            {/* Reviews Modal */}
+            <ReviewsModal
+                show={showReviewsModal}
+                onClose={() => setShowReviewsModal(false)}
+                restaurantId={restaurantId}
+                restaurantName="Your Restaurant"
+            />
 
             <Footer />
         </div>

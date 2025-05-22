@@ -309,45 +309,26 @@ const RestaurantMenuPage = () => {
             <div className="container-fluid dashboard-header">
                 <Header />
                 <div className="container dashboard-welcome-text">
-                    <div className="row">
-                        <div className="col-12 d-flex justify-content-center">
-                            <div style={{
-                                width: '500px',
-                                maxWidth: '100%',
-                                display: 'flex',
-                                borderRadius: '25px',
-                                overflow: 'hidden',
-                                boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
-                            }}>
-                                <input
-                                    type="text"
-                                    placeholder="Search menu items by name or description..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    style={{
-                                        flex: 1,
-                                        border: 'none',
-                                        paddingLeft: '20px',
-                                        fontSize: '16px',
-                                        outline: 'none',
-                                        height: '50px'
-                                    }}
-                                />
-                                <button
-                                    style={{
-                                        width: '60px',
-                                        height: '50px',
-                                        backgroundColor: '#eb6825',
-                                        border: 'none',
-                                        color: 'white',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    <FontAwesomeIcon icon={faSearch} />
-                                </button>
+                    <div className="row justify-content-center">
+                        <div className="col-lg-5 col-md-10 col-sm-12">
+                            <div className="search-container mb-4">
+                                <div className="input-group" style={{ borderRadius: '25px', overflow: 'hidden' }}>
+                                    <input
+                                        type="text"
+                                        className="form-control border-0 py-2"
+                                        placeholder="Search menu items by name or description..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        style={{ height: '50px' }}
+                                    />
+                                    <button
+                                        className="btn-orange btn btn-warning border-0"
+                                        type="button"
+                                        style={{ height: '50px', width: '60px' }}
+                                    >
+                                        <FontAwesomeIcon icon={faSearch} />
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -434,7 +415,7 @@ const RestaurantMenuPage = () => {
                                                             <label htmlFor="name" className="form-label text-dark">Menu Item Name*</label>
                                                             <input
                                                                 type="text"
-                                                                className="form-control custom-card-input"
+                                                                className="form-control"
                                                                 id="name"
                                                                 name="name"
                                                                 value={newMenuItem.name}
@@ -448,7 +429,7 @@ const RestaurantMenuPage = () => {
                                                                 type="number"
                                                                 step="0.01"
                                                                 min="0"
-                                                                className="form-control custom-card-input"
+                                                                className="form-control"
                                                                 id="price"
                                                                 name="price"
                                                                 value={newMenuItem.price}

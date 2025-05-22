@@ -238,18 +238,3 @@ Authorization: Bearer  eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrZWJhcGNpQGV4YW1wbGUuY29t
 ###get statu of restaruant
 PATCH http://localhost:8080/api/restaurants/88241f28-ecec-467a-b363-a527e9f31e20/toggle-status
 Authorization: Bearer  eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrZWJhcGNpQGV4YW1wbGUuY29tIiwicm9sZSI6InJlc3RhdXJhbnRfb3duZXIiLCJpZCI6IjQ0ZjNmZDdkLWRjOGMtNDJmYy1iMTA2LTgwZTg5NThhMzgzYiIsImlhdCI6MTc0NDMyMzQ5NiwiZXhwIjoxNzQ0MzQxNDk2fQ.x3EKKl5_cu-rcXT3dDbIJ3KLIGAbsSXDgmTRrWAAhO0
-
-
-### Login Request
-POST http://localhost:8080/api/login
-Content-Type: application/json
-
-{
-  "email": "a1@gmail.com",
-  "password": "oktay"
-}
-
-
-###
-GET http://localhost:8080/api/admin/complaints
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhMUBnbWFpbC5jb20iLCJyb2xlIjoiQURNSU4iLCJpZCI6IjEiLCJpYXQiOjE3NDczNDY1NDQsImV4cCI6MTc0NzM2NDU0NH0.GSCnuxhTbANr3c9CASHLCRHqS7mnCcIed7ajVUk3uHU

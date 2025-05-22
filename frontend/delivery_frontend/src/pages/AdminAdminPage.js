@@ -370,30 +370,27 @@ const AdminAdminPage = () => {
                             <button className="close-btn" onClick={() => setSelectedUser(null)}>×</button>
                         </div>
                         <div className="modal-body">
-                            <div className="custom-form-group">
-                                <label className="custom-label">Name</label>
+                            <div className="form-group">
+                                <label>Name</label>
                                 <input
                                     name="name"
                                     value={editForm.name || ''}
                                     onChange={handleEditChange}
                                     placeholder="Name"
-                                    className={`custom-input ${editFormErrors.name ? 'is-invalid' : ''}`}
+                                    className={`form-control ${editFormErrors.name ? 'error-input' : ''}`}
                                 />
-                                {editFormErrors.name && <div className="custom-error">{editFormErrors.name}</div>}
+                                {editFormErrors.name && <div className="error-message">{editFormErrors.name}</div>}
                             </div>
-                            <div className="custom-form-group">
-                                <label className="custom-label">Phone (10 digits without +90)</label>
-                                <div className="custom-input-group">
-                                    <span className="custom-input-group-text">+90</span>
-                                    <input
-                                        name="phone"
-                                        value={editForm.phone || ''}
-                                        onChange={handleEditChange}
-                                        placeholder="5XX XXX XXXX"
-                                        className={`custom-input ${editFormErrors.phone ? 'is-invalid' : ''}`}
-                                    />
-                                </div>
-                                {editFormErrors.phone && <div className="custom-error">{editFormErrors.phone}</div>}
+                            <div className="form-group">
+                                <label>Phone (10 digits without +90)</label>
+                                <input
+                                    name="phone"
+                                    value={editForm.phone || ''}
+                                    onChange={handleEditChange}
+                                    placeholder="5XX XXX XXXX"
+                                    className={`form-control ${editFormErrors.phone ? 'error-input' : ''}`}
+                                />
+                                {editFormErrors.phone && <div className="error-message">{editFormErrors.phone}</div>}
                             </div>
                         </div>
                         <div className="modal-footer">
@@ -419,57 +416,54 @@ const AdminAdminPage = () => {
                         </div>
                         <div className="modal-body">
                             <form onSubmit={submitAddUser}>
-                                <div className="custom-form-group">
-                                    <label className="custom-label">Name</label>
+                                <div className="form-group">
+                                    <label>Name</label>
                                     <input
                                         name="name"
                                         value={addUserForm.name}
                                         onChange={handleAddUserChange}
                                         placeholder="Name"
-                                        className={`custom-input ${formErrors.name ? 'is-invalid' : ''}`}
+                                        className={`form-control ${formErrors.name ? 'error-input' : ''}`}
                                     />
-                                    {formErrors.name && <div className="custom-error">{formErrors.name}</div>}
+                                    {formErrors.name && <div className="error-message">{formErrors.name}</div>}
                                 </div>
-                                <div className="custom-form-group">
-                                    <label className="custom-label">Email</label>
+                                <div className="form-group">
+                                    <label>Email</label>
                                     <input
                                         name="email"
                                         type="email"
                                         value={addUserForm.email}
                                         onChange={handleAddUserChange}
                                         placeholder="Email"
-                                        className={`custom-input ${formErrors.email ? 'is-invalid' : ''}`}
+                                        className={`form-control ${formErrors.email ? 'error-input' : ''}`}
                                     />
-                                    {formErrors.email && <div className="custom-error">{formErrors.email}</div>}
+                                    {formErrors.email && <div className="error-message">{formErrors.email}</div>}
                                 </div>
-                                <div className="custom-form-group">
-                                    <label className="custom-label">Password</label>
+                                <div className="form-group">
+                                    <label>Password</label>
                                     <input
                                         name="password"
                                         type="password"
                                         value={addUserForm.password}
                                         onChange={handleAddUserChange}
                                         placeholder="Password"
-                                        className={`custom-input ${formErrors.password ? 'is-invalid' : ''}`}
+                                        className={`form-control ${formErrors.password ? 'error-input' : ''}`}
                                     />
-                                    {formErrors.password && <div className="custom-error">{formErrors.password}</div>}
+                                    {formErrors.password && <div className="error-message">{formErrors.password}</div>}
                                 </div>
-                                <div className="custom-form-group">
-                                    <label className="custom-label">Phone (10 digits without +90)</label>
-                                    <div className="custom-input-group">
-                                        <span className="custom-input-group-text">+90</span>
-                                        <input
-                                            name="phone"
-                                            value={addUserForm.phone}
-                                            onChange={handleAddUserChange}
-                                            placeholder="5XX XXX XXXX"
-                                            className={`custom-input ${formErrors.phone ? 'is-invalid' : ''}`}
-                                        />
-                                    </div>
-                                    {formErrors.phone && <div className="custom-error">{formErrors.phone}</div>}
+                                <div className="form-group">
+                                    <label>Phone (10 digits without +90)</label>
+                                    <input
+                                        name="phone"
+                                        value={addUserForm.phone}
+                                        onChange={handleAddUserChange}
+                                        placeholder="5XX XXX XXXX"
+                                        className={`form-control ${formErrors.phone ? 'error-input' : ''}`}
+                                    />
+                                    {formErrors.phone && <div className="error-message">{formErrors.phone}</div>}
                                 </div>
 
-                                {addUserError && <div className="custom-error">{addUserError}</div>}
+                                {addUserError && <p className="error-message">{addUserError}</p>}
 
                                 <div className="modal-footer">
                                     <button type="submit" className="btn-orange btn-save">Save Admin</button>

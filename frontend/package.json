@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "jwt-decode": "^4.0.0",
     "recharts": "^2.15.3"
   }
 }

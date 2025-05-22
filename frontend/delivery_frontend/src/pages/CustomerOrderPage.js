@@ -4,16 +4,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faSpinner, faTruck, faTasks, faChevronDown, faChevronUp,
     faCheck, faClock, faShippingFast, faExclamationTriangle,
-    faUtensils, faBoxOpen, faTimes, faUserSlash, faStar
+    faUtensils, faBoxOpen, faTimes, faUserSlash // <<--- faUserSlash EKLENDİ
 } from '@fortawesome/free-solid-svg-icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import RatingModal from '../components/RatingModal';
 import api from '../api';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../styles/order.css';
-import { confirmAlert } from 'react-confirm-alert';
 
 const OrderPage = () => {
     const [orders, setOrders] = useState([]);
@@ -21,10 +19,6 @@ const OrderPage = () => {
     const [error, setError] = useState('');
     const [expandedOrders, setExpandedOrders] = useState({});
     const [activeStatus, setActiveStatus] = useState('all');
-    const [showRatingModal, setShowRatingModal] = useState(false);
-    const [selectedOrder, setSelectedOrder] = useState(null);
-    const [ratedOrders, setRatedOrders] = useState(new Set());
-    const [orderFeedbacks, setOrderFeedbacks] = useState({});
     const navigate = useNavigate();
 
     const CustomCloseButton = ({ closeToast }) => (
@@ -56,18 +50,13 @@ const OrderPage = () => {
             return;
         }
         fetchPastOrders();
-        fetchRatedOrders();
     }, [navigate]);
 
     const fetchPastOrders = async () => {
         setLoading(true);
         try {
             const res = await api.get('/orders/history');
-            // Sort orders by date in descending order (newest first)
-            const sortedOrders = res.data.sort((a, b) => {
-                return new Date(b.orderDate) - new Date(a.orderDate);
-            });
-            setOrders(sortedOrders);
+            setOrders(res.data);
 
             // if (res.data && res.data.length > 0) {
             //     const uniqueStatuses = [...new Set(res.data.map(order => order.orderStatus))];
@@ -81,145 +70,8 @@ const OrderPage = () => {
         }
     };
 
-    const fetchRatedOrders = async () => {
-        try {
-            const response = await api.get('/feedback/rated-orders');
-            setRatedOrders(new Set(response.data));
-        } catch (err) {
-            console.error('Error fetching rated orders:', err);
-        }
-    };
-
-    const toggleOrder = async (orderId) => {
-        setExpandedOrders(prev => {
-            const newState = { ...prev, [orderId]: !prev[orderId] };
-
-            // If expanding and order is rated, fetch feedback
-            if (newState[orderId] && ratedOrders.has(orderId) && !orderFeedbacks[orderId]) {
-                fetchOrderFeedback(orderId);
-            }
-
-            return newState;
-        });
-    };
-
-    const fetchOrderFeedback = async (orderId) => {
-        try {
-            const response = await api.get(`/feedback/restaurant/order/${orderId}`);
-            setOrderFeedbacks(prev => ({
-                ...prev,
-                [orderId]: response.data
-            }));
-        } catch (err) {
-            console.error('Error fetching order feedback:', err);
-        }
-    };
-
-    const handleCancelOrder = async (orderId, event) => {
-        event.stopPropagation();
-
-        confirmAlert({
-            customUI: ({ onClose }) => {
-                return (
-                    <div className="custom-ui">
-                        <div className="custom-ui-icon">
-                            <FontAwesomeIcon icon={faTimes} />
-                        </div>
-                        <div className="me-2">
-                            <h2>Cancel Order</h2>
-                            <p2 className="d-block mb-4">Are you sure you want to cancel this order?</p2>
-                        </div>
-                        <div className="custom-ui-buttons">
-                            <button
-                                className="btn-cancel"
-                                onClick={onClose}
-                            >
-                                No
-                            </button>
-                            <button
-                                className="btn-delete"
-                                onClick={async () => {
-                                    try {
-                                        await api.delete(`/orders/${orderId}/cancel`);
-                                        toast.success('Order cancelled successfully!');
-                                        fetchPastOrders();
-                                        onClose();
-                                    } catch (err) {
-                                        const errorMessage = err.response?.data?.message || 'Failed to cancel order. The order might have already been processed.';
-                                        toast.error(errorMessage);
-                                        onClose();
-                                    }
-                                }}
-                            >
-                                Yes, Cancel
-                            </button>
-                        </div>
-                    </div>
-                );
-            }
-        });
-    };
-
-    const handleRateOrder = (order) => {
-        setSelectedOrder(order);
-        setShowRatingModal(true);
-    };
-
-    const handleEditRating = (order) => {
-        const existingFeedback = orderFeedbacks[order.orderId];
-        setSelectedOrder({
-            ...order,
-            existingRating: existingFeedback.rating,
-            existingReview: existingFeedback.review
-        });
-        setShowRatingModal(true);
-    };
-
-    const handleRatingSubmit = async ({ rating, review }) => {
-        try {
-            if (selectedOrder.existingRating !== undefined) {
-                // This is an update
-                await api.put(`/feedback/restaurant-rating/${selectedOrder.orderId}`, {
-                    rating,
-                    review
-                });
-                toast.success('Your feedback has been updated!', {
-                    style: {
-                        backgroundColor: '#eb6825',
-                        color: 'white',
-                        fontWeight: 'bold',
-                    },
-                });
-            } else {
-                // This is a new rating
-                await api.post(`/feedback/restaurant-rating/${selectedOrder.orderId}`, {
-                    rating,
-                    review
-                });
-                toast.success('Thank you for your feedback!', {
-                    style: {
-                        backgroundColor: '#eb6825',
-                        color: 'white',
-                        fontWeight: 'bold',
-                    },
-                });
-            }
-
-            setShowRatingModal(false);
-            setSelectedOrder(null);
-
-            // Refresh the data
-            await fetchPastOrders();
-            await fetchRatedOrders();
-
-            // If the order was expanded, fetch its feedback
-            if (expandedOrders[selectedOrder.orderId]) {
-                await fetchOrderFeedback(selectedOrder.orderId);
-            }
-        } catch (err) {
-            console.error('Error submitting rating:', err);
-            toast.error('Failed to submit rating. Please try again.');
-        }
+    const toggleOrder = (id) => {
+        setExpandedOrders(prev => ({ ...prev, [id]: !prev[id] }));
     };
 
     const handleCancelOrder = async (orderId, event) => {
@@ -510,6 +362,7 @@ const OrderPage = () => {
                                                                 <td onClick={() => toggleOrder(order.orderId)} className="cursor-pointer">{order.orderId}</td>
                                                                 <td onClick={() => toggleOrder(order.orderId)} className="cursor-pointer">{new Date(order.orderDate).toLocaleDateString()}</td>
                                                                 <td onClick={() => toggleOrder(order.orderId)} className="cursor-pointer">
+                                                                    {/* order.items bir obje ise Object.keys, array ise .length */}
                                                                     {order.items && typeof order.items === 'object' ? Object.keys(order.items).length : (order.items ? order.items.length : 0)} items
                                                                 </td>
                                                                 <td onClick={() => toggleOrder(order.orderId)} className="cursor-pointer">{order.totalAmount.toFixed(2)} TL</td>
@@ -529,145 +382,74 @@ const OrderPage = () => {
                                                                             <FontAwesomeIcon icon={faTimes} /> Cancel
                                                                         </button>
                                                                     )}
-                                                                    {order.orderStatus?.toUpperCase() === 'DELIVERED' && !ratedOrders.has(order.orderId) && (
-                                                                        <button
-                                                                            className="btn btn-warning btn-sm"
-                                                                            onClick={() => handleRateOrder(order)}
-                                                                            title="Rate Order"
-                                                                        >
-                                                                            <FontAwesomeIcon icon={faStar} /> Rate Order
-                                                                        </button>
-                                                                    )}
-                                                                    {order.orderStatus?.toUpperCase() === 'DELIVERED' && ratedOrders.has(order.orderId) && (
-                                                                        <button
-                                                                            className="btn btn-success btn-sm"
-                                                                            disabled
-                                                                            title="Order Rated"
-                                                                        >
-                                                                            <FontAwesomeIcon icon={faStar} /> Rated
-                                                                        </button>
-                                                                    )}
                                                                 </td>
                                                             </tr>
                                                             {expandedOrders[order.orderId] && (
                                                                 <tr className="bg-light">
-                                                                    <td colSpan="7" className="p-4">
+                                                                    <td colSpan="7" className="p-3">
                                                                         <div className="order-details">
-                                                                            {/* Order Details Card */}
-                                                                            <div className="card mb-4">
-                                                                                <div className="card-header bg-white">
-                                                                                    <h6 className="mb-0">Order Details</h6>
-                                                                                </div>
-                                                                                <div className="card-body">
-                                                                                    <div className="mb-3">
-                                                                                        <strong>Delivery Address:</strong> {order.deliveryAddress}
-                                                                                    </div>
+                                                                            <div className="mb-3">
+                                                                                <strong>Delivery Address:</strong> {order.deliveryAddress}
+                                                                            </div>
 
-                                                                                    <div className="mb-3">
-                                                                                        <strong>Order Items:</strong>
+                                                                            <div className="mb-3">
+                                                                                <strong>Order Items:</strong>
+                                                                            </div>
+                                                                            {/* order.items bir obje ise Object.entries, array ise .map */}
+                                                                            {order.items && typeof order.items === 'object' ?
+                                                                                Object.entries(order.items).map(([key, item]) => (
+                                                                                    <div className="row mb-2" key={item.name + key}> {/* Benzersiz key için item.name + key */}
+                                                                                        <div className="col-md-6"><strong>{item.name}</strong></div>
+                                                                                        <div className="col-md-2">x{item.quantity}</div>
+                                                                                        <div className="col-md-2">{item.price.toFixed(2)} TL</div>
+                                                                                        <div className="col-md-2 text-end">{(item.price * item.quantity).toFixed(2)} TL</div>
                                                                                     </div>
-                                                                                    {order.items && typeof order.items === 'object' ?
-                                                                                        Object.entries(order.items).map(([key, item]) => (
-                                                                                            <div className="row mb-2" key={item.name + key}>
-                                                                                                <div className="col-md-6"><strong>{item.name}</strong></div>
-                                                                                                <div className="col-md-2">x{item.quantity}</div>
-                                                                                                <div className="col-md-2">{item.price.toFixed(2)} TL</div>
-                                                                                                <div className="col-md-2 text-end">{(item.price * item.quantity).toFixed(2)} TL</div>
-                                                                                            </div>
-                                                                                        )) :
-                                                                                        (order.items && Array.isArray(order.items) && order.items.map((item, index) => (
-                                                                                            <div className="row mb-2" key={item.name + index}>
-                                                                                                <div className="col-md-6"><strong>{item.name}</strong></div>
-                                                                                                <div className="col-md-2">x{item.quantity}</div>
-                                                                                                <div className="col-md-2">{item.price.toFixed(2)} TL</div>
-                                                                                                <div className="col-md-2 text-end">{(item.price * item.quantity).toFixed(2)} TL</div>
-                                                                                            </div>
-                                                                                        )))
+                                                                                )) :
+                                                                                (order.items && Array.isArray(order.items) && order.items.map((item, index) => (
+                                                                                    <div className="row mb-2" key={item.name + index}>
+                                                                                        <div className="col-md-6"><strong>{item.name}</strong></div>
+                                                                                        <div className="col-md-2">x{item.quantity}</div>
+                                                                                        <div className="col-md-2">{item.price.toFixed(2)} TL</div>
+                                                                                        <div className="col-md-2 text-end">{(item.price * item.quantity).toFixed(2)} TL</div>
+                                                                                    </div>
+                                                                                )))
+                                                                            }
+
+
+                                                                            <div className="mt-3 pt-2 border-top">
+                                                                                <div className="row">
+                                                                                    <div className="col-md-8 text-end">
+                                                                                        <strong>Total:</strong>
+                                                                                    </div>
+                                                                                    <div className="col-md-4 text-end">
+                                                                                        <strong>{order.totalAmount.toFixed(2)} TL</strong>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            <div className="mt-3 order-timeline">
+                                                                                <div className="d-flex justify-content-between flex-wrap"> {/* flex-wrap eklendi */}
+                                                                                    {getTimelineIconAndText(order.orderStatus, "PENDING", faClock, "Order Placed")}
+
+                                                                                    {order.orderStatus?.toUpperCase().replace(/_/g, '') !== "CANCELLEDBYCUSTOMER" &&
+                                                                                        order.orderStatus?.toUpperCase().replace(/_/g, '') !== "CANCELLED" && (
+                                                                                            <>
+                                                                                                {getTimelineIconAndText(order.orderStatus, "IN_PROGRESS", faShippingFast, "In Progress")}
+                                                                                                {getTimelineIconAndText(order.orderStatus, "PREPARING", faUtensils, "Preparing")}
+                                                                                                {getTimelineIconAndText(order.orderStatus, "READY", faCheck, "Ready")}
+                                                                                                {getTimelineIconAndText(order.orderStatus, "PICKED_UP", faBoxOpen, "Picked Up", '#6f42c1')}
+                                                                                                {getTimelineIconAndText(order.orderStatus, "DELIVERED", faTruck, "Delivered")}
+                                                                                            </>
+                                                                                        )}
+
+                                                                                    {order.orderStatus?.toUpperCase().replace(/_/g, '') === "CANCELLEDBYCUSTOMER" &&
+                                                                                        getTimelineIconAndText(order.orderStatus, "CANCELLED_BY_CUSTOMER", faUserSlash, "Cancelled by You", "darkred")
                                                                                     }
-
-                                                                                    <div className="mt-3 pt-2 border-top">
-                                                                                        <div className="row">
-                                                                                            <div className="col-md-8 text-end">
-                                                                                                <strong>Total:</strong>
-                                                                                            </div>
-                                                                                            <div className="col-md-4 text-end">
-                                                                                                <strong>{order.totalAmount.toFixed(2)} TL</strong>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
+                                                                                    {order.orderStatus?.toUpperCase().replace(/_/g, '') === "CANCELLED" &&
+                                                                                        getTimelineIconAndText(order.orderStatus, "CANCELLED", faExclamationTriangle, "Cancelled", "red")
+                                                                                    }
                                                                                 </div>
                                                                             </div>
-
-                                                                            {/* Order Status Card */}
-                                                                            <div className="card mb-4">
-                                                                                <div className="card-header bg-white d-flex justify-content-between align-items-center">
-                                                                                    <h6 className="mb-0">Order Status</h6>
-                                                                                    {getStatusBadge(order.orderStatus)}
-                                                                                </div>
-                                                                                <div className="card-body">
-                                                                                    <div className="order-timeline">
-                                                                                        <div className="d-flex justify-content-between flex-wrap">
-                                                                                            {getTimelineIconAndText(order.orderStatus, "PENDING", faClock, "Order Placed")}
-
-                                                                                            {order.orderStatus?.toUpperCase().replace(/_/g, '') !== "CANCELLEDBYCUSTOMER" &&
-                                                                                                order.orderStatus?.toUpperCase().replace(/_/g, '') !== "CANCELLED" && (
-                                                                                                    <>
-                                                                                                        {getTimelineIconAndText(order.orderStatus, "IN_PROGRESS", faShippingFast, "In Progress")}
-                                                                                                        {getTimelineIconAndText(order.orderStatus, "PREPARING", faUtensils, "Preparing")}
-                                                                                                        {getTimelineIconAndText(order.orderStatus, "READY", faCheck, "Ready")}
-                                                                                                        {getTimelineIconAndText(order.orderStatus, "PICKED_UP", faBoxOpen, "Picked Up", '#6f42c1')}
-                                                                                                        {getTimelineIconAndText(order.orderStatus, "DELIVERED", faTruck, "Delivered")}
-                                                                                                    </>
-                                                                                                )}
-
-                                                                                            {order.orderStatus?.toUpperCase().replace(/_/g, '') === "CANCELLEDBYCUSTOMER" &&
-                                                                                                getTimelineIconAndText(order.orderStatus, "CANCELLED_BY_CUSTOMER", faUserSlash, "Cancelled by You", "darkred")
-                                                                                            }
-                                                                                            {order.orderStatus?.toUpperCase().replace(/_/g, '') === "CANCELLED" &&
-                                                                                                getTimelineIconAndText(order.orderStatus, "CANCELLED", faExclamationTriangle, "Cancelled", "red")
-                                                                                            }
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-
-                                                                            {/* Feedback Card */}
-                                                                            {ratedOrders.has(order.orderId) && orderFeedbacks[order.orderId] && (
-                                                                                <div className="card">
-                                                                                    <div className="card-header bg-white d-flex justify-content-between align-items-center">
-                                                                                        <h6 className="mb-0">Your Feedback</h6>
-                                                                                        <div className="d-flex justify-content-end align-items-center">
-                                                                                            <button
-                                                                                                className="btn-orange btn btn-outline-warning btn-sm"
-                                                                                                onClick={() => handleEditRating(order)}
-                                                                                            >
-                                                                                                <FontAwesomeIcon icon={faStar} /> Edit Rating
-                                                                                            </button>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div className="card-body">
-                                                                                        <div className="mb-3">
-                                                                                            <strong>Rating: </strong>
-                                                                                            {[...Array(5)].map((_, index) => (
-                                                                                                <FontAwesomeIcon
-                                                                                                    key={index}
-                                                                                                    icon={faStar}
-                                                                                                    className={index < orderFeedbacks[order.orderId].rating ? 'text-warning' : 'text-secondary'}
-                                                                                                />
-                                                                                            ))}
-                                                                                        </div>
-                                                                                        <div className="mb-3">
-                                                                                            <strong>Review: </strong>
-                                                                                            <p className="mt-2 mb-0">
-                                                                                                {orderFeedbacks[order.orderId].review || 'No written review'}
-                                                                                            </p>
-                                                                                        </div>
-                                                                                        <div className="text-muted small">
-                                                                                            Submitted on: {new Date(orderFeedbacks[order.orderId].createdAt).toLocaleDateString()}
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            )}
                                                                         </div>
                                                                     </td>
                                                                 </tr>
@@ -684,19 +466,6 @@ const OrderPage = () => {
                     </div>
                 </div>
             </div>
-
-            <RatingModal
-                show={showRatingModal}
-                onClose={() => {
-                    setShowRatingModal(false);
-                    setSelectedOrder(null);
-                }}
-                onSubmit={handleRatingSubmit}
-                restaurantName={selectedOrder?.restaurant?.name || ''}
-                existingRating={selectedOrder?.existingRating}
-                existingReview={selectedOrder?.existingReview}
-            />
-
             <Footer />
         </div>
     );

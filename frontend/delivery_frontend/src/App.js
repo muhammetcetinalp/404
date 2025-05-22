@@ -31,7 +31,6 @@ import AdminCustomerPage from './pages/AdminCustomerPage';
 import AdminRestaurantPage from './pages/AdminRestaurantPage';
 import AdminCourierPage from './pages/AdminCourierPage';
 import AdminAdminPage from './pages/AdminAdminPage';
-import AdminComplaints from './pages/AdminComplaints';
 
 const App = () => {
   return (
@@ -65,7 +64,6 @@ const App = () => {
         <Route path="/admin/couriers" element={<PrivateRoute allowedRoles={['admin']}> <AdminCourierPage /> </PrivateRoute>} />
         <Route path="/admin/admin-users" element={<PrivateRoute allowedRoles={['admin']}> <AdminAdminPage /> </PrivateRoute>} />
         <Route path="/admin/users" element={<PrivateRoute allowedRoles={['admin']}> <AdminUserListPage /> </PrivateRoute>} />
-        <Route path="/admin/complaints" element={<PrivateRoute allowedRoles={['admin']}> <AdminComplaints /> </PrivateRoute>} />
 
         <Route path="/profile" element={<PrivateRoute> <ProfilePage /> </PrivateRoute>} />
 

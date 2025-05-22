@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import api from '../api';
-import { ToastContainer } from 'react-toastify';
 
 const AddUserModal = ({ show, onClose, onUserAdded }) => {
     const [addUserForm, setAddUserForm] = useState({
@@ -22,47 +21,18 @@ const AddUserModal = ({ show, onClose, onUserAdded }) => {
     const handleAddUserChange = (e) => {
         setAddUserForm({ ...addUserForm, [e.target.name]: e.target.value });
     };
-    const CustomCloseButton = ({ closeToast }) => (
-        <button
-            onClick={closeToast}
-            style={{
-                background: 'transparent',
-                border: 'none',
-                fontSize: '16px',
-                color: 'white',
-                cursor: 'pointer',
-                padding: '4px',
-                margin: '0',
-                width: '35px',
-                height: '28px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-            }}
-        >
-            ×
-        </button>
-    );
+
     const submitAddUser = async (e) => {
         e.preventDefault();
         try {
             const endpoint = addUserForm.role === 'admin' ? '/admin/add-admin' : '/register';
             await api.post(endpoint, addUserForm);
-            toast.success('User created successfully!', {
-                position: "top-right",
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                theme: "colored"
-            });
+            alert('User created successfully.');
             resetForm();
             if (onUserAdded) onUserAdded();
             onClose();
         } catch (err) {
             setAddUserError('Failed to create user.');
-            toast.error(err.response?.data || 'Failed to create user. Please try again.');
             console.error(err);
         }
     };
@@ -100,22 +70,6 @@ const AddUserModal = ({ show, onClose, onUserAdded }) => {
                         ×
                     </button>
                 </div>
-                <ToastContainer
-                    position="top-right"
-                    autoClose={3000}
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                    theme="colored"
-                    closeButton={<CustomCloseButton />}
-                    toastClassName="custom-toast"
-                    bodyClassName="custom-toast-body"
-                    icon={true}
-                />
                 <div className="modal-body">
                     <form onSubmit={submitAddUser}>
                         <div className="form-group">

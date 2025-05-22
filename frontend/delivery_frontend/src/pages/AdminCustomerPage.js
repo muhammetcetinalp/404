@@ -450,83 +450,75 @@ const AdminCustomerPage = () => {
                             <button className="close-btn" onClick={() => setSelectedUser(null)}>×</button>
                         </div>
                         <div className="modal-body">
-                            <div className="custom-form-group">
-                                <label className="custom-label">Name</label>
+                            <div className="form-group">
+                                <label>Name</label>
                                 <input
                                     name="name"
                                     value={editForm.name || ''}
                                     onChange={handleEditChange}
                                     placeholder="Name"
-                                    className={`custom-input ${editFormErrors.name ? 'is-invalid' : ''}`}
+                                    className={`form-control ${editFormErrors.name ? 'error-input' : ''}`}
                                 />
-                                {editFormErrors.name && <div className="custom-error">{editFormErrors.name}</div>}
+                                {editFormErrors.name && <div className="error-message">{editFormErrors.name}</div>}
                             </div>
-                            <div className="custom-form-group">
-                                <label className="custom-label">Account Status</label>
+                            <div className="form-group">
+                                <label>Account Status</label>
                                 <select
                                     name="accountStatus"
                                     value={editForm.accountStatus || 'ACTIVE'}
                                     onChange={handleEditChange}
-                                    className="custom-input"
+                                    className="form-control"
                                 >
                                     <option value="ACTIVE">Active</option>
                                     <option value="SUSPENDED">Suspended</option>
                                     <option value="BANNED">Banned</option>
                                 </select>
                             </div>
-                            <div className="custom-form-group">
-                                <label className="custom-label">Phone (10 digits without +90)</label>
-                                <div className="custom-input-group">
-                                    <span className="custom-input-group-text">+90</span>
+                            <div className="form-group">
+                                <label>Phone (10 digits without +90)</label>
+                                <input
+                                    name="phone"
+                                    value={editForm.phone || ''}
+                                    onChange={handleEditChange}
+                                    placeholder="5XX XXX XXXX"
+                                    className={`form-control ${editFormErrors.phone ? 'error-input' : ''}`}
+                                />
+                                {editFormErrors.phone && <div className="error-message">{editFormErrors.phone}</div>}
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group half">
+                                    <label>City</label>
                                     <input
-                                        name="phone"
-                                        value={editForm.phone || ''}
+                                        name="city"
+                                        value={editForm.city || ''}
                                         onChange={handleEditChange}
-                                        placeholder="5XX XXX XXXX"
-                                        className={`custom-input ${editFormErrors.phone ? 'is-invalid' : ''}`}
+                                        placeholder="City"
+                                        className={`form-control ${editFormErrors.city ? 'error-input' : ''}`}
                                     />
+                                    {editFormErrors.city && <div className="error-message">{editFormErrors.city}</div>}
                                 </div>
-                                {editFormErrors.phone && <div className="custom-error">{editFormErrors.phone}</div>}
-                            </div>
-                            <div className="custom-row">
-                                <div className="custom-col">
-                                    <div className="custom-form-group">
-                                        <label className="custom-label">City</label>
-                                        <input
-                                            name="city"
-                                            value={editForm.city || ''}
-                                            onChange={handleEditChange}
-                                            placeholder="City"
-                                            className={`custom-input ${editFormErrors.city ? 'is-invalid' : ''}`}
-                                        />
-                                        {editFormErrors.city && <div className="custom-error">{editFormErrors.city}</div>}
-                                    </div>
-                                </div>
-                                <div className="custom-col">
-                                    <div className="custom-form-group">
-                                        <label className="custom-label">District</label>
-                                        <input
-                                            name="district"
-                                            value={editForm.district || ''}
-                                            onChange={handleEditChange}
-                                            placeholder="District"
-                                            className={`custom-input ${editFormErrors.district ? 'is-invalid' : ''}`}
-                                        />
-                                        {editFormErrors.district && <div className="custom-error">{editFormErrors.district}</div>}
-                                    </div>
+                                <div className="form-group half">
+                                    <label>District</label>
+                                    <input
+                                        name="district"
+                                        value={editForm.district || ''}
+                                        onChange={handleEditChange}
+                                        placeholder="District"
+                                        className={`form-control ${editFormErrors.district ? 'error-input' : ''}`}
+                                    />
+                                    {editFormErrors.district && <div className="error-message">{editFormErrors.district}</div>}
                                 </div>
                             </div>
-                            <div className="custom-form-group">
-                                <label className="custom-label">Address</label>
+                            <div className="form-group">
+                                <label>Address</label>
                                 <textarea
                                     name="address"
                                     value={editForm.address || ''}
                                     onChange={handleEditChange}
                                     placeholder="Address"
-                                    className={`custom-textarea ${editFormErrors.address ? 'is-invalid' : ''}`}
-                                    rows="2"
+                                    className={`form-control textarea ${editFormErrors.address ? 'error-input' : ''}`}
                                 />
-                                {editFormErrors.address && <div className="custom-error">{editFormErrors.address}</div>}
+                                {editFormErrors.address && <div className="error-message">{editFormErrors.address}</div>}
                             </div>
                         </div>
                         <div className="modal-footer">
@@ -552,97 +544,89 @@ const AdminCustomerPage = () => {
                         </div>
                         <div className="modal-body">
                             <form onSubmit={submitAddUser}>
-                                <div className="custom-form-group">
-                                    <label className="custom-label">Name</label>
+                                <div className="form-group">
+                                    <label>Name</label>
                                     <input
                                         name="name"
                                         value={addUserForm.name}
                                         onChange={handleAddUserChange}
                                         placeholder="Name"
-                                        className={`custom-input ${formErrors.name ? 'is-invalid' : ''}`}
+                                        className={`form-control ${formErrors.name ? 'error-input' : ''}`}
                                     />
-                                    {formErrors.name && <div className="custom-error">{formErrors.name}</div>}
+                                    {formErrors.name && <div className="error-message">{formErrors.name}</div>}
                                 </div>
-                                <div className="custom-form-group">
-                                    <label className="custom-label">Email</label>
+                                <div className="form-group">
+                                    <label>Email</label>
                                     <input
                                         name="email"
                                         type="email"
                                         value={addUserForm.email}
                                         onChange={handleAddUserChange}
                                         placeholder="Email"
-                                        className={`custom-input ${formErrors.email ? 'is-invalid' : ''}`}
+                                        className={`form-control ${formErrors.email ? 'error-input' : ''}`}
                                     />
-                                    {formErrors.email && <div className="custom-error">{formErrors.email}</div>}
+                                    {formErrors.email && <div className="error-message">{formErrors.email}</div>}
                                 </div>
-                                <div className="custom-form-group">
-                                    <label className="custom-label">Password</label>
+                                <div className="form-group">
+                                    <label>Password</label>
                                     <input
                                         name="password"
                                         type="password"
                                         value={addUserForm.password}
                                         onChange={handleAddUserChange}
                                         placeholder="Password"
-                                        className={`custom-input ${formErrors.password ? 'is-invalid' : ''}`}
+                                        className={`form-control ${formErrors.password ? 'error-input' : ''}`}
                                     />
-                                    {formErrors.password && <div className="custom-error">{formErrors.password}</div>}
+                                    {formErrors.password && <div className="error-message">{formErrors.password}</div>}
                                 </div>
-                                <div className="custom-form-group">
-                                    <label className="custom-label">Phone (10 digits without +90)</label>
-                                    <div className="custom-input-group">
-                                        <span className="custom-input-group-text">+90</span>
+                                <div className="form-group">
+                                    <label>Phone (10 digits without +90)</label>
+                                    <input
+                                        name="phone"
+                                        value={addUserForm.phone}
+                                        onChange={handleAddUserChange}
+                                        placeholder="5XX XXX XXXX"
+                                        className={`form-control ${formErrors.phone ? 'error-input' : ''}`}
+                                    />
+                                    {formErrors.phone && <div className="error-message">{formErrors.phone}</div>}
+                                </div>
+                                <div className="form-row">
+                                    <div className="form-group half">
+                                        <label>City</label>
                                         <input
-                                            name="phone"
-                                            value={addUserForm.phone}
+                                            name="city"
+                                            value={addUserForm.city}
                                             onChange={handleAddUserChange}
-                                            placeholder="5XX XXX XXXX"
-                                            className={`custom-input ${formErrors.phone ? 'is-invalid' : ''}`}
+                                            placeholder="City"
+                                            className={`form-control ${formErrors.city ? 'error-input' : ''}`}
                                         />
+                                        {formErrors.city && <div className="error-message">{formErrors.city}</div>}
                                     </div>
-                                    {formErrors.phone && <div className="custom-error">{formErrors.phone}</div>}
-                                </div>
-                                <div className="custom-row">
-                                    <div className="custom-col">
-                                        <div className="custom-form-group">
-                                            <label className="custom-label">City</label>
-                                            <input
-                                                name="city"
-                                                value={addUserForm.city}
-                                                onChange={handleAddUserChange}
-                                                placeholder="City"
-                                                className={`custom-input ${formErrors.city ? 'is-invalid' : ''}`}
-                                            />
-                                            {formErrors.city && <div className="custom-error">{formErrors.city}</div>}
-                                        </div>
-                                    </div>
-                                    <div className="custom-col">
-                                        <div className="custom-form-group">
-                                            <label className="custom-label">District</label>
-                                            <input
-                                                name="district"
-                                                value={addUserForm.district}
-                                                onChange={handleAddUserChange}
-                                                placeholder="District"
-                                                className={`custom-input ${formErrors.district ? 'is-invalid' : ''}`}
-                                            />
-                                            {formErrors.district && <div className="custom-error">{formErrors.district}</div>}
-                                        </div>
+                                    <div className="form-group half">
+                                        <label>District</label>
+                                        <input
+                                            name="district"
+                                            value={addUserForm.district}
+                                            onChange={handleAddUserChange}
+                                            placeholder="District"
+                                            className={`form-control ${formErrors.district ? 'error-input' : ''}`}
+                                        />
+                                        {formErrors.district && <div className="error-message">{formErrors.district}</div>}
                                     </div>
                                 </div>
-                                <div className="custom-form-group">
-                                    <label className="custom-label">Address</label>
+                                <div className="form-group">
+                                    <label>Address</label>
                                     <textarea
                                         name="address"
                                         value={addUserForm.address}
                                         onChange={handleAddUserChange}
                                         placeholder="Address"
-                                        className={`custom-textarea ${formErrors.address ? 'is-invalid' : ''}`}
-                                        rows="2"
+                                        className={`form-control textarea ${formErrors.address ? 'error-input' : ''}`}
                                     />
-                                    {formErrors.address && <div className="custom-error">{formErrors.address}</div>}
+                                    {formErrors.address && <div className="error-message">{formErrors.address}</div>}
                                 </div>
 
-                                {addUserError && <div className="custom-error">{addUserError}</div>}
+                                {addUserError && <p className="error-message">{addUserError}</p>}
 
                                 <div className="modal-footer">
                                     <button type="submit" className="btn-orange btn-save">Save Customer</button>

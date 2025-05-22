@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faTachometerAlt, faUsers, faUtensils, faTruck,
-    faUserShield, faSignOutAlt, faExclamationTriangle
+    faUserShield, faSignOutAlt
 } from '@fortawesome/free-solid-svg-icons';
 import '../styles/admin.css';
 
@@ -48,12 +48,6 @@ const AdminLayout = ({ children, active }) => {
                     onClick={() => handleNavigate('/admin/couriers')}
                 >
                     <FontAwesomeIcon icon={faTruck} className="nav-icon" /> Couriers
-                </button>
-                <button
-                    className={`admin-nav-item ${active === 'complaints' ? 'active' : ''}`}
-                    onClick={() => handleNavigate('/admin/complaints')}
-                >
-                    <FontAwesomeIcon icon={faExclamationTriangle} className="nav-icon" /> Complaints
                 </button>
                 <button
                     className={`admin-nav-item ${active === 'admins' ? 'active' : ''}`}

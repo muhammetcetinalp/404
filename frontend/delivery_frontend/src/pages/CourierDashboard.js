@@ -27,9 +27,6 @@ import '../styles/dashboard.css';
 import '../styles/restaurant-dashboard.css';
 import { AccountStatusBanner, checkAccountStatus } from '../components/AccountStatusBanner';
 import { jwtDecode } from 'jwt-decode';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import CustomCloseButton from '../components/CustomCloseButton';
 
 const CourierDashboard = () => {
     const [pendingOrders, setPendingOrders] = useState([]);
@@ -41,47 +38,7 @@ const CourierDashboard = () => {
     const [processingOrders, setProcessingOrders] = useState(new Set());
     const [courierStatus, setCourierStatus] = useState('UNAVAILABLE');
     const [statusLoading, setStatusLoading] = useState(false);
-    const [loadingOrderDetails, setLoadingOrderDetails] = useState(false);
     const navigate = useNavigate();
-
-    // Calculate estimated delivery time
-    const getEstimatedDeliveryTime = (order) => {
-        if (!order || !order.orderStatus) return 'Unknown';
-        const status = order.orderStatus.toUpperCase().replace(/_/g, ''); // Normalization
-        if (status === 'DELIVERED') return 'Delivered';
-        if (status === 'CANCELLED' || status === 'CANCELLEDBYCUSTOMER') return 'Cancelled';
-
-        // Basic calculation - adjust based on your business logic
-        switch (status) {
-            case 'PENDING':
-                return '30-45 min';
-            case 'INPROGRESS':
-            case 'ACCEPTED':
-                return '25-35 min';
-            case 'PREPARING':
-                return '15-25 min';
-            case 'READY':
-                return '5-10 min';
-            case 'PICKEDUP':
-                return '5-15 min';
-            default:
-                return 'Unknown';
-        }
-    };
-
-    // Add this function before calculateCourierEarnings
-    const calculateItemsTotal = (items) => {
-        if (!items || !Array.isArray(items) || items.length === 0) return 0;
-        return items.reduce((total, item) => total + (item.price * item.quantity), 0);
-    };
-
-    // Add this function after getEstimatedDeliveryTime
-    const calculateCourierEarnings = (order) => {
-        if (!order) return 0;
-        const deliveryFee = (order.deliveryMethod === 'DELIVERY' || order.deliveryType === 'DELIVERY') ? 60 : 0;
-        const tipAmount = order.tipAmount || 0; // Use tipAmount directly if available
-        return deliveryFee + tipAmount;
-    };
 
     const token = localStorage.getItem('token');
 
@@ -268,30 +225,16 @@ const CourierDashboard = () => {
             // Call API
             await api.patch(`/courier/orders/accept-available/${orderId}`);
 
-            // Show success message using toast
-            toast.success('Order accepted successfully!', {
-                position: "top-right",
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                theme: "colored",
-                closeButton: CustomCloseButton
-            });
+            // Show success message
+            alert('Order accepted successfully!');
 
-            // Add a delay before navigation
-            setTimeout(() => {
-                navigate('/my-deliveries');
-            }, 1000); // 1 second delay
-
+            // Redirect to deliveries page
+            navigate('/my-deliveries');
         } catch (err) {
             // Provide more descriptive error message
             if (err.response?.status === 400 && err.response?.data?.includes('already accepted')) {
-                toast.error('This order has already been accepted. Check your deliveries page.');
-                setTimeout(() => {
-                    navigate('/my-deliveries');
-                }, 1000);
+                alert('This order has already been accepted. Check your deliveries page.');
+                navigate('/my-deliveries');
             } else {
                 console.error('Error accepting order:', err);
                 setError('Failed to accept order. Please try again.');
@@ -334,23 +277,6 @@ const CourierDashboard = () => {
                 </div>
             </div>
 
-            <ToastContainer
-                position="top-right"
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="colored"
-                closeButton={<CustomCloseButton />}
-                toastClassName="custom-toast"
-                bodyClassName="custom-toast-body"
-                icon={true}
-            />
-
             <div className="container-fluid py-4 flex-grow-1" style={{ background: "#EBEDF3", minHeight: "70vh" }}>
                 <div className="container">
                     {error && (
@@ -360,21 +286,8 @@ const CourierDashboard = () => {
                     )}
 
                     {courierStatus === 'UNAVAILABLE' && (
-                        <div className="status-banner p-4 mb-4 rounded shadow-sm" style={{
-                            background: 'linear-gradient(135deg, #1a1a1a 0%, #434343 100%)',
-                            color: 'white',
-                            border: 'none',
-                            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-                        }}>
-                            <div className="d-flex align-items-center">
-                                <div style={{ fontSize: '2rem', marginRight: '1rem', color: '#eb6825' }}>
-                                    <FontAwesomeIcon icon={faToggleOff} />
-                                </div>
-                                <div>
-                                    <h4 className="mb-1" style={{ fontWeight: '600' }}>You are currently Unavailable</h4>
-                                    <p className="mb-0" style={{ opacity: '0.8' }}>Toggle your status to 'Available' to start accepting new delivery requests</p>
-                                </div>
-                            </div>
+                        <div className="alert alert-warning" role="alert">
+                            <strong>You are currently marked as Unavailable!</strong> Change your status to Available to view and accept new orders.
                         </div>
                     )}
 
@@ -382,41 +295,23 @@ const CourierDashboard = () => {
                         {/* Left Sidebar - Sort Options */}
                         <div className="col-lg-3 col-md-4 col-sm-12 mb-4">
                             <div className="bg-white p-4 dashboard-sidebar rounded shadow-sm mb-4">
-                                {/* Courier Status Toggle */}
-                                <div>
-                                    <h5 className="mb-3">
-                                        <FontAwesomeIcon icon={faMotorcycle} className="me-2" />
-                                        Courier Status
-                                    </h5>
-                                    <div className="d-flex align-items-center justify-content-between p-3" style={{ background: '#f8f9fa', borderRadius: '8px' }}>
-                                        <div>
-                                            <div className="font-weight-bold mb-1">
-                                                {courierStatus === 'AVAILABLE' ? 'Available' : 'Unavailable'}
-                                            </div>
-                                            <div className="text-muted small">
-                                                {courierStatus === 'AVAILABLE' ? 'Ready for deliveries' : 'Not accepting'}
-                                            </div>
-                                        </div>
-                                        <button
-                                            className={`btn ${courierStatus === 'AVAILABLE' ? 'btn-primary' : 'btn-secondary'}`}
-                                            onClick={toggleCourierStatus}
-                                            style={{
-                                                width: '80px',
-                                                backgroundColor: courierStatus === 'AVAILABLE' ? '#eb6825' : '#6c757d',
-                                                border: 'none'
-                                            }}
-                                            disabled={statusLoading}
-                                        >
-                                            {statusLoading ? (
-                                                <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                            ) : (
-                                                <div className="text-white d-flex align-items-center justify-content-center">
-                                                    <FontAwesomeIcon icon={courierStatus === 'AVAILABLE' ? faToggleOn : faToggleOff} className="me-1" />
-                                                    {courierStatus === 'AVAILABLE' ? 'On' : 'Off'}
-                                                </div>
-                                            )}
-                                        </button>
-                                    </div>
+                                <div className="text-center">
+                                    <h5 className="mb-3">Courier Status</h5>
+                                    <button
+                                        className={`btn ${courierStatus === 'AVAILABLE' ? 'btn-success' : 'btn-secondary'} w-100`}
+                                        onClick={toggleCourierStatus}
+                                        disabled={statusLoading}
+                                    >
+                                        {statusLoading ? (
+                                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                        ) : (
+                                            <FontAwesomeIcon
+                                                icon={courierStatus === 'AVAILABLE' ? faToggleOn : faToggleOff}
+                                                className="me-2"
+                                            />
+                                        )}
+                                        {courierStatus === 'AVAILABLE' ? 'Available' : 'Unavailable'}
+                                    </button>
                                 </div>
                             </div>
                             <div className="bg-white p-4 dashboard-sidebar rounded shadow-sm">
@@ -522,10 +417,9 @@ const CourierDashboard = () => {
                                                             </div>
                                                             <div className="col-md-3">
                                                                 <p className="mb-1">
-                                                                    <strong>Total Earning:</strong>
+                                                                    <strong>Total Amount:</strong>
                                                                 </p>
-                                                                <h5 className="text-orange">₺{calculateCourierEarnings(order).toFixed(2)}</h5>
-
+                                                                <h5 className="text-orange">₺{order.totalAmount.toFixed(2)}</h5>
                                                             </div>
                                                             <div className="col-md-2 text-right">
                                                                 <button
@@ -559,98 +453,38 @@ const CourierDashboard = () => {
                                                         </div>
                                                     </div>
 
-                                                    {/* Order Details Section */}
                                                     {expandedOrderId === order.orderId && (
                                                         <div className="card-footer order-details-section p-3">
-                                                            <h6 className="mb-3">Order Details</h6>
-
-                                                            {loadingOrderDetails ? (
-                                                                <div className="text-center py-3">
-                                                                    <div className="spinner-border spinner-border-sm text-warning" role="status">
-                                                                        <span className="sr-only">Loading details...</span>
-                                                                    </div>
-                                                                    <p className="mt-2 small">Loading order details...</p>
-                                                                </div>
-                                                            ) : (
-                                                                <>
-                                                                    <div className="row mb-3">
-                                                                        <div className="col-md-6">
-                                                                            <h6>Items</h6>
-                                                                            <table className="table table-sm">
-                                                                                <thead className="thead-light">
-                                                                                    <tr>
-                                                                                        <th>Item</th>
-                                                                                        <th>Qty</th>
-                                                                                        <th>Price</th>
-                                                                                        <th>Total</th>
-                                                                                    </tr>
-                                                                                </thead>
-                                                                                <tbody>
-                                                                                    {order.items && Object.entries(order.items).map(([itemKey, quantity], index) => {
-                                                                                        try {
-                                                                                            const item = JSON.parse(itemKey);
-                                                                                            return (
-                                                                                                <tr key={index}>
-                                                                                                    <td>{item.name}</td>
-                                                                                                    <td>{quantity}</td>
-                                                                                                    <td>{item.price.toFixed(2)} TL</td>
-                                                                                                    <td>{(quantity * item.price).toFixed(2)} TL</td>
-                                                                                                </tr>
-                                                                                            );
-                                                                                        } catch (e) {
-                                                                                            return null;
-                                                                                        }
-                                                                                    })}
-                                                                                </tbody>
-                                                                                <tfoot>
-                                                                                    <tr>
-                                                                                        <td colSpan="3" className="text-right"><strong>Items Total:</strong></td>
-                                                                                        <td>{calculateItemsTotal(order.items).toFixed(2)} TL</td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <td colSpan="3" className="text-right"><strong>Customer Tip:</strong></td>
-                                                                                        <td>{(order.tipAmount || 0).toFixed(2)} TL</td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <td colSpan="3" className="text-right"><strong>Delivery Fee:</strong></td>
-                                                                                        <td>{(order.deliveryMethod === 'DELIVERY' || order.deliveryType === 'DELIVERY') ? '60.00' : '0.00'} TL</td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <td colSpan="3" className="text-right"><strong>My Total Earnings:</strong></td>
-                                                                                        <td><strong>{calculateCourierEarnings(order).toFixed(2)} TL</strong></td>
-                                                                                    </tr>
-                                                                                </tfoot>
-                                                                            </table>
-                                                                        </div>
-                                                                        <div className="col-md-6">
-                                                                            <h6>Delivery Information</h6>
-                                                                            <div className="card p-3">
-                                                                                <ul className="list-group list-group-flush">
-                                                                                    <li className="list-group-item">
-                                                                                        <strong>Restaurant:</strong><br />
-                                                                                        {order.restaurant?.name || 'Restaurant Name'}<br />
-                                                                                        <small className="text-muted">{order.restaurant?.address || 'Restaurant Address'}</small>
-                                                                                    </li>
-                                                                                    <li className="list-group-item">
-                                                                                        <strong>Customer:</strong><br />
-                                                                                        {order.customerName || 'Customer Name'}<br />
-                                                                                        <small className="text-muted">{order.deliveryAddress || 'Delivery Address'}</small>
-                                                                                    </li>
-                                                                                    <li className="list-group-item">
-                                                                                        <strong>Order Time:</strong><br />
-                                                                                        {formatDateTime(order.orderDate)}
-                                                                                    </li>
-                                                                                    <li className="list-group-item">
-                                                                                        <strong>Estimated Delivery Time:</strong><br />
-                                                                                        {getEstimatedDeliveryTime(order)}
-                                                                                    </li>
-
-                                                                                </ul>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </>
-                                                            )}
+                                                            <h6 className="mb-3">Order Items</h6>
+                                                            <table className="table table-sm">
+                                                                <thead className="thead-light">
+                                                                    <tr>
+                                                                        <th>Item</th>
+                                                                        <th>Quantity</th>
+                                                                        <th className="text-right">Price</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {Object.entries(orderDetails[order.orderId]?.items || {}).map(([itemKey, quantity], index) => {
+                                                                        try {
+                                                                            const item = JSON.parse(itemKey);
+                                                                            return (
+                                                                                <tr key={index}>
+                                                                                    <td>{item.name}</td>
+                                                                                    <td>{quantity}</td>
+                                                                                    <td className="text-right">₺{(item.price * quantity).toFixed(2)}</td>
+                                                                                </tr>
+                                                                            );
+                                                                        } catch (e) {
+                                                                            return null;
+                                                                        }
+                                                                    })}
+                                                                    <tr className="table-warning">
+                                                                        <td colSpan="2"><strong>Total</strong></td>
+                                                                        <td className="text-right"><strong>₺{order.totalAmount.toFixed(2)}</strong></td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
                                                         </div>
                                                     )}
                                                 </div>

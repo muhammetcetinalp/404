@@ -39,28 +39,6 @@ import image18 from '../assets/images/exampleRestaurants/image18.jpg';
 import image19 from '../assets/images/exampleRestaurants/image19.jpg';
 import image20 from '../assets/images/exampleRestaurants/image20.jpg';
 
-// Import restaurant images
-import image1 from '../assets/images/exampleRestaurants/image1.png';
-import image2 from '../assets/images/exampleRestaurants/image2.png';
-import image3 from '../assets/images/exampleRestaurants/image3.png';
-import image4 from '../assets/images/exampleRestaurants/image4.png';
-import image5 from '../assets/images/exampleRestaurants/image5.png';
-import image6 from '../assets/images/exampleRestaurants/image6.png';
-import image7 from '../assets/images/exampleRestaurants/image7.jpg';
-import image8 from '../assets/images/exampleRestaurants/image8.jpg';
-import image9 from '../assets/images/exampleRestaurants/image9.jpg';
-import image10 from '../assets/images/exampleRestaurants/image10.jpg';
-import image11 from '../assets/images/exampleRestaurants/image11.jpg';
-import image12 from '../assets/images/exampleRestaurants/image12.jpg';
-import image13 from '../assets/images/exampleRestaurants/image13.jpg';
-import image14 from '../assets/images/exampleRestaurants/image14.jpg';
-import image15 from '../assets/images/exampleRestaurants/image15.jpg';
-import image16 from '../assets/images/exampleRestaurants/image16.jpg';
-import image17 from '../assets/images/exampleRestaurants/image17.jpg';
-import image18 from '../assets/images/exampleRestaurants/image18.jpg';
-import image19 from '../assets/images/exampleRestaurants/image19.jpg';
-import image20 from '../assets/images/exampleRestaurants/image20.jpg';
-
 const CustomerDashboard = () => {
     const [restaurants, setRestaurants] = useState([]);
     const [filteredRestaurants, setFilteredRestaurants] = useState([]);
@@ -657,8 +635,8 @@ const CustomerDashboard = () => {
                                     {selectedRestaurant.name}
                                 </h4>
                             </div>
-                            <button 
-                                className="btn-close" 
+                            <button
+                                className="btn-close"
                                 onClick={handleCloseModal}
                                 style={{
                                     backgroundColor: '#eb6825',
